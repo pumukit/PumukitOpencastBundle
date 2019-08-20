@@ -1,0 +1,29 @@
+{
+    "name": "teltek/pumukit-opencast-bundle",
+    "type": "symfony-bundle",
+    "description": "Opencast bundle for PuMuKIT",
+    "keywords": [
+        "opencast",
+        "symfony",
+        "bundle",
+        "pumukit",
+        "teltek"
+    ],
+    "homepage": "https://github.com/pumukit/PumukitOpencastBundle",
+    "license": "proprietary",
+    "authors": [
+        {
+            "name": "Teltek Team",
+            "homepage": "http://teltek.es"
+        }
+    ],
+    "require": {
+        "php": ">=7.2",
+        "pumukit/pumukit": ">=3.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Pumukit\\OpencastBundle\\": ""
+        }
+    }
+}
