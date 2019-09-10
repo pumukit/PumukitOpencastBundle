@@ -68,7 +68,7 @@ class WorkflowService
      * @param string $id
      * @param mixed  $workflowName
      *
-     * @return null|array
+     * @return array|null
      */
     private function getAllWorkflowInstances($id = '', $workflowName = '')
     {
@@ -119,7 +119,7 @@ class WorkflowService
      *
      * @param array $workflow
      *
-     * @return null|string $mediaPackageId
+     * @return string|null $mediaPackageId
      */
     private function getMediaPackageIdFromWorkflow(array $workflow = [])
     {
