@@ -54,7 +54,7 @@ class OpencastImportService
      *
      * @param string    $opencastId
      * @param bool      $invert
-     * @param User|null $loggedInUser
+     * @param null|User $loggedInUser
      */
     public function importRecording($opencastId, $invert = false, User $loggedInUser = null)
     {
@@ -71,7 +71,7 @@ class OpencastImportService
      *
      * @param array     $mediaPackage
      * @param bool      $invert
-     * @param User|null $loggedInUser
+     * @param null|User $loggedInUser
      */
     public function importRecordingFromMediaPackage($mediaPackage, $invert = false, User $loggedInUser = null)
     {

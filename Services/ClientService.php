@@ -44,8 +44,8 @@ class ClientService
      * @param bool                 $manageOpencastUsers
      * @param bool                 $insecure
      * @param null                 $adminUrl
-     * @param LoggerInterface|null $logger
-     * @param RoleHierarchy|null   $roleHierarchy
+     * @param null|LoggerInterface $logger
+     * @param null|RoleHierarchy   $roleHierarchy
      */
     public function __construct($url = '', $user = '', $passwd = '', $player = '/engage/ui/watch.html', $scheduler = '/admin/index.html#/recordings', $dashboard = '/dashboard/index.html', $deleteArchiveMediaPackage = false, $deletionWorkflowName = 'delete-archive', $manageOpencastUsers = false, $insecure = false, $adminUrl = null, LoggerInterface $logger = null, RoleHierarchy $roleHierarchy = null)
     {
@@ -100,7 +100,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return string|null
+     * @return null|string
      */
     public function getAdminUrl()
     {
@@ -190,7 +190,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return bool|mixed|null
+     * @return null|bool|mixed
      */
     public function getMediaPackage($id)
     {
@@ -244,7 +244,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return array|null
+     * @return null|array
      */
     public function getMasterMediaPackage($id)
     {
@@ -274,7 +274,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return array|null
+     * @return null|array
      */
     public function getMediaPackageFromWorkflow($id)
     {
@@ -299,7 +299,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return array|null
+     * @return null|array
      */
     public function getMediaPackageFromAssets($id)
     {
@@ -722,7 +722,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return bool|string|null
+     * @return null|bool|string
      */
     public function getSpatialField($url)
     {
@@ -873,6 +873,7 @@ class ClientService
             if (200 != $output['status']) {
                 $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
                                      .') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
+
                 throw new \Exception(sprintf(
                     'Error "%s", Status %s, Processing Request "%s"',
                     $output['error'],
@@ -909,7 +910,7 @@ class ClientService
      *
      * @throws \Exception
      *
-     * @return array|null
+     * @return null|array
      */
     private function decodeXML($xmlString = [])
     {

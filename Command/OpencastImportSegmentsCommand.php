@@ -105,7 +105,7 @@ EOT
      *
      * @throws \Exception
      *
-     * @return int|void|null
+     * @return null|int|void
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

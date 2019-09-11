@@ -22,7 +22,7 @@ Command to stop workflows in Opencast Server.
 Given mediaPackageId, will stop that workflow, all finished otherwise.
 
 EOT
-                      )
+            )
         ;
     }
 
