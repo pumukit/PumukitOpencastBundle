@@ -128,7 +128,6 @@ class Configuration implements ConfigurationInterface
             ->defaultValue('TECHOPENCAST')
             ->info('Set default tag when imported from opencast to PMK2')
             ->end()
-            ->end()
             ->arrayNode('notifications')
               ->info('subject fail of email in multiple languages')
               ->children()

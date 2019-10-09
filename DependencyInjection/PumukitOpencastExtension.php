@@ -1,5 +1,4 @@
 <?php
-
 namespace Pumukit\OpencastBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -83,6 +82,7 @@ class PumukitOpencastExtension extends Extension
                 ->addArgument(new Reference('pumukit_opencast.client'))
                 ->addArgument(new Reference('pumukit_opencast.job'))
                 ->addArgument(new Reference('pumukit.inspection'))
+            ;
 
             $container->setParameter('pumukit_opencast.sbs', $config['sbs']);
             $container->setParameter('pumukit_opencast.sbs.generate_sbs', $config['sbs']['generate_sbs'] ? $config['sbs']['generate_sbs'] : false);
