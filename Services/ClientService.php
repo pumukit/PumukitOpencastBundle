@@ -323,7 +323,9 @@ class ClientService
     public function getMediaPackageFromArchive($id)
     {
         // NOTE: BC for OC 1.4 to 1.6
-        $output = $this->request('/episode/episode.json?id='.$id, [], 'GET', true);
+        $output = $this->request('/episode/episode.json?id='.$id, array(), 'GET', true);
+        // NOTE: When the above url returns 404, THIS ALWAYS FAILS!! Since it's a GET request, the request() function throws an exception, and the lines below are never executed
+        // In other words, we gotta do a try {} catch if we wanted to support OC 2.x
         if (200 !== $output['status']) {
             // NOTE: BC for OC 2.x
             $output = $this->request('/archive/episode.json?id='.$id, [], 'GET', true);
@@ -897,7 +899,7 @@ class ClientService
     private function decodeJson($jsonString = '')
     {
         $decode = json_decode($jsonString, true);
-        if (!($decode)) {
+        if (!is_array($decode)) {
             throw new \Exception('Opencast communication error');
         }
 
@@ -947,5 +949,98 @@ class ClientService
         }
 
         return '["'.implode('","', $roles).'"]';
+    }
+
+    /**
+     * @param $url
+     *
+     * @return bool|string|null
+     *
+     * @throws \Exception
+     */
+    public function getSpatialField($url)
+    {
+        if (0 === strpos($url, $this->url)) {
+            $path = parse_url($url, PHP_URL_PATH);
+            if (!$path) {
+                return null;
+            }
+            $response = $this->request($path);
+        } else {
+            $response = array('var' => file_get_contents($url));
+        }
+
+        $start = strrpos($response['var'], '<dcterms:spatial>');
+        $end = strrpos($response['var'], '</dcterms:spatial>');
+
+        if ((false !== $start) && (false !== $end)) {
+            $start += strlen('<dcterms:spatial>');
+
+            return substr($response['var'], $start, $end - $start);
+        }
+
+        return null;
+    }
+
+    public function removeEvent($id)
+    {
+        $output = $this->request('/admin-ng/event/'.$id, array(), 'DELETE', true);
+        if (!$output) {
+            throw new \Exception("Can't access to admin-ng/event");
+        }
+
+        return null;
+    }
+
+    /**
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function getOpencastVersion()
+    {
+        $output = $this->request('/info/components.json');
+        if (!$output) {
+            throw new \Exception("Can't access to /info/components.json");
+        }
+        $decode = $this->decodeJson($output['var']);
+        if (isset($decode['rest'][0]['version'])) {
+            return $decode['rest'][0]['version'];
+        }
+
+        throw new \Exception("Cant't recognize ['rest'][0]['version'] from /info/components.json");
+    }
+
+    /**
+     * @return array
+     */
+    public function getGalicasterProperties($id, $mpVersion = 1)
+    {
+        $url = sprintf('/assets/assets/%s/galicaster-properties/%d/galicaster.json', $id, $mpVersion);
+
+        return $this->getGalicasterPropertiesFromurl($url);
+    }
+
+    /**
+     * @return array
+     */
+    public function getGalicasterPropertiesFromUrl($url)
+    {
+        $url = parse_url($url, PHP_URL_PATH);
+        try {
+            $output = $this->request($url, array(), 'GET', true);
+        } catch (\Exception $e) {
+            $this->logger->warning(sprintf('Error processing request to get galicaster-properties: %s | Not setting Galicaster properties.', $e->getMessage()));
+
+            return array();
+        }
+        if (!$output) {
+            $this->logger->warning(sprintf('Url for galicaster properties returned an empty response: %s', $url));
+
+            return array();
+        }
+        $galicasterProperties = $this->decodeJson($output['var']);
+
+        return $galicasterProperties;
     }
 }

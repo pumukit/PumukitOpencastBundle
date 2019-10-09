@@ -153,6 +153,10 @@
         <source>i18n.one.Series</source>
         <target state="translated">serie</target>
       </trans-unit>
+      <trans-unit id="79dd26f1cbd348dd9db2916086602e6f" resname='From Opencast. Used "%title%" (%id%) as template.'>
+        <source>From Opencast. Used "%title%" (%id%) as template.</source>
+        <target>De Opencast. Usado "%title%" (%id%) como plantilla.</target>
+      </trans-unit>
     </body>
   </file>
 </xliff>

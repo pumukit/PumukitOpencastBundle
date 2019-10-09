@@ -18,6 +18,15 @@
             <i class="mdi-action-info"></i>
         </a>
     </td>
+    {% if not is_naked() %}
+        <td>
+            <a title="{% trans %}File info of multimedia object{% endtrans %} {{ mm.id }}"
+                data-toggle="modal" data-backdrop="static" data-dismiss="modal" data-target="#myModal"
+                href="{{ path('pumukit_opencast_mm_info', {'id': mm.id}) }}">
+                <i class="mdi-action-info"></i>
+            </a>
+        </td>
+    {% endif %}
     <td>
         <div class="dropdown">
             <i class="mdi-image-camera-alt" id="list_capture_frame_{{ (mm.getTrackWithTag('presenter/delivery'))?mm.getTrackWithTag('presenter/delivery').getId(): 'null' }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
@@ -54,11 +63,13 @@
     <td></td>
     <td></td>
     <td></td>
-    <td></td>
-    <td></td>
+    {% if not is_naked() %}
+        <td></td>
+        <td></td>
+    {% endif %}
     <td>
-        &nbsp;{% spaceless %}{{ mm.id }} - <strong>{% trans %}Opencast Recording{% endtrans %}</strong>
-        &nbsp;<a target="_blank" href="{{ player }}?id={{ mm.getProperty('opencast') ~ (mm.getProperty('opencastinvert')?'&display=invert':'') }}">{{ mm.getProperty('opencast') }}</a>
+        &nbsp;{% if not is_naked() %}{{ mm.id }} - {% endif %}<strong>{% trans %}Opencast Recording{% endtrans %}</strong>
+        &nbsp;<a target="_blank" href="{{ player }}?id={{ mm.getProperty('opencast') ~ (mm.getProperty('opencastinvert')?'&display=invert':'') }}&mode=embed">{{ mm.getProperty('opencast') }}</a>
         {% endspaceless %}
     </td>
 </tr>
