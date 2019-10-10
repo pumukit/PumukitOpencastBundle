@@ -2,8 +2,8 @@
 
 namespace Pumukit\OpencastBundle\Event;
 
-use Symfony\Component\EventDispatcher\Event;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
+use Symfony\Component\EventDispatcher\Event;
 
 class ImportEvent extends Event
 {

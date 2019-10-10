@@ -3,17 +3,10 @@
 namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Psr\Log\LoggerInterface;
 use Pumukit\InspectionBundle\Services\InspectionServiceInterface;
-
-use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\HttpKernel\Log\LoggerInterface;
-use Symfony\Component\Translation\TranslatorInterface;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
-use Pumukit\SchemaBundle\Services\FactoryService;
-use Pumukit\SchemaBundle\Services\TrackService;
-use Pumukit\SchemaBundle\Services\TagService;
-use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\Pic;
 use Pumukit\SchemaBundle\Document\Tag;
@@ -23,15 +16,19 @@ use Pumukit\SchemaBundle\Services\FactoryService;
 use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 use Pumukit\SchemaBundle\Services\TagService;
 use Pumukit\SchemaBundle\Services\TrackService;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Component\Translation\TranslatorInterface;
 
 class OpencastImportService
 {
-    private $opencastClient;
     private $dm;
     private $factoryService;
+    private $logger;
+    private $translator;
     private $trackService;
     private $tagService;
     private $mmsService;
+    private $opencastClient;
     private $opencastService;
     private $inspectionService;
     private $otherLocales;
@@ -54,10 +51,10 @@ class OpencastImportService
      * @param OpencastService            $opencastService
      * @param InspectionServiceInterface $inspectionService
      * @param array                      $otherLocales
-     * @param $defaultTagImported
-     * @param SeriesImportService      $seriesImportService
-     * @param array                    $customLanguages
-     * @param EventDispatcherInterface $dispatcher
+     * @param string                     $defaultTagImported
+     * @param SeriesImportService        $seriesImportService
+     * @param array                      $customLanguages
+     * @param EventDispatcherInterface   $dispatcher
      */
     public function __construct(
         DocumentManager $documentManager,
@@ -124,10 +121,10 @@ class OpencastImportService
     public function importRecordingFromMediaPackage($mediaPackage, $invert = false, User $loggedInUser = null)
     {
         $multimediaObject = null;
-        $multimediaobjectsRepo = $this->dm->getRepository(MultimediaObject::class);
+        $multimediaObjectRepository = $this->dm->getRepository(MultimediaObject::class);
         $mediaPackageId = $this->getMediaPackageField($mediaPackage, 'id');
         if ($mediaPackageId) {
-            $multimediaObject = $multimediaobjectsRepo->findOneBy(['properties.opencast' => $mediaPackageId]);
+            $multimediaObject = $multimediaObjectRepository->findOneBy(['properties.opencast' => $mediaPackageId]);
         }
 
         if (null !== $multimediaObject) {
@@ -145,10 +142,11 @@ class OpencastImportService
                 continue;
             }
             $galicasterPropertiesUrl = $attachment['url'];
+
             break;
         }
 
-        $galicasterProperties = array();
+        $galicasterProperties = [];
         if ($galicasterPropertiesUrl) {
             $galicasterProperties = $this->opencastClient->getGalicasterPropertiesFromUrl($galicasterPropertiesUrl);
         } else {
@@ -160,7 +158,7 @@ class OpencastImportService
 
         if (isset($galicasterProperties['galicaster']['properties']['pmk_mmobj'])) {
             $multimediaObjectId = $galicasterProperties['galicaster']['properties']['pmk_mmobj'];
-            $multimediaObject = $multimediaObjectRepo->find($multimediaObjectId);
+            $multimediaObject = $multimediaObjectRepository->find($multimediaObjectId);
         }
 
         //We try to initialize the tracks before anything to prevent importing if any tracks have wrong data
@@ -170,9 +168,9 @@ class OpencastImportService
 
         if (isset($opencastTracks['id'])) {
             // NOTE: Single track
-            $opencastTracks = array($opencastTracks);
+            $opencastTracks = [$opencastTracks];
         }
-        $tracks = array();
+        $tracks = [];
         $opencastUrls = [];
         foreach ($opencastTracks as $opencastTrack) {
             $tracks[] = $this->createTrackFromOpencastTrack($opencastTrack, $language);
@@ -205,7 +203,7 @@ class OpencastImportService
             // TODO: Translate?
             $commentsText = $this->translator->trans(
                 'From Opencast. Used "%title%" (%id%) as template.',
-                array('%title%' => $multimediaObject->getTitle(), '%id%' => $multimediaObject->getId())
+                ['%title%' => $multimediaObject->getTitle(), '%id%' => $multimediaObject->getId()]
             );
             $multimediaObject = $newMultimediaObject;
             $multimediaObject->setComments($commentsText);
@@ -234,7 +232,7 @@ class OpencastImportService
         }
 
         // NOTE: Should this be added to the already created mmobj? I think not.
-        if ((bool)$invert) {
+        if ((bool) $invert) {
             $multimediaObject->setProperty('opencastinvert', true);
             $multimediaObject->setProperty('paellalayout', 'professor_slide');
         } else {
@@ -260,12 +258,12 @@ class OpencastImportService
             }
             $attachmentsByType[$type][] = $attachment;
         }
-        $picTypes = array('presenter/player+preview', 'presenter/search+preview');
+        $picTypes = ['presenter/player+preview', 'presenter/search+preview'];
         foreach ($picTypes as $picType) {
             if ($multimediaObject->getPics()->count() > 0) {
                 break;
             }
-            $picAttachments = isset($attachmentsByType[$picType]) ? $attachmentsByType[$picType] : [];
+            $picAttachments = $attachmentsByType[$picType] ?? [];
             foreach ($picAttachments as $attachment) {
                 $multimediaObject = $this->addPicFromAttachment($multimediaObject, $attachment);
             }
@@ -349,7 +347,7 @@ class OpencastImportService
         return $track;
     }
 
-    public function createTrackFromOpencastTrack($opencastTrack, $language, $trackTags = array('display'))
+    public function createTrackFromOpencastTrack($opencastTrack, $language, $trackTags = ['display'])
     {
         $track = new Track();
         $track->setLanguage($language);
@@ -358,7 +356,7 @@ class OpencastImportService
         $tags = $this->getMediaPackageField($tagsArray, 'tag');
         if (!is_array($tags)) {
             // NOTE: Single tag
-            $tags = array($tags);
+            $tags = [$tags];
         }
 
         $limit = count($tags);
@@ -424,34 +422,6 @@ class OpencastImportService
         return $track;
     }
 
-    private function addPicFromAttachment(MultimediaObject $multimediaObject, $attachment)
-    {
-        $tags = $this->getMediaPackageField($this->getMediaPackageField($attachment, 'tags'), 'tag');
-        if (!is_array($tags)) {
-            $tags = array($tags);
-        }
-
-        $type = $this->getMediaPackageField($attachment, 'type');
-        $url = $this->getMediaPackageField($attachment, 'url');
-        if (!$url) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'] '.'No url on pic attachment '.json_encode($attachment));
-
-            return $multimediaObject;
-        }
-        $pic = new Pic();
-        $pic->addTag('opencast');
-        $pic->addTag($type);
-        $pic->setUrl($url);
-        if ($tags) {
-            foreach ($tags as $tag) {
-                $pic->addTag($tag);
-            }
-        }
-        $multimediaObject->addPic($pic);
-
-        return $multimediaObject;
-    }
-
     public function importTracksFromMediaPackage($mediaPackage, MultimediaObject $multimediaObject, $trackTags)
     {
         $media = $this->getMediaPackageField($mediaPackage, 'media');
@@ -508,23 +478,6 @@ class OpencastImportService
         }
     }
 
-    private function syncTrack(MultimediaObject $multimediaObject, $type, $url)
-    {
-        $track = $multimediaObject->getTrackWithAllTags(array('opencast', $type));
-        if (!$track) {
-            return false;
-        }
-
-        $track->setUrl($url);
-        $track->setPath($this->opencastService->getPath($url));
-
-        if ($track->getPath()) {
-            $this->inspectionService->autocompleteTrack($track);
-        }
-
-        return true;
-    }
-
     public function syncPics(MultimediaObject $multimediaObject, $mediaPackage = null)
     {
         $mediaPackageId = $multimediaObject->getProperty('opencast');
@@ -559,6 +512,51 @@ class OpencastImportService
                 $this->syncPic($multimediaObject, $type, $url);
             }
         }
+    }
+
+    private function addPicFromAttachment(MultimediaObject $multimediaObject, $attachment)
+    {
+        $tags = $this->getMediaPackageField($this->getMediaPackageField($attachment, 'tags'), 'tag');
+        if (!is_array($tags)) {
+            $tags = [$tags];
+        }
+
+        $type = $this->getMediaPackageField($attachment, 'type');
+        $url = $this->getMediaPackageField($attachment, 'url');
+        if (!$url) {
+            $this->logger->error(__CLASS__.'['.__FUNCTION__.'] '.'No url on pic attachment '.json_encode($attachment));
+
+            return $multimediaObject;
+        }
+        $pic = new Pic();
+        $pic->addTag('opencast');
+        $pic->addTag($type);
+        $pic->setUrl($url);
+        if ($tags) {
+            foreach ($tags as $tag) {
+                $pic->addTag($tag);
+            }
+        }
+        $multimediaObject->addPic($pic);
+
+        return $multimediaObject;
+    }
+
+    private function syncTrack(MultimediaObject $multimediaObject, $type, $url)
+    {
+        $track = $multimediaObject->getTrackWithAllTags(['opencast', $type]);
+        if (!$track) {
+            return false;
+        }
+
+        $track->setUrl($url);
+        $track->setPath($this->opencastService->getPath($url));
+
+        if ($track->getPath()) {
+            $this->inspectionService->autocompleteTrack($track);
+        }
+
+        return true;
     }
 
     private function addOpencastUrl($opencastUrls = [], $track = [])
@@ -632,23 +630,6 @@ class OpencastImportService
         }
 
         return (null !== $defaultLanguage) ? $defaultLanguage : \Locale::getDefault();
-    }
-
-    private function syncTrack(MultimediaObject $multimediaObject, $type, $url)
-    {
-        $track = $multimediaObject->getTrackWithAllTags(['opencast', $type]);
-        if (!$track) {
-            return false;
-        }
-
-        $track->setUrl($url);
-        $track->setPath($this->opencastService->getPath($url));
-
-        if ($track->getPath()) {
-            $this->inspectionService->autocompleteTrack($track);
-        }
-
-        return true;
     }
 
     private function syncPic(MultimediaObject $multimediaObject, $type, $url)

@@ -2,10 +2,11 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
+use Pumukit\SchemaBundle\Document\Series;
+use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 
 class OpencastSyncSeriesCommand extends ContainerAwareCommand
 {
@@ -29,8 +30,8 @@ class OpencastSyncSeriesCommand extends ContainerAwareCommand
     protected function syncSeries(OutputInterface $output = null, $dryRun = false)
     {
         $dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
-        $seriesRepo = $dm->getRepository('PumukitSchemaBundle:Series');
-        $allSeries = $seriesRepo->findBy(array('properties.opencast' => array('$exists' => 0)));
+        $seriesRepo = $dm->getRepository(Series::class);
+        $allSeries = $seriesRepo->findBy(['properties.opencast' => ['$exists' => 0]]);
         $dispatcher = $this->getContainer()->get('pumukitschema.series_dispatcher');
 
         $numSynced = 0;
