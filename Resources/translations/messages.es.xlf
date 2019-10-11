@@ -155,7 +155,7 @@
       </trans-unit>
       <trans-unit id="aSCTz9l" resname='From Opencast. Used "%title%" (%id%) as template.'>
         <source>From Opencast. Used "%title%" (%id%) as template.</source>
-        <target>De Opencast. Usado "%title%" (%id%) como plantilla.</target>
+        <target state="translated">De Opencast. Usado "%title%" (%id%) como plantilla.</target>
       </trans-unit>
     </body>
   </file>

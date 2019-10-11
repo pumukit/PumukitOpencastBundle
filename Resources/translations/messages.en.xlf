@@ -153,7 +153,7 @@
         <source>i18n.one.Series</source>
         <target>i18n.one.Series</target>
       </trans-unit>
-      <trans-unit id="aSCTz9l" resname="From Opencast. Used "%title%" (%id%) as template.">
+      <trans-unit id="aSCTz9l" resname='From Opencast. Used "%title%" (%id%) as template.'>
         <source>From Opencast. Used "%title%" (%id%) as template.</source>
         <target>De Opencast. Usado "%title%" (%id%) como plantilla.</target>
       </trans-unit>
