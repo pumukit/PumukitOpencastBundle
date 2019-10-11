@@ -21,19 +21,15 @@ class NotificationService
     protected $subject;
     protected $accessUrl;
 
-    /**
-     * OpencastNotificationService constructor.
-     *
-     * @param DocumentManager $documentManager
-     * @param SenderService   $senderService
-     * @param Router          $router
-     * @param LoggerInterface $logger
-     * @param string          $template
-     * @param string          $accessUrl
-     * @param mixed           $subject
-     */
-    public function __construct(DocumentManager $documentManager, SenderService $senderService, Router $router, LoggerInterface $logger, $template, $accessUrl, $subject)
-    {
+    public function __construct(
+        DocumentManager $documentManager,
+        SenderService $senderService,
+        Router $router,
+        LoggerInterface $logger,
+        string $template,
+        string $accessUrl,
+        string $subject
+    ) {
         $this->dm = $documentManager;
         $this->senderService = $senderService;
         $this->router = $router;
@@ -43,17 +39,9 @@ class NotificationService
         $this->subject = $subject;
     }
 
-    /**
-     * On Opencast import success.
-     *
-     * @param ImportEvent $event
-     */
     public function onImportSuccess(ImportEvent $event)
     {
         $multimediaObject = $event->getMultimediaObject();
-        if (null === $multimediaObject) {
-            return;
-        }
         $emailsList = [];
         foreach ($multimediaObject->getPeopleByRoleCod('owner', true) as $person) {
             $owner = $this->dm->getRepository(User::class)->findOneBy(['person' => $person->getId()]);

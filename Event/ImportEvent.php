@@ -7,23 +7,14 @@ use Symfony\Component\EventDispatcher\Event;
 
 class ImportEvent extends Event
 {
-    /**
-     * @var MultimediaObject
-     */
     protected $multimediaObject;
 
-    /**
-     * @param MultimediaObject $multimediaObject
-     */
     public function __construct(MultimediaObject $multimediaObject)
     {
         $this->multimediaObject = $multimediaObject;
     }
 
-    /**
-     * @return MultimediaObject
-     */
-    public function getMultimediaObject()
+    public function getMultimediaObject(): MultimediaObject
     {
         return $this->multimediaObject;
     }
