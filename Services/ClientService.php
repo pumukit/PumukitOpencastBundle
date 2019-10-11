@@ -612,10 +612,7 @@ class ClientService
                 ];
                 $response = ['var' => file_get_contents($url, false, stream_context_create($dargs))];
             } else {
-                //LOCAL: Do not commit this change
-                $path = parse_url($url, PHP_URL_PATH);
-                $response = ['var' => file_get_contents($this->url.$path)];
-                //$response = ['var' => file_get_contents($url)];
+                $response = ['var' => file_get_contents($url)];
             }
         }
 
