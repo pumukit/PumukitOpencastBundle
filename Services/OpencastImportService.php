@@ -169,7 +169,6 @@ class OpencastImportService
 
             $newMultimediaObject->setStatus($multimediaObject->getStatus());
 
-            // TODO: Translate?
             $commentsText = $this->translator->trans(
                 'From Opencast. Used "%title%" (%id%) as template.',
                 ['%title%' => $multimediaObject->getTitle(), '%id%' => $multimediaObject->getId()]
@@ -201,7 +200,7 @@ class OpencastImportService
         }
 
         // NOTE: Should this be added to the already created mmobj? I think not.
-        if ((bool) $invert) {
+        if ($invert) {
             $multimediaObject->setProperty('opencastinvert', true);
             $multimediaObject->setProperty('paellalayout', 'professor_slide');
         } else {
