@@ -74,7 +74,7 @@ class OpencastImportService
     /**
      * Given a media package id
      * create a multimedia object
-     * with the media package metadata
+     * with the media package metadata.
      */
     public function importRecording(string $opencastId, bool $invert = false, ?User $loggedInUser = null)
     {
@@ -85,7 +85,7 @@ class OpencastImportService
     /**
      * Given a media package
      * create a multimedia object
-     * with the media package metadata
+     * with the media package metadata.
      */
     public function importRecordingFromMediaPackage(array $mediaPackage, bool $invert = false, ?User $loggedInUser = null)
     {

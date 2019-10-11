@@ -52,7 +52,7 @@ class ClientService
             throw new \RuntimeException('Curl is required to execute remote commands.');
         }
 
-        $this->url = ('/' == substr($url,-1)) ? substr($url, 0, -1) : $url;
+        $this->url = ('/' == substr($url, -1)) ? substr($url, 0, -1) : $url;
         $this->user = $user;
         $this->passwd = $passwd;
         $this->player = $player;
@@ -365,7 +365,7 @@ class ClientService
     }
 
     /**
-     * Used to get the total number of workflows
+     * Used to get the total number of workflows.
      *
      * @throws \Exception
      */
@@ -501,6 +501,7 @@ class ClientService
      * Updates the Opencast series metadata based on the associated PuMuKIT series. If
      * the Opencast series does not exist, it creates a new Opencast series and updates
      * the Opencast id on the PuMuKIT series.
+     *
      * @throws \Exception
      */
     public function updateOpencastSeries(Series $series): array
@@ -685,7 +686,9 @@ class ClientService
     }
 
     /**
-     * Makes a given request (path) GET or POST  to the Opencast server using or not the admin url
+     * Makes a given request (path) GET or POST  to the Opencast server using or not the admin url.
+     *
+     * @param mixed $params
      *
      * @throws \Exception
      */
