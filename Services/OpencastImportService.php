@@ -76,7 +76,7 @@ class OpencastImportService
      * create a multimedia object
      * with the media package metadata.
      */
-    public function importRecording(string $opencastId, bool $invert = false, ?User $loggedInUser = null)
+    public function importRecording(string $opencastId, ?bool $invert = false, ?User $loggedInUser = null)
     {
         $mediaPackage = $this->opencastClient->getMediaPackage($opencastId);
         $this->importRecordingFromMediaPackage($mediaPackage, $invert, $loggedInUser);
@@ -87,7 +87,7 @@ class OpencastImportService
      * create a multimedia object
      * with the media package metadata.
      */
-    public function importRecordingFromMediaPackage(array $mediaPackage, bool $invert = false, ?User $loggedInUser = null)
+    public function importRecordingFromMediaPackage(array $mediaPackage, ?bool $invert = false, ?User $loggedInUser = null)
     {
         $multimediaObject = null;
         $multimediaObjectRepository = $this->dm->getRepository(MultimediaObject::class);
