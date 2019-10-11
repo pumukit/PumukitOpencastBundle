@@ -26,7 +26,6 @@ class PumukitOpencastExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $container->setParameter('pumukit_opencast.show_importer_tab', $config['show_importer_tab']);
-
         if (isset($config['host']) && $config['host']) {
             $env = $container->getParameter('kernel.environment');
             $this->validateOpencatConfiguration($config['host'], $config['url_mapping'], $env);
@@ -76,6 +75,8 @@ class PumukitOpencastExtension extends Extension
                 ->register('pumukit_opencast.import', 'Pumukit\\OpencastBundle\\Services\\OpencastImportService')
                 ->addArgument(new Reference('doctrine_mongodb.odm.document_manager'))
                 ->addArgument(new Reference('pumukitschema.factory'))
+                ->addArgument(new Reference('logger'))
+                ->addArgument(new Reference('translator'))
                 ->addArgument(new Reference('pumukitschema.track'))
                 ->addArgument(new Reference('pumukitschema.tag'))
                 ->addArgument(new Reference('pumukitschema.multimedia_object'))
@@ -86,13 +87,8 @@ class PumukitOpencastExtension extends Extension
                 ->addArgument(new Parameter('pumukit_opencast.default_tag_imported'))
                 ->addArgument(new Reference('pumukit_opencast.series_importer'))
                 ->addArgument($pumukitcustomlanguages)
-            ;
+                ->addArgument(new Reference('event_dispatcher'))
 
-            $container
-                ->register('pumukit_opencast.workflow', 'Pumukit\\OpencastBundle\\Services\\WorkflowService')
-                ->addArgument(new Reference('pumukit_opencast.client'))
-                ->addArgument($config['delete_archive_mediapackage'])
-                ->addArgument($config['deletion_workflow_name'])
             ;
 
             $container->setParameter('pumukit_opencast.sbs', $config['sbs']);
@@ -126,6 +122,18 @@ class PumukitOpencastExtension extends Extension
                 ->addTag('kernel.event_listener', ['event' => 'user.update', 'method' => 'onUserUpdate'])
                 ->addTag('kernel.event_listener', ['event' => 'user.delete', 'method' => 'onUserDelete'])
             ;
+
+            $container
+                ->register('pumukit_opencast.notification_listener', 'Pumukit\\OpencastBundle\\Services\\NotificationService')
+                ->addArgument(new Reference('doctrine_mongodb.odm.document_manager'))
+                ->addArgument(new Reference('pumukit_notification.sender'))
+                ->addArgument(new Reference('router'))
+                ->addArgument(new Reference('logger'))
+                ->addArgument($config['notifications']['template'])
+                ->addArgument($config['notifications']['url'])
+                ->addArgument($config['notifications']['subject'])
+                ->addTag('kernel.event_listener', ['event' => 'import.success', 'method' => 'onImportSuccess'])
+                ;
         }
 
         $container->setParameter('pumukit_opencast.scheduler_on_menu', $config['scheduler_on_menu']);

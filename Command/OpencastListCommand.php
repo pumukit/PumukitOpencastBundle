@@ -14,10 +14,9 @@ use Symfony\Component\Console\Output\OutputInterface;
 class OpencastListCommand extends ContainerAwareCommand
 {
     /**
-     * @var ClientService
+     * @var ClientService|object|null
      */
     private $clientService;
-
     private $dm;
 
     protected function configure()
