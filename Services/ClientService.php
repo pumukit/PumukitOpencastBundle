@@ -8,9 +8,6 @@ use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Security\RoleHierarchy;
 use Symfony\Component\Security\Core\Role\Role;
 
-/**
- * Class ClientService.
- */
 class ClientService
 {
     const HTTP_CONNECTTIMEOUT = 1;
@@ -30,25 +27,21 @@ class ClientService
     private $logger;
     private $roleHierarchy;
 
-    /**
-     * ClientService constructor.
-     *
-     * @param string               $url
-     * @param string               $user
-     * @param string               $passwd
-     * @param string               $player
-     * @param string               $scheduler
-     * @param string               $dashboard
-     * @param bool                 $deleteArchiveMediaPackage
-     * @param string               $deletionWorkflowName
-     * @param bool                 $manageOpencastUsers
-     * @param bool                 $insecure
-     * @param null                 $adminUrl
-     * @param LoggerInterface|null $logger
-     * @param RoleHierarchy|null   $roleHierarchy
-     */
-    public function __construct($url = '', $user = '', $passwd = '', $player = '/engage/ui/watch.html', $scheduler = '/admin/index.html#/recordings', $dashboard = '/dashboard/index.html', $deleteArchiveMediaPackage = false, $deletionWorkflowName = 'delete-archive', $manageOpencastUsers = false, $insecure = false, $adminUrl = null, LoggerInterface $logger = null, RoleHierarchy $roleHierarchy = null)
-    {
+    public function __construct(
+        string $url = '',
+        string $user = '',
+        string $passwd = '',
+        string $player = '/engage/ui/watch.html',
+        string $scheduler = '/admin/index.html#/recordings',
+        string $dashboard = '/dashboard/index.html',
+        bool $deleteArchiveMediaPackage = false,
+        string $deletionWorkflowName = 'delete-archive',
+        bool $manageOpencastUsers = false,
+        bool $insecure = false,
+        ?string $adminUrl = null,
+        ?LoggerInterface $logger = null,
+        ?RoleHierarchy $roleHierarchy = null
+    ) {
         $this->logger = $logger;
 
         if (!function_exists('curl_init')) {
@@ -59,7 +52,7 @@ class ClientService
             throw new \RuntimeException('Curl is required to execute remote commands.');
         }
 
-        $this->url = ('/' == substr($url, -1)) ? substr($url, 0, -1) : $url;
+        $this->url = ('/' == substr($url,-1)) ? substr($url, 0, -1) : $url;
         $this->user = $user;
         $this->passwd = $passwd;
         $this->player = $player;
@@ -75,34 +68,21 @@ class ClientService
 
     /**
      * Get Url from Opencast server (Engage node in cluster).
-     *
-     * @return string $url
      */
-    public function getUrl()
+    public function getUrl(): string
     {
         return $this->url;
     }
 
-    /**
-     * Get player url from Opencast.
-     *
-     * @return string
-     */
-    public function getPlayerUrl()
+    public function getPlayerUrl(): string
     {
         return ('/' === $this->player[0]) ? $this->url.$this->player : $this->player;
     }
 
     /**
-     * Get admin url.
-     *
-     * Gets the admin url for Opencast
-     *
      * @throws \Exception
-     *
-     * @return string|null
      */
-    public function getAdminUrl()
+    public function getAdminUrl(): ?string
     {
         if (null !== $this->adminUrl) {
             return $this->adminUrl;
@@ -120,25 +100,17 @@ class ClientService
     }
 
     /**
-     * Get scheduler url from Opencast.
-     *
      * @throws \Exception
-     *
-     * @return string
      */
-    public function getSchedulerUrl()
+    public function getSchedulerUrl(): string
     {
         return ('/' === $this->scheduler[0]) ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
     }
 
     /**
-     * Get player url from Opencast.
-     *
      * @throws \Exception
-     *
-     * @return string
      */
-    public function getDashboardUrl()
+    public function getDashboardUrl(): string
     {
         return ('/' === $this->dashboard[0]) ? $this->getAdminUrl().$this->dashboard : $this->dashboard;
     }
@@ -148,15 +120,9 @@ class ClientService
      *
      * Gets all the media packages from the Opencast server accordion to input parameters
      *
-     * @param string $query
-     * @param int    $limit
-     * @param int    $offset
-     *
      * @throws \Exception
-     *
-     * @return array|bool
      */
-    public function getMediaPackages($query, $limit, $offset)
+    public function getMediaPackages(string $query, int $limit, int $offset)
     {
         $output = $this->request('/search/episode.json?'.($query ? 'q='.urlencode($query).'&' : '').'limit='.$limit.'&offset='.$offset);
 
@@ -184,15 +150,9 @@ class ClientService
     }
 
     /**
-     * Get media package from given id.
-     *
-     * @param string $id
-     *
      * @throws \Exception
-     *
-     * @return bool|mixed|null
      */
-    public function getMediaPackage($id)
+    public function getMediaPackage(string $id)
     {
         $output = $this->request('/search/episode.json?id='.$id);
 
@@ -212,15 +172,9 @@ class ClientService
     }
 
     /**
-     * Get full media package from given id.
-     *
-     * @param string $id
-     *
      * @throws \Exception
-     *
-     * @return mixed
      */
-    public function getFullMediapackage($id)
+    public function getFullMediapackage(string $id)
     {
         $output = $this->request('/search/episode.json?id='.$id);
 
@@ -240,13 +194,9 @@ class ClientService
     }
 
     /**
-     * @param string $id
-     *
      * @throws \Exception
-     *
-     * @return array|null
      */
-    public function getMasterMediaPackage($id)
+    public function getMasterMediaPackage(string $id): ?array
     {
         $version = $this->getOpencastVersion();
 
@@ -270,13 +220,9 @@ class ClientService
     }
 
     /**
-     * @param string $id
-     *
      * @throws \Exception
-     *
-     * @return array|null
      */
-    public function getMediaPackageFromWorkflow($id)
+    public function getMediaPackageFromWorkflow(string $id): ?array
     {
         $output = $this->request('/workflow/instances.json?state=SUCCEEDED&mp='.$id, [], 'GET', true);
         if (200 == $output['status']) {
@@ -295,13 +241,9 @@ class ClientService
     }
 
     /**
-     * @param string $id
-     *
      * @throws \Exception
-     *
-     * @return array|null
      */
-    public function getMediaPackageFromAssets($id)
+    public function getMediaPackageFromAssets(string $id): ?array
     {
         $output = $this->request('/assets/episode/'.$id, [], 'GET', true);
         if (200 == $output['status']) {
@@ -312,15 +254,9 @@ class ClientService
     }
 
     /**
-     * Get media package from archive with given id.
-     *
-     * @param string $id
-     *
      * @throws \Exception
-     *
-     * @return mixed
      */
-    public function getMediaPackageFromArchive($id)
+    public function getMediaPackageFromArchive(string $id)
     {
         // NOTE: BC for OC 1.4 to 1.6
         $output = $this->request('/episode/episode.json?id='.$id, [], 'GET', true);
@@ -347,16 +283,9 @@ class ClientService
     }
 
     /**
-     * Apply workflow to media packages.
-     *
-     * @param array  $mediaPackagesIds
-     * @param string $workflowName
-     *
      * @throws \Exception
-     *
-     * @return bool
      */
-    public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], $workflowName = '')
+    public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], string $workflowName = ''): bool
     {
         if (!$workflowName || ($workflowName == $this->deletionWorkflowName)) {
             $workflowName = $this->deletionWorkflowName;
@@ -436,13 +365,9 @@ class ClientService
     }
 
     /**
-     * Get workflow statistics.
-     *
      * Used to get the total number of workflows
      *
      * @throws \Exception
-     *
-     * @return array|bool
      */
     public function getWorkflowStatistics()
     {
@@ -458,17 +383,9 @@ class ClientService
     }
 
     /**
-     * Get counted workflow instances.
-     *
-     * @param string $id
-     * @param string $count
-     * @param string $workflowName
-     *
      * @throws \Exception
-     *
-     * @return array|bool
      */
-    public function getCountedWorkflowInstances($id = '', $count = '', $workflowName = '')
+    public function getCountedWorkflowInstances(string $id = '', string $count = '', string $workflowName = '')
     {
         $request = '/workflow/instances.json?state=SUCCEEDED'.($workflowName ? '&workflowdefinition='.$workflowName : '').($id ? '&mp='.$id : '').($count ? '&count='.$count : '');
 
@@ -482,15 +399,9 @@ class ClientService
     }
 
     /**
-     * Stop workflow.
-     *
-     * @param array $workflow
-     *
      * @throws \Exception
-     *
-     * @return bool
      */
-    public function stopWorkflow(array $workflow = [])
+    public function stopWorkflow(array $workflow = []): bool
     {
         if ($this->deleteArchiveMediaPackage) {
             if (isset($workflow['id'])) {
@@ -509,15 +420,9 @@ class ClientService
     }
 
     /**
-     * Create User.
-     *
-     * @param User $user
-     *
      * @throws \Exception
-     *
-     * @return bool
      */
-    public function createUser(User $user)
+    public function createUser(User $user): bool
     {
         if ($this->manageOpencastUsers) {
             $request = '/user-utils/';
@@ -543,15 +448,9 @@ class ClientService
     }
 
     /**
-     * Update User.
-     *
-     * @param User $user
-     *
      * @throws \Exception
-     *
-     * @return bool
      */
-    public function updateUser(User $user)
+    public function updateUser(User $user): bool
     {
         if ($this->manageOpencastUsers) {
             $request = '/user-utils/'.$user->getUsername().'.json';
@@ -577,15 +476,9 @@ class ClientService
     }
 
     /**
-     * Delete User.
-     *
-     * @param User $user
-     *
      * @throws \Exception
-     *
-     * @return bool
      */
-    public function deleteUser(User $user)
+    public function deleteUser(User $user): bool
     {
         if ($this->manageOpencastUsers) {
             $request = '/user-utils/'.$user->getUsername().'.json';
@@ -605,19 +498,12 @@ class ClientService
     }
 
     /**
-     * Updates the Opencast series metadata.
-     *
      * Updates the Opencast series metadata based on the associated PuMuKIT series. If
      * the Opencast series does not exist, it creates a new Opencast series and updates
      * the Opencast id on the PuMuKIT series.
-     *
-     * @param Series $series
-     *
      * @throws \Exception
-     *
-     * @return array
      */
-    public function updateOpencastSeries(Series $series)
+    public function updateOpencastSeries(Series $series): array
     {
         $seriesOpencastId = $series->getProperty('opencast');
         if (null === $seriesOpencastId) {
@@ -651,18 +537,12 @@ class ClientService
     }
 
     /**
-     * Creates an Opencast series.
-     *
      * Creates an Opencast series and associates it to the PuMuKIT series.
      * The Opencast series metadata is taken from the PuMuKIT series.
      *
-     * @param Series $series
-     *
      * @throws \Exception
-     *
-     * @return array
      */
-    public function createOpencastSeries(Series $series)
+    public function createOpencastSeries(Series $series): array
     {
         $metadata = [
             [
@@ -694,15 +574,9 @@ class ClientService
     }
 
     /**
-     * Deletes an Opencast series.
-     *
      * Deletes the Opencast series metadata associated to the PuMuKIT series.
      *
-     * @param Series $series
-     *
      * @throws \Exception
-     *
-     * @return mixed
      */
     public function deleteOpencastSeries(Series $series)
     {
@@ -720,13 +594,9 @@ class ClientService
     }
 
     /**
-     * @param string $url
-     *
      * @throws \Exception
-     *
-     * @return bool|string|null
      */
-    public function getSpatialField($url)
+    public function getSpatialField(string $url)
     {
         if (0 === strpos($url, $this->url)) {
             $path = parse_url($url, PHP_URL_PATH);
@@ -741,7 +611,10 @@ class ClientService
                 ];
                 $response = ['var' => file_get_contents($url, false, stream_context_create($dargs))];
             } else {
-                $response = ['var' => file_get_contents($url)];
+                //LOCAL: Do not commit this change
+                $path = parse_url($url, PHP_URL_PATH);
+                $response = ['var' => file_get_contents($this->url.$path)];
+                //$response = ['var' => file_get_contents($url)];
             }
         }
 
@@ -757,7 +630,7 @@ class ClientService
         return null;
     }
 
-    public function removeEvent($id)
+    public function removeEvent(string $id)
     {
         $output = $this->request('/admin-ng/event/'.$id, [], 'DELETE', true);
         if (!$output) {
@@ -769,8 +642,6 @@ class ClientService
 
     /**
      * @throws \Exception
-     *
-     * @return mixed
      */
     public function getOpencastVersion()
     {
@@ -786,25 +657,14 @@ class ClientService
         throw new \Exception("Cant't recognize ['rest'][0]['version'] from /info/components.json");
     }
 
-    /**
-     * @param mixed $id
-     * @param mixed $mpVersion
-     *
-     * @return array
-     */
-    public function getGalicasterProperties($id, $mpVersion = 1)
+    public function getGalicasterProperties(string $id, int $mpVersion = 1): array
     {
         $url = sprintf('/assets/assets/%s/galicaster-properties/%d/galicaster.json', $id, $mpVersion);
 
-        return $this->getGalicasterPropertiesFromurl($url);
+        return $this->getGalicasterPropertiesFromUrl($url);
     }
 
-    /**
-     * @param mixed $url
-     *
-     * @return array
-     */
-    public function getGalicasterPropertiesFromUrl($url)
+    public function getGalicasterPropertiesFromUrl(string $url): array
     {
         $url = parse_url($url, PHP_URL_PATH);
 
@@ -825,20 +685,11 @@ class ClientService
     }
 
     /**
-     * Request.
-     *
      * Makes a given request (path) GET or POST  to the Opencast server using or not the admin url
      *
-     * @param string       $path
-     * @param array|string $params
-     * @param string       $method
-     * @param bool         $useAdminUrl
-     *
      * @throws \Exception
-     *
-     * @return array
      */
-    private function request($path, $params = [], $method = 'GET', $useAdminUrl = false)
+    private function request(string $path, $params = [], string $method = 'GET', bool $useAdminUrl = false): array
     {
         if ($useAdminUrl) {
             $requestUrl = $this->getAdminUrl().$path;
@@ -927,15 +778,9 @@ class ClientService
     }
 
     /**
-     * Decode json string.
-     *
-     * @param string $jsonString
-     *
      * @throws \Exception
-     *
-     * @return mixed
      */
-    private function decodeJson($jsonString = '')
+    private function decodeJson(string $jsonString = ''): array
     {
         $decode = json_decode($jsonString, true);
         if (!is_array($decode)) {
@@ -946,13 +791,9 @@ class ClientService
     }
 
     /**
-     * @param array $xmlString
-     *
      * @throws \Exception
-     *
-     * @return array|null
      */
-    private function decodeXML($xmlString = [])
+    private function decodeXML(array $xmlString = []): array
     {
         $decode = null;
         if (is_array($xmlString)) {
@@ -961,19 +802,14 @@ class ClientService
             $decode = json_decode($json, true);
         }
 
-        if (!$decode) {
+        if (!is_array($decode)) {
             throw new \Exception('Opencast communication error');
         }
 
         return $decode;
     }
 
-    /**
-     * @param User $user
-     *
-     * @return string
-     */
-    private function getUserRoles(User $user)
+    private function getUserRoles(User $user): string
     {
         if ($this->roleHierarchy) {
             $userRoles = array_map(function ($r) {

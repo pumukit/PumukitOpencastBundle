@@ -37,25 +37,6 @@ class OpencastImportService
     private $customLanguages;
     private $dispatcher;
 
-    /**
-     * OpencastImportService constructor.
-     *
-     * @param DocumentManager            $documentManager
-     * @param FactoryService             $factoryService
-     * @param LoggerInterface            $logger
-     * @param TranslatorInterface        $translator
-     * @param TrackService               $trackService
-     * @param TagService                 $tagService
-     * @param MultimediaObjectService    $mmsService
-     * @param ClientService              $opencastClient
-     * @param OpencastService            $opencastService
-     * @param InspectionServiceInterface $inspectionService
-     * @param array                      $otherLocales
-     * @param string                     $defaultTagImported
-     * @param SeriesImportService        $seriesImportService
-     * @param array                      $customLanguages
-     * @param EventDispatcherInterface   $dispatcher
-     */
     public function __construct(
         DocumentManager $documentManager,
         FactoryService $factoryService,
@@ -68,7 +49,7 @@ class OpencastImportService
         OpencastService $opencastService,
         InspectionServiceInterface $inspectionService,
         array $otherLocales,
-        $defaultTagImported,
+        string $defaultTagImported,
         SeriesImportService $seriesImportService,
         array $customLanguages,
         EventDispatcherInterface $dispatcher
@@ -91,34 +72,22 @@ class OpencastImportService
     }
 
     /**
-     * Import recording.
-     *
      * Given a media package id
      * create a multimedia object
      * with the media package metadata
-     *
-     * @param string    $opencastId
-     * @param bool      $invert
-     * @param User|null $loggedInUser
      */
-    public function importRecording($opencastId, $invert = false, User $loggedInUser = null)
+    public function importRecording(string $opencastId, bool $invert = false, ?User $loggedInUser = null)
     {
         $mediaPackage = $this->opencastClient->getMediaPackage($opencastId);
         $this->importRecordingFromMediaPackage($mediaPackage, $invert, $loggedInUser);
     }
 
     /**
-     * Import recording given a mediaPackage.
-     *
      * Given a media package
      * create a multimedia object
      * with the media package metadata
-     *
-     * @param array     $mediaPackage
-     * @param bool      $invert
-     * @param User|null $loggedInUser
      */
-    public function importRecordingFromMediaPackage($mediaPackage, $invert = false, User $loggedInUser = null)
+    public function importRecordingFromMediaPackage(array $mediaPackage, bool $invert = false, ?User $loggedInUser = null)
     {
         $multimediaObject = null;
         $multimediaObjectRepository = $this->dm->getRepository(MultimediaObject::class);
