@@ -2,7 +2,6 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
-use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;

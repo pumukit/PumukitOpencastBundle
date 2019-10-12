@@ -2,7 +2,6 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
-use Doctrine\ODM\MongoDB\DocumentManager;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
