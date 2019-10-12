@@ -8,14 +8,8 @@ use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Class OpencastListCommand.
- */
 class OpencastListCommand extends ContainerAwareCommand
 {
-    /**
-     * @var ClientService|object|null
-     */
     private $clientService;
     private $dm;
 
@@ -36,10 +30,6 @@ EOT
         ;
     }
 
-    /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         $this->clientService = $this->getContainer()->get('pumukit_opencast.client');
@@ -47,12 +37,7 @@ EOT
     }
 
     /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
      * @throws \Exception
-     *
-     * @return int|void|null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

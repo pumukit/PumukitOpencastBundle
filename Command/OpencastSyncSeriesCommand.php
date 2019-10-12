@@ -27,7 +27,7 @@ class OpencastSyncSeriesCommand extends ContainerAwareCommand
         $output->writeln(sprintf('<info>Synced %s series</info>', $numSynced));
     }
 
-    protected function syncSeries(OutputInterface $output = null, $dryRun = false)
+    protected function syncSeries(OutputInterface $output = null, bool $dryRun = false): int
     {
         $dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
         $seriesRepo = $dm->getRepository(Series::class);

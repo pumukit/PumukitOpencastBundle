@@ -64,10 +64,6 @@ EOT
         ;
     }
 
-    /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     */
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         $this->output = $output;
@@ -100,12 +96,7 @@ EOT
     }
 
     /**
-     * @param InputInterface  $input
-     * @param OutputInterface $output
-     *
      * @throws \Exception
-     *
-     * @return int|void|null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -124,7 +115,7 @@ EOT
     /**
      * @throws \Exception
      */
-    private function checkInputs()
+    private function checkInputs(): void
     {
         if (!$this->user || !$this->password || !$this->host) {
             throw new \Exception('Please, set values for user, password and host');
@@ -138,10 +129,7 @@ EOT
         }
     }
 
-    /**
-     * @return bool
-     */
-    private function checkOpencastStatus()
+    private function checkOpencastStatus(): bool
     {
         if ($this->clientService->getAdminUrl()) {
             return true;
@@ -150,9 +138,6 @@ EOT
         return false;
     }
 
-    /**
-     * @return mixed
-     */
     private function getMultimediaObjects()
     {
         $criteria = [
@@ -170,10 +155,7 @@ EOT
         return $this->dm->getRepository(MultimediaObject::class)->findBy($criteria);
     }
 
-    /**
-     * @param array $multimediaObjects
-     */
-    private function importSegments($multimediaObjects)
+    private function importSegments(array $multimediaObjects): void
     {
         $this->output->writeln(
             [
@@ -209,10 +191,7 @@ EOT
         }
     }
 
-    /**
-     * @param array $multimediaObjects
-     */
-    private function showMultimediaObjects($multimediaObjects)
+    private function showMultimediaObjects(array $multimediaObjects)
     {
         $this->output->writeln(
             [
@@ -239,12 +218,7 @@ EOT
         }
     }
 
-    /**
-     * @param array $segment
-     *
-     * @return EmbeddedSegment
-     */
-    private function createNewSegment($segment)
+    private function createNewSegment(array $segment): EmbeddedSegment
     {
         $embeddedSegment = new EmbeddedSegment();
 
@@ -252,7 +226,7 @@ EOT
         $embeddedSegment->setTime($segment['time']);
         $embeddedSegment->setDuration($segment['duration']);
         $embeddedSegment->setRelevance($segment['relevance']);
-        $embeddedSegment->setHit((bool) ($segment['hit']));
+        $embeddedSegment->setHit((bool) $segment['hit']);
         $embeddedSegment->setText($segment['text']);
 
         $image = $segment['previews']['preview']['$'] ?? '';

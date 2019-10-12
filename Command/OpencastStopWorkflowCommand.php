@@ -62,14 +62,12 @@ EOT
             return 1;
         }
         $statistics = $opencastClientService->getWorkflowStatistics();
-        $total = 0;
-        if (isset($statistics['statistics']['total'])) {
-            $total = $statistics['statistics']['total'];
-        }
+        $total = $statistics['statistics']['total'] ?? 0;
 
-        if (0 == $total) {
+        if (0 === $total) {
             return null;
         }
+
         $workflowName = 'retract';
         $decode = $opencastClientService->getCountedWorkflowInstances('', $total, $workflowName);
         if (!isset($decode['workflows']['workflow'])) {
