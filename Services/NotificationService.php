@@ -39,7 +39,7 @@ class NotificationService
         $this->subject = $subject;
     }
 
-    public function onImportSuccess(ImportEvent $event)
+    public function onImportSuccess(ImportEvent $event): void
     {
         $multimediaObject = $event->getMultimediaObject();
         $emailsList = [];
@@ -72,7 +72,7 @@ class NotificationService
         ];
         foreach ($emailsList as $email => $name) {
             $parameters['username'] = $name;
-            $output = $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters, false, true);
+            $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters, false, true);
         }
     }
 }

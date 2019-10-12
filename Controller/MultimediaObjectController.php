@@ -8,6 +8,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -21,7 +22,7 @@ class MultimediaObjectController extends Controller
      * @Route("/index/{id}", name="pumukit_opencast_mm_index")
      * @Template
      */
-    public function indexAction(MultimediaObject $multimediaObject, Request $request)
+    public function indexAction(Request $request, MultimediaObject $multimediaObject): array
     {
         $generateSbs = false;
         if ($this->container->hasParameter('pumukit_opencast.sbs.generate_sbs')) {
@@ -45,7 +46,7 @@ class MultimediaObjectController extends Controller
      * @Route("/update/{id}", name="pumukit_opencast_mm_update")
      * @Template
      */
-    public function updateAction(MultimediaObject $multimediaObject, Request $request)
+    public function updateAction(Request $request, MultimediaObject $multimediaObject)
     {
         $translator = $this->get('translator');
         $locale = $request->getLocale();
@@ -73,7 +74,7 @@ class MultimediaObjectController extends Controller
      * @Route("/info/{id}", name="pumukit_opencast_mm_info")
      * @Template
      */
-    public function infoAction(MultimediaObject $multimediaObject, Request $request)
+    public function infoAction(Request $request, MultimediaObject $multimediaObject): array
     {
         $presenterDeliveryUrl = '';
         $presentationDeliveryUrl = '';
@@ -95,7 +96,7 @@ class MultimediaObjectController extends Controller
     /**
      * @Route("/generatesbs/{id}", name="pumukit_opencast_mm_generatesbs")
      */
-    public function generateSbsAction(MultimediaObject $multimediaObject, Request $request)
+    public function generateSbsAction(Request $request, MultimediaObject $multimediaObject): RedirectResponse
     {
         $opencastUrls = $this->get('pumukit_opencast.import')->getOpencastUrls($multimediaObject->getProperty('opencast'));
         $this->get('pumukit_opencast.job')->generateSbsTrack($multimediaObject, $opencastUrls);

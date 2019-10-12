@@ -38,7 +38,6 @@ class SeriesImportService
         } elseif (null !== ($seriesOpencastSpatial = $this->getSpatialField($mediaPackage))) {
             $series = $seriesRepo->findOneBy(['properties.opencastspatial' => $seriesOpencastSpatial]);
             if (!isset($series)) {
-                $seriesTitle = $this->getMediaPackageField($mediaPackage, 'seriestitle');
                 $series = $this->createSeries($seriesOpencastSpatial, $seriesOpencastSpatial, $loggedInUser, true);
             }
         } else {
@@ -51,7 +50,7 @@ class SeriesImportService
         return $series;
     }
 
-    private function createSeries($title, $properties, User $loggedInUser = null, $spatial = false)
+    private function createSeries(string $title, $properties, User $loggedInUser = null, $spatial = false): Series
     {
         $publicDate = new \DateTime('now');
 
@@ -71,21 +70,19 @@ class SeriesImportService
         return $series;
     }
 
-    private function getMediaPackageField($mediaFields = [], $field = '')
+    private function getMediaPackageField(array $mediaFields = [], string $field = '')
     {
-        if ($mediaFields && $field) {
-            if (isset($mediaFields[$field])) {
-                return $mediaFields[$field];
-            }
+        if ($mediaFields && $field && isset($mediaFields[$field])) {
+            return $mediaFields[$field];
         }
 
         return null;
     }
 
-    private function getSpatialField($mp)
+    private function getSpatialField(array $mp)
     {
         $metadata = $this->getMediaPackageField($mp, 'metadata');
-        if (!isset($metadata) || !isset($metadata['catalog'])) {
+        if (!isset($metadata['catalog'])) {
             return null;
         }
         if (isset($metadata['catalog']['type']) && 'dublincore/episode' === $metadata['catalog']['type']) {

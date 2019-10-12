@@ -4,6 +4,7 @@ namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Psr\Log\LoggerInterface;
+use Pumukit\SchemaBundle\Document\Series;
 
 class SeriesSyncService
 {
@@ -18,11 +19,11 @@ class SeriesSyncService
         $this->logger = $logger;
     }
 
-    public function createSeries($series)
+    public function createSeries(Series $series): void
     {
         //TTK-21470: Since having a series in an Opencast object is not required, but it is in PuMuKIT
         // we need THIS series to not be synced to Opencast. Ideally series would be OPTIONAL.
-        if ('default' == $series->getProperty('opencast')) {
+        if ('default' === $series->getProperty('opencast')) {
             return;
         }
 
@@ -40,11 +41,11 @@ class SeriesSyncService
         $this->dm->flush();
     }
 
-    public function updateSeries($series)
+    public function updateSeries(Series $series): void
     {
         //TTK-21470: Since having a series in an Opencast object is not required, but it is in PuMuKIT
         // we need THIS series to not be synced to Opencast. Ideally series would be OPTIONAL.
-        if ('default' == $series->getProperty('opencast')) {
+        if ('default' === $series->getProperty('opencast')) {
             return;
         }
 
@@ -59,14 +60,12 @@ class SeriesSyncService
         }
     }
 
-    public function deleteSeries($series)
+    public function deleteSeries(Series $series): void
     {
         try {
             $this->clientService->deleteOpencastSeries($series);
         } catch (\Exception $e) {
             $this->logger->error($e->getMessage(), $e->getTrace());
-
-            return;
         }
     }
 }

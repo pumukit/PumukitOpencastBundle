@@ -9,6 +9,7 @@ use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
@@ -34,7 +35,7 @@ class MediaPackageController extends Controller
         }
 
         $opencastClient = $this->get('pumukit_opencast.client');
-        $repository_multimediaobjects = $this->get('doctrine_mongodb')->getRepository(MultimediaObject::class);
+        $repository_multimediaObjects = $this->get('doctrine_mongodb')->getRepository(MultimediaObject::class);
 
         $limit = 10;
         $page = $request->get('page', 1);
@@ -42,7 +43,7 @@ class MediaPackageController extends Controller
 
         try {
             [$total, $mediaPackages] = $opencastClient->getMediaPackages(
-                (isset($criteria['name'])) ? $criteria['name']->regex : '',
+                isset($criteria['name']) ? $criteria['name']->regex : '',
                 $limit,
                 ($page - 1) * $limit
             );
@@ -65,7 +66,7 @@ class MediaPackageController extends Controller
         $pagerfanta->setMaxPerPage($limit);
         $pagerfanta->setCurrentPage($page);
 
-        $repo = $repository_multimediaobjects->createQueryBuilder()
+        $repo = $repository_multimediaObjects->createQueryBuilder()
             ->field('properties.opencast')->exists(true)
             ->field('properties.opencast')->in($currentPageOpencastIds)
             ->getQuery()
@@ -77,10 +78,8 @@ class MediaPackageController extends Controller
 
     /**
      * @Route("/opencast/mediapackage/{id}", name="pumukitopencast_import")
-     *
-     * @param mixed $id
      */
-    public function importAction($id, Request $request)
+    public function importAction(Request $request, string $id): RedirectResponse
     {
         if (!$this->container->getParameter('pumukit_opencast.show_importer_tab')) {
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
@@ -96,12 +95,7 @@ class MediaPackageController extends Controller
         return $this->redirectToRoute('pumukitopencast');
     }
 
-    /**
-     * Gets the criteria values.
-     *
-     * @param mixed $request
-     */
-    public function getCriteria($request)
+    public function getCriteria(Request $request): array
     {
         $criteria = $request->get('criteria', []);
 
@@ -115,7 +109,6 @@ class MediaPackageController extends Controller
         $new_criteria = [];
 
         foreach ($criteria as $property => $value) {
-            //preg_match('/^\/.*?\/[imxlsu]*$/i', $e)
             if ('' !== $value) {
                 $new_criteria[$property] = new \MongoRegex('/'.$value.'/i');
             }
