@@ -53,7 +53,7 @@ class OpencastBatchImportCommand extends ContainerAwareCommand
                     $opencastImportService->importRecording($mediaPackage['id'], $invert);
                 }
             }
-            $batchPlace = $batchPlace + $batchSize;
+            $batchPlace += $batchSize;
         }
         $stopTime = microtime(true);
         $output->writeln('Finished importing '.$totalMediaPackages.' recordings in '.($stopTime - $startTime).' seconds');

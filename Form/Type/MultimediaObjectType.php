@@ -4,6 +4,7 @@ namespace Pumukit\OpencastBundle\Form\Type;
 
 use Pumukit\NewAdminBundle\Form\Type\Base\CustomLanguageType;
 use Pumukit\NewAdminBundle\Form\Type\Other\TrackdurationType;
+use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -16,7 +17,7 @@ class MultimediaObjectType extends AbstractType
     private $translator;
     private $locale;
 
-    public function buildForm(FormBuilderInterface $builder, array $options)
+    public function buildForm(FormBuilderInterface $builder, array $options): void
     {
         $this->translator = $options['translator'];
         $this->locale = $options['locale'];
@@ -58,7 +59,7 @@ class MultimediaObjectType extends AbstractType
 
         $builder->addEventListener(
             FormEvents::POST_SET_DATA,
-            function (FormEvent $event) {
+            static function (FormEvent $event) {
                 $multimediaObject = $event->getData();
                 $event->getForm()->get('opencastinvert')->setData($multimediaObject->getProperty('opencastinvert'));
                 $event->getForm()->get('opencastlanguage')->setData($multimediaObject->getProperty('opencastlanguage'));
@@ -67,7 +68,7 @@ class MultimediaObjectType extends AbstractType
 
         $builder->addEventListener(
             FormEvents::SUBMIT,
-            function (FormEvent $event) {
+            static function (FormEvent $event) {
                 $opencastInvert = $event->getForm()->get('opencastinvert')->getData();
                 $opencastLanguage = strtolower($event->getForm()->get('opencastlanguage')->getData());
                 $multimediaObject = $event->getData();
@@ -77,19 +78,17 @@ class MultimediaObjectType extends AbstractType
         );
     }
 
-    public function configureOptions(OptionsResolver $resolver)
+    public function configureOptions(OptionsResolver $resolver): void
     {
-        $resolver->setDefaults(
-            [
-                'data_class' => 'Pumukit\SchemaBundle\Document\MultimediaObject',
-            ]
-        );
+        $resolver->setDefaults([
+            'data_class' => MultimediaObject::class,
+        ]);
 
         $resolver->setRequired('translator');
         $resolver->setRequired('locale');
     }
 
-    public function getBlockPrefix()
+    public function getBlockPrefix(): string
     {
         return 'pumukit_opencast_multimedia_object';
     }

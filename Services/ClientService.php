@@ -6,12 +6,13 @@ use Psr\Log\LoggerInterface;
 use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Security\RoleHierarchy;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Security\Core\Role\Role;
 
 class ClientService
 {
-    const HTTP_CONNECTTIMEOUT = 1;
-    const HTTP_TIMEOUT = 10;
+    public const HTTP_CONNECTTIMEOUT = 1;
+    public const HTTP_TIMEOUT = 10;
 
     private $url;
     private $user;
@@ -52,7 +53,7 @@ class ClientService
             throw new \RuntimeException('Curl is required to execute remote commands.');
         }
 
-        $this->url = ('/' == substr($url, -1)) ? substr($url, 0, -1) : $url;
+        $this->url = ('/' === substr($url, -1)) ? substr($url, 0, -1) : $url;
         $this->user = $user;
         $this->passwd = $passwd;
         $this->player = $player;
@@ -76,7 +77,7 @@ class ClientService
 
     public function getPlayerUrl(): string
     {
-        return ('/' === $this->player[0]) ? $this->url.$this->player : $this->player;
+        return (0 === strpos($this->player, '/')) ? $this->url.$this->player : $this->player;
     }
 
     /**
@@ -104,7 +105,7 @@ class ClientService
      */
     public function getSchedulerUrl(): string
     {
-        return ('/' === $this->scheduler[0]) ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
+        return (0 === strpos($this->scheduler, '/')) ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
     }
 
     /**
@@ -112,7 +113,7 @@ class ClientService
      */
     public function getDashboardUrl(): string
     {
-        return ('/' === $this->dashboard[0]) ? $this->getAdminUrl().$this->dashboard : $this->dashboard;
+        return (0 === strpos($this->dashboard, '/')) ? $this->getAdminUrl().$this->dashboard : $this->dashboard;
     }
 
     /**
@@ -133,7 +134,7 @@ class ClientService
 
         $return = [0, []];
 
-        if (0 == $decode['search-results']['total']) {
+        if (0 === (int) $decode['search-results']['total']) {
             return $return;
         }
 
@@ -161,7 +162,7 @@ class ClientService
         }
         $decode = $this->decodeJson($output['var']);
 
-        if (0 == $decode['search-results']['total']) {
+        if (0 === (int) $decode['search-results']['total']) {
             return null;
         }
         if ($decode['search-results']['limit'] > 1) {
@@ -183,7 +184,7 @@ class ClientService
         }
         $decode = $this->decodeJson($output['var']);
 
-        if (0 == $decode['search-results']['total']) {
+        if (0 === (int) $decode['search-results']['total']) {
             return false;
         }
         if ($decode['search-results']['limit'] > 1) {
@@ -212,7 +213,7 @@ class ClientService
             return $this->getMediaPackageFromArchive($id);
         }
 
-        if (0 == strpos($version, '1.2')) {
+        if (0 === strpos($version, '1.2')) {
             return $this->getMediaPackageFromWorkflow($id);
         }
 
@@ -225,7 +226,7 @@ class ClientService
     public function getMediaPackageFromWorkflow(string $id): ?array
     {
         $output = $this->request('/workflow/instances.json?state=SUCCEEDED&mp='.$id, [], 'GET', true);
-        if (200 == $output['status']) {
+        if (Response::HTTP_OK === (int) $output['status']) {
             $decode = $this->decodeJson($output['var']);
 
             if (isset($decode['workflows']['workflow']['mediapackage'])) {
@@ -246,7 +247,7 @@ class ClientService
     public function getMediaPackageFromAssets(string $id): ?array
     {
         $output = $this->request('/assets/episode/'.$id, [], 'GET', true);
-        if (200 == $output['status']) {
+        if (Response::HTTP_OK === (int) $output['status']) {
             return $this->decodeXML($output);
         }
 
@@ -262,17 +263,17 @@ class ClientService
         $output = $this->request('/episode/episode.json?id='.$id, [], 'GET', true);
         // NOTE: When the above url returns 404, THIS ALWAYS FAILS!! Since it's a GET request, the request() function throws an exception, and the lines below are never executed
         // In other words, we gotta do a try {} catch if we wanted to support OC 2.x
-        if (200 !== $output['status']) {
+        if (Response::HTTP_OK !== $output['status']) {
             // NOTE: BC for OC 2.x
             $output = $this->request('/archive/episode.json?id='.$id, [], 'GET', true);
-            if (200 !== $output['status']) {
+            if (Response::HTTP_OK !== $output['status']) {
                 return false;
             }
         }
 
         $decode = $this->decodeJson($output['var']);
 
-        if (0 == $decode['search-results']['total']) {
+        if (0 === (int) $decode['search-results']['total']) {
             return false;
         }
         if ($decode['search-results']['limit'] > 1) {
@@ -287,7 +288,7 @@ class ClientService
      */
     public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], string $workflowName = ''): bool
     {
-        if (!$workflowName || ($workflowName == $this->deletionWorkflowName)) {
+        if (!$workflowName || ($workflowName === $this->deletionWorkflowName)) {
             $workflowName = $this->deletionWorkflowName;
             if (!$this->deleteArchiveMediaPackage) {
                 throw new \Exception('Not allowed to delete media packages from archive');
@@ -316,9 +317,9 @@ class ClientService
 
             $mediaPackageIdsParameter = '';
             foreach ($mediaPackagesIds as $index => $id) {
-                $mediaPackageIdsParameter = $mediaPackageIdsParameter.$id;
+                $mediaPackageIdsParameter .= $id;
                 if ($index < (count($mediaPackagesIds) - 1)) {
-                    $mediaPackageIdsParameter = $mediaPackageIdsParameter.',+';
+                    $mediaPackageIdsParameter .= ',+';
                 }
             }
             $parameters = [
@@ -354,9 +355,11 @@ class ClientService
 
         $output = $this->request($request, $parameters, 'POST', true);
 
-        if (!in_array($output['status'], [204, 201])) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
-                                .') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status'].' - params:'.json_encode($parameters));
+        if (!in_array((int) $output['status'], [
+            Response::HTTP_CREATED,
+            Response::HTTP_NO_CONTENT,
+        ], true)) {
+            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status'].' - params:'.json_encode($parameters));
 
             return false;
         }
@@ -375,7 +378,7 @@ class ClientService
 
         $output = $this->request($request, [], 'GET', true);
 
-        if (200 !== $output['status']) {
+        if (Response::HTTP_OK !== $output['status']) {
             return false;
         }
 
@@ -391,7 +394,7 @@ class ClientService
 
         $output = $this->request($request, [], 'GET', true);
 
-        if (200 !== $output['status']) {
+        if (Response::HTTP_OK !== $output['status']) {
             return false;
         }
 
@@ -408,11 +411,8 @@ class ClientService
                 $request = '/workflow/stop';
                 $params = ['id' => $workflow['id']];
                 $output = $this->request($request, $params, 'POST', true);
-                if (200 !== $output['status']) {
-                    return false;
-                }
 
-                return true;
+                return !(Response::HTTP_OK !== $output['status']);
             }
         }
 
@@ -433,8 +433,8 @@ class ClientService
                 'roles' => $roles,
             ];
             $output = $this->request($request, $params, 'POST', true);
-            if (201 != $output['status']) {
-                if (409 == $output['status']) {
+            if (Response::HTTP_CREATED !== (int) $output['status']) {
+                if (Response::HTTP_CONFLICT === (int) $output['status']) {
                     throw new \Exception('Conflict '.$output['status'].'. An user with this username "'.$user->getUsername().'" already exist.', 1);
                 }
 
@@ -461,8 +461,8 @@ class ClientService
                 'roles' => $roles,
             ];
             $output = $this->request($request, $params, 'PUT', true);
-            if (200 != $output['status']) {
-                if (404 == $output['status']) {
+            if (Response::HTTP_OK !== (int) $output['status']) {
+                if (Response::HTTP_NOT_FOUND === (int) $output['status']) {
                     throw new \Exception('Error '.$output['status'].'. User with this username "'.$user->getUsername().'" not found.', 1);
                 }
 
@@ -483,8 +483,8 @@ class ClientService
         if ($this->manageOpencastUsers) {
             $request = '/user-utils/'.$user->getUsername().'.json';
             $output = $this->request($request, '', 'DELETE', true);
-            if (200 != $output['status']) {
-                if (404 == $output['status']) {
+            if (Response::HTTP_OK !== (int) $output['status']) {
+                if (Response::HTTP_NOT_FOUND === (int) $output['status']) {
                     throw new \Exception('Error '.$output['status'].'. User with this username "'.$user->getUsername().'" not found.', 1);
                 }
 
@@ -530,7 +530,7 @@ class ClientService
         $requestUrl = "/api/series/{$seriesOpencastId}/metadata";
         $requestUrl .= "?type={$type}";
         $output = $this->request($requestUrl, $params, 'PUT', true);
-        if (200 !== $output['status']) {
+        if (Response::HTTP_OK !== (int) $output['status']) {
             throw new \Exception('Error trying to update an Opencast series metadata. Error '.$output['status'].':  '.$output['error'].' : '.$output['var'], $output['status']);
         }
 
@@ -567,7 +567,7 @@ class ClientService
         ];
         $requestUrl = '/api/series';
         $output = $this->request($requestUrl, $params, 'POST', true);
-        if (201 !== $output['status']) {
+        if (Response::HTTP_CREATED !== (int) $output['status']) {
             throw new \Exception('Error trying to create an Opencast series. Error '.$output['status'].':  "'.$output['error'].' : '.$output['var'], $output['status']);
         }
 
@@ -587,7 +587,7 @@ class ClientService
         }
         $requestUrl = "/api/series/{$seriesOpencastId}";
         $output = $this->request($requestUrl, [], 'DELETE', true);
-        if (204 !== $output['status']) {
+        if (Response::HTTP_NO_CONTENT !== (int) $output['status']) {
             throw new \Exception('Error trying to delete an Opencast series. Error '.$output['status'].':  "'.$output['error'].' : '.$output['var'], $output['status']);
         }
 
@@ -628,14 +628,12 @@ class ClientService
         return null;
     }
 
-    public function removeEvent(string $id)
+    public function removeEvent(string $id): void
     {
         $output = $this->request('/admin-ng/event/'.$id, [], 'DELETE', true);
         if (!$output) {
             throw new \Exception("Can't access to admin-ng/event");
         }
-
-        return null;
     }
 
     /**
@@ -697,7 +695,7 @@ class ClientService
             $requestUrl = $this->url.$path;
         }
 
-        $fields = (is_array($params)) ? http_build_query($params) : $params;
+        $fields = is_array($params) ? http_build_query($params) : $params;
 
         $header = ['X-Requested-Auth: Digest',
             'X-Opencast-Matterhorn-Authorization: true', ];
@@ -747,7 +745,7 @@ class ClientService
             curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
         }
 
-        if ('' != $this->user) {
+        if ('' !== $this->user) {
             curl_setopt($request, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
             curl_setopt($request, CURLOPT_USERPWD, $this->user.':'.$this->passwd);
             curl_setopt($request, CURLOPT_HTTPHEADER, $header);
@@ -760,18 +758,15 @@ class ClientService
 
         curl_close($request);
 
-        if ('GET' == $method) {
-            if (200 != $output['status']) {
-                $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
-                                     .') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
+        if (('GET' === $method) && Response::HTTP_OK !== (int) $output['status']) {
+            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
 
-                throw new \Exception(sprintf(
-                    'Error "%s", Status %s, Processing Request "%s"',
-                    $output['error'],
-                    $output['status'],
-                    $requestUrl
-                ), 1);
-            }
+            throw new \Exception(sprintf(
+                'Error "%s", Status %s, Processing Request "%s"',
+                $output['error'],
+                $output['status'],
+                $requestUrl
+            ), 1);
         }
 
         return $output;
@@ -812,11 +807,11 @@ class ClientService
     private function getUserRoles(User $user): string
     {
         if ($this->roleHierarchy) {
-            $userRoles = array_map(function ($r) {
+            $userRoles = array_map(static function ($r) {
                 return new Role($r);
             }, $user->getRoles());
             $allRoles = $this->roleHierarchy->getReachableRoles($userRoles);
-            $roles = array_map(function ($r) {
+            $roles = array_map(static function ($r) {
                 return $r->getRole();
             }, $allRoles);
         } else {

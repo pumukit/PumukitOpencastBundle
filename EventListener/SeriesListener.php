@@ -17,33 +17,33 @@ class SeriesListener
         $this->logger = $logger;
     }
 
-    public function onSeriesSync(SeriesEvent $event, $eventName)
+    public function onSeriesSync(SeriesEvent $event, string $eventName): void
     {
         $series = $event->getSeries();
 
         //TTK-21470: Since having a series in an Opencast object is not required, but it is in PuMuKIT
         // we need THIS series to not be synced to Opencast. Ideally series would be OPTIONAL.
-        if ('default' == $series->getProperty('opencast')) {
+        if ('default' === $series->getProperty('opencast')) {
             return;
         }
 
         switch ($eventName) {
-        case 'series.update':
-            $this->seriesSyncService->updateSeries($series);
-
-            break;
-        case 'series.create':
-            if ($series->getProperty('opencast')) {
+            case 'series.update':
                 $this->seriesSyncService->updateSeries($series);
-            } else {
-                $this->seriesSyncService->createSeries($series);
-            }
 
-            break;
-        case 'series.delete':
-            $this->seriesSyncService->deleteSeries($series);
+                break;
+            case 'series.create':
+                if ($series->getProperty('opencast')) {
+                    $this->seriesSyncService->updateSeries($series);
+                } else {
+                    $this->seriesSyncService->createSeries($series);
+                }
 
-            break;
+                break;
+            case 'series.delete':
+                $this->seriesSyncService->deleteSeries($series);
+
+                break;
         }
         $this->logger->debug('Synced Series "'.$series->getId().'" on the Opencast Server.');
     }

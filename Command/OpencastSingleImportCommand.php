@@ -47,7 +47,7 @@ class OpencastSingleImportCommand extends ContainerAwareCommand
         }
     }
 
-    protected function completeMultimediaObject(MultimediaObject $multimediaObject, $opencastId, $invert, $language)
+    protected function completeMultimediaObject(MultimediaObject $multimediaObject, string $opencastId, bool $invert, string $language): void
     {
         $opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
         $opencastClient = $this->getContainer()->get('pumukit_opencast.client');

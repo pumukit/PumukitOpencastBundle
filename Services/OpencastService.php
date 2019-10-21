@@ -36,44 +36,34 @@ class OpencastService
 
     /**
      * Gen SBS according to configuration in parameters.
-     *
-     * @param MultimediaObject $multimediaObject
-     * @param array            $opencastUrls
-     *
-     * @return bool
      */
-    public function genAutoSbs(MultimediaObject $multimediaObject, $opencastUrls = [])
+    public function genAutoSbs(MultimediaObject $multimediaObject, array $opencastUrls = [])
     {
         if (!$this->generateSbs) {
             return false;
         }
 
-        if ($this->useFlavour) {
-            $flavourTrack = null;
-            foreach ($multimediaObject->getTracksWithTag($this->sbsFlavour) as $track) {
-                if (!$track->isOnlyAudio()) {
-                    $flavourTrack = $track;
+        if (!$this->useFlavour) {
+            return $this->generateSbsTrack($multimediaObject, $opencastUrls);
+        }
 
-                    break;
-                }
-            }
+        $flavourTrack = null;
+        foreach ($multimediaObject->getTracksWithTag($this->sbsFlavour) as $track) {
+            if (!$track->isOnlyAudio()) {
+                $flavourTrack = $track;
 
-            if ($flavourTrack) {
-                return $this->useTrackAsSbs($multimediaObject, $flavourTrack);
+                break;
             }
+        }
+
+        if ($flavourTrack) {
+            return $this->useTrackAsSbs($multimediaObject, $flavourTrack);
         }
 
         return $this->generateSbsTrack($multimediaObject, $opencastUrls);
     }
 
-    /**
-     * Get path.
-     *
-     * @param string $url
-     *
-     * @return string|null
-     */
-    public function getPath($url)
+    public function getPath($url): ?string
     {
         $url = $this->refactorUrl($url);
 
@@ -94,14 +84,7 @@ class OpencastService
         return null;
     }
 
-    /**
-     * Generate SBS Track.
-     *
-     * @param MultimediaObject $multimediaObject
-     * @param array            $opencastUrls
-     * @rettun boolean
-     */
-    public function generateSbsTrack(MultimediaObject $multimediaObject, $opencastUrls = [])
+    public function generateSbsTrack(MultimediaObject $multimediaObject, array $opencastUrls = [])
     {
         if (!$this->generateSbs) {
             return false;
@@ -129,12 +112,7 @@ class OpencastService
         return $this->jobService->addJob($path, $this->sbsProfileName, 2, $multimediaObject, $language, [], $vars);
     }
 
-    /**
-     * @param array $mediaPackage
-     *
-     * @return string|null
-     */
-    public function getMediaPackageThumbnail($mediaPackage)
+    public function getMediaPackageThumbnail($mediaPackage): ?string
     {
         if (!isset($mediaPackage['attachments']['attachment'])) {
             return null;
@@ -173,7 +151,7 @@ class OpencastService
         return null;
     }
 
-    private function initSbsConfiguration()
+    private function initSbsConfiguration(): void
     {
         if ($this->sbsConfiguration) {
             if (isset($this->sbsConfiguration['generate_sbs'])) {
@@ -191,12 +169,7 @@ class OpencastService
         }
     }
 
-    /**
-     * @param string $url
-     *
-     * @return string
-     */
-    private function refactorUrl($url)
+    private function refactorUrl(string $url): string
     {
         // NOTE: Refactor for Opencast 3 or greather version
         if (false !== stripos($url, 'assets/assets')) {
@@ -210,8 +183,10 @@ class OpencastService
         }
 
         // NOTE: Refactor for Opencast 1.4 or 1.6
-        if (false !== stripos($url, '/episode/archive/mediapackage/') || false !== stripos($url, '/episode/')) {
-            if (false !== stripos($url, '/episode/archive/mediapackage/')) {
+        $findPathMediaPackage = false !== stripos($url, '/episode/archive/mediapackage/');
+        $findPathEpisode = false !== stripos($url, '/episode/');
+        if ($findPathEpisode || $findPathMediaPackage) {
+            if ($findPathMediaPackage) {
                 $data = explode('/episode/archive/mediapackage/', $url);
                 $delimiterPath = '/episode/archive/mediapackage/';
             } else {
@@ -230,7 +205,7 @@ class OpencastService
         return $url;
     }
 
-    private function useTrackAsSbs(MultimediaObject $multimediaObject, Track $track)
+    private function useTrackAsSbs(MultimediaObject $multimediaObject, Track $track): bool
     {
         if (!$this->sbsProfileName) {
             return false;
@@ -251,7 +226,7 @@ class OpencastService
             $track->addTag(trim($tag));
         }
 
-        $multimediaObject = $this->multimediaObjectService->updateMultimediaObject($multimediaObject);
+        $this->multimediaObjectService->updateMultimediaObject($multimediaObject);
 
         return true;
     }
