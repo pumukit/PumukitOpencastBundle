@@ -33,19 +33,17 @@ class ClientService
     /**
      * ClientService constructor.
      *
-     * @param string               $url
-     * @param string               $user
-     * @param string               $passwd
-     * @param string               $player
-     * @param string               $scheduler
-     * @param string               $dashboard
-     * @param bool                 $deleteArchiveMediaPackage
-     * @param string               $deletionWorkflowName
-     * @param bool                 $manageOpencastUsers
-     * @param bool                 $insecure
-     * @param null                 $adminUrl
-     * @param LoggerInterface|null $logger
-     * @param RoleHierarchy|null   $roleHierarchy
+     * @param string $url
+     * @param string $user
+     * @param string $passwd
+     * @param string $player
+     * @param string $scheduler
+     * @param string $dashboard
+     * @param bool   $deleteArchiveMediaPackage
+     * @param string $deletionWorkflowName
+     * @param bool   $manageOpencastUsers
+     * @param bool   $insecure
+     * @param null   $adminUrl
      */
     public function __construct($url = '', $user = '', $passwd = '', $player = '/engage/ui/watch.html', $scheduler = '/admin/index.html#/recordings', $dashboard = '/dashboard/index.html', $deleteArchiveMediaPackage = false, $deletionWorkflowName = 'delete-archive', $manageOpencastUsers = false, $insecure = false, $adminUrl = null, LoggerInterface $logger = null, RoleHierarchy $roleHierarchy = null)
     {
@@ -347,7 +345,6 @@ class ClientService
     /**
      * Apply workflow to media packages.
      *
-     * @param array  $mediaPackagesIds
      * @param string $workflowName
      *
      * @throws \Exception
@@ -482,8 +479,6 @@ class ClientService
     /**
      * Stop workflow.
      *
-     * @param array $workflow
-     *
      * @throws \Exception
      *
      * @return bool
@@ -508,8 +503,6 @@ class ClientService
 
     /**
      * Create User.
-     *
-     * @param User $user
      *
      * @throws \Exception
      *
@@ -543,8 +536,6 @@ class ClientService
     /**
      * Update User.
      *
-     * @param User $user
-     *
      * @throws \Exception
      *
      * @return bool
@@ -577,8 +568,6 @@ class ClientService
     /**
      * Delete User.
      *
-     * @param User $user
-     *
      * @throws \Exception
      *
      * @return bool
@@ -608,8 +597,6 @@ class ClientService
      * Updates the Opencast series metadata based on the associated PuMuKIT series. If
      * the Opencast series does not exist, it creates a new Opencast series and updates
      * the Opencast id on the PuMuKIT series.
-     *
-     * @param Series $series
      *
      * @throws \Exception
      *
@@ -654,8 +641,6 @@ class ClientService
      * Creates an Opencast series and associates it to the PuMuKIT series.
      * The Opencast series metadata is taken from the PuMuKIT series.
      *
-     * @param Series $series
-     *
      * @throws \Exception
      *
      * @return array
@@ -696,8 +681,6 @@ class ClientService
      *
      * Deletes the Opencast series metadata associated to the PuMuKIT series.
      *
-     * @param Series $series
-     *
      * @throws \Exception
      *
      * @return mixed
@@ -712,6 +695,31 @@ class ClientService
         $output = $this->request($requestUrl, [], 'DELETE', true);
         if (204 !== $output['status']) {
             throw new \Exception('Error trying to delete an Opencast series. Error '.$output['status'].':  "'.$output['error'].' : '.$output['var'], $output['status']);
+        }
+
+        return $output;
+    }
+
+    /**
+     * Get an Opencast series.
+     *
+     * Get the Opencast series metadata associated to the PuMuKIT series.
+     *
+     * @param $id
+     *
+     * @return mixed|bool|null
+     */
+    public function getOpencastSerie($serie)
+    {
+        $serieOpencastId = $serie->getProperty('opencast');
+        if (null === $serieOpencastId) {
+            return null;
+        }
+        $requestUrl = "/api/series/$serieOpencastId";
+        try {
+            $output = $this->request($requestUrl, [], 'GET', true);
+        } catch (\Exception $e) {
+            return null;
         }
 
         return $output;
@@ -873,12 +881,7 @@ class ClientService
             if (200 != $output['status']) {
                 $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
                                      .') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
-                throw new \Exception(sprintf(
-                    'Error "%s", Status %s, Processing Request "%s"',
-                    $output['error'],
-                    $output['status'],
-                    $requestUrl
-                ), 1);
+                throw new \Exception(sprintf('Error "%s", Status %s, Processing Request "%s"', $output['error'], $output['status'], $requestUrl), 1);
             }
         }
 
@@ -928,8 +931,6 @@ class ClientService
     }
 
     /**
-     * @param User $user
-     *
      * @return string
      */
     private function getUserRoles(User $user)
