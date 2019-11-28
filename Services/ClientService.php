@@ -716,9 +716,14 @@ class ClientService
             return null;
         }
         $requestUrl = "/api/series/$serieOpencastId";
-        $output = $this->request($requestUrl, [], 'GET', true);
-        if (200 !== $output['status']) {
-            return null;
+        try {
+            $output = $this->request($requestUrl, [], 'GET', true);
+        } catch (\Exception $e) {
+            if (404 == $output['status']) {
+                return null;
+            } else {
+                throw $e;
+            }
         }
 
         return $output;
