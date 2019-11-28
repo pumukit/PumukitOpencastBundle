@@ -159,7 +159,7 @@ EOT
         $this->output->writeln(
             [
                 '',
-                '<info> **** Import segments on multimedia object **** </info>',
+                '<info> **** Sync Series **** </info>',
                 '',
                 '<comment> ----- Total: </comment>'.count($series),
             ]
@@ -168,7 +168,9 @@ EOT
         foreach ($series as $serie) {
             $serie->getProperty('opencast');
             if (!$this->clientService->getOpencastSerie($serie)) {
-                $this->output->writeln(' Serie: '.$serie->getId().' MediaPackage: -'.$serie->getProperty('opencast').' - no existe en Opencast');
+                $this->clientService->createOpencastSeries($serie);
+            } else {
+                $this->output->writeln(' Serie: '.$serie->getId().' OC Serie: '.$serie->getProperty('opencast').' ya existe en Opencast');
             }
         }
     }

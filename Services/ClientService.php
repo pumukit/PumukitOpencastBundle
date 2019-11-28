@@ -719,11 +719,7 @@ class ClientService
         try {
             $output = $this->request($requestUrl, [], 'GET', true);
         } catch (\Exception $e) {
-            if (404 == $output['status']) {
-                return null;
-            } else {
-                throw $e;
-            }
+            return null;
         }
 
         return $output;
