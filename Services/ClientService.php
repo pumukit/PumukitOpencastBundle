@@ -709,13 +709,13 @@ class ClientService
      *
      * @return mixed|bool|null
      */
-    public function getOpencastSerie($serie)
+    public function getOpencastSeries($series)
     {
-        $serieOpencastId = $serie->getProperty('opencast');
-        if (null === $serieOpencastId) {
+        $seriesOpencastId = $series->getProperty('opencast');
+        if (null === $seriesOpencastId) {
             return null;
         }
-        $requestUrl = "/api/series/$serieOpencastId";
+        $requestUrl = "/api/series/$seriesOpencastId";
         try {
             $output = $this->request($requestUrl, [], 'GET', true);
         } catch (\Exception $e) {
