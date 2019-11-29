@@ -3,7 +3,7 @@
 namespace Pumukit\OpencastBundle\Command;
 
 use Pumukit\OpencastBundle\Services\ClientService;
-use Pumukit\SchemaBundle\Document\EmbeddedSegment;
+use Pumukit\OpencastBundle\Services\SeriesSyncService;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -22,6 +22,7 @@ class OpencastSyncSeriesCommand extends ContainerAwareCommand
     private $id;
     private $force;
     private $clientService;
+    private $seriesSyncService;
 
     protected function configure()
     {
@@ -85,6 +86,8 @@ EOT
             $this->logger,
             null
         );
+
+        $this->seriesSyncService = $this->getContainer()->get('pumukit_opencast.series_sync');
     }
 
     /**
@@ -166,9 +169,8 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            $oneseries->getProperty('opencast');
             if (!$this->clientService->getOpencastSeries($oneseries)) {
-                $this->clientService->createOpencastSeries($oneseries);
+                $this->seriesSyncService->createSeries($oneseries);
             } else {
                 $this->output->writeln(' Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' ya existe en Opencast');
             }
