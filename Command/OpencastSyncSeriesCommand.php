@@ -165,12 +165,12 @@ EOT
             ]
         );
 
-        foreach ($series as $serie) {
-            $serie->getProperty('opencast');
-            if (!$this->clientService->getOpencastSerie($serie)) {
-                $this->clientService->createOpencastSeries($serie);
+        foreach ($series as $oneseries) {
+            $oneseries->getProperty('opencast');
+            if (!$this->clientService->getOpencastSeries($oneseries)) {
+                $this->clientService->createOpencastSeries($oneseries);
             } else {
-                $this->output->writeln(' Serie: '.$serie->getId().' OC Serie: '.$serie->getProperty('opencast').' ya existe en Opencast');
+                $this->output->writeln(' Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' ya existe en Opencast');
             }
         }
     }
@@ -189,34 +189,12 @@ EOT
             ]
         );
 
-        foreach ($series as $serie) {
-            if (!$this->clientService->getOpencastSerie($serie)) {
-                $this->output->writeln(' Serie: '.$serie->getId().' Opencast Serie: -'.$serie->getProperty('opencast').' - no existe en Opencast');
+        foreach ($series as $oneseries) {
+            if (!$this->clientService->getOpencastSeries($oneseries)) {
+                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - no existe en Opencast');
             } else {
-                $this->output->writeln(' Serie: '.$serie->getId().' Opencast Serie: -'.$serie->getProperty('opencast').' - ya existe en Opencast');
+                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - ya existe en Opencast');
             }
         }
-    }
-
-    private function createNewSegment($segment)
-    {
-        $embeddedSegment = new EmbeddedSegment();
-
-        $embeddedSegment->setIndex($segment['index']);
-        $embeddedSegment->setTime($segment['time']);
-        $embeddedSegment->setDuration($segment['duration']);
-        $embeddedSegment->setRelevance($segment['relevance']);
-        $embeddedSegment->setHit(boolval($segment['hit']));
-        $embeddedSegment->setText($segment['text']);
-
-        $image = '';
-        if (isset($segment['previews']['preview']['$'])) {
-            $image = $segment['previews']['preview']['$'];
-        }
-        $embeddedSegment->setPreview($image);
-
-        $this->dm->persist($embeddedSegment);
-
-        return $embeddedSegment;
     }
 }
