@@ -288,8 +288,6 @@ class ClientService
     /**
      * Apply workflow to media packages.
      *
-     * @param string $workflowName
-     *
      * @throws \Exception
      */
     public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], string $workflowName = ''): bool
@@ -634,8 +632,6 @@ class ClientService
     }
 
     /**
-     * @param string $url
-     *
      * @throws \Exception
      */
     public function getSpatialField(string $url)
@@ -802,12 +798,7 @@ class ClientService
         if (('GET' === $method) && Response::HTTP_OK !== (int) $output['status']) {
             $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
 
-            throw new \Exception(sprintf(
-                'Error "%s", Status %s, Processing Request "%s"',
-                $output['error'],
-                $output['status'],
-                $requestUrl
-            ), 1);
+            throw new \Exception(sprintf('Error "%s", Status %s, Processing Request "%s"', $output['error'], $output['status'], $requestUrl), 1);
         }
 
         return $output;

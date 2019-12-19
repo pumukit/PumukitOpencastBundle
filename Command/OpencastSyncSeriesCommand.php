@@ -3,7 +3,6 @@
 namespace Pumukit\OpencastBundle\Command;
 
 use Pumukit\OpencastBundle\Services\ClientService;
-use Pumukit\OpencastBundle\Services\SeriesSyncService;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
