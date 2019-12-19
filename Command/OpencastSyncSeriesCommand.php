@@ -2,7 +2,8 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
-use Pumukit\SchemaBundle\Document\Series;
+use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\OpencastBundle\Services\SeriesSyncService;
 use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
@@ -10,41 +11,192 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 class OpencastSyncSeriesCommand extends ContainerAwareCommand
 {
+    private $output;
+    private $input;
+    private $dm;
+    private $opencastImportService;
+    private $logger;
+    private $user;
+    private $password;
+    private $host;
+    private $id;
+    private $force;
+    private $clientService;
+    private $seriesSyncService;
+
     protected function configure()
     {
         $this
-            ->setName('opencast:sync:series')
-            ->setDescription('Syncs all series without an "opencast" property with Opencast')
-            ->addOption('dry-run', 'd', InputOption::VALUE_NONE, 'If set, the command will only show text output')
-        ;
+            ->setName('pumukit:opencast:sync:series')
+            ->setDescription('Synchronize PuMuKIT series in Opencast. This command is not idempotent.')
+            ->addOption('user', 'u', InputOption::VALUE_REQUIRED, 'Opencast user')
+            ->addOption('password', 'p', InputOption::VALUE_REQUIRED, 'Opencast password')
+            ->addOption('host', null, InputOption::VALUE_REQUIRED, 'Path to selected tracks from PMK using regex')
+            ->addOption('id', null, InputOption::VALUE_OPTIONAL, 'ID of multimedia object to import')
+            ->addOption('force', null, InputOption::VALUE_NONE, 'Set this parameter to execute this action')
+            ->setHelp(
+                <<<'EOT'
+            
+            
+            Command to synchronize PuMuKIT series in Opencast
+            
+            <info> ** Example ( check and list ):</info>
+            
+            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
+            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
+            
+            This example will be check the connection with these Opencast and list all multimedia objects from PuMuKIT find by regex host.
+            
+            <info> ** Example ( <error>execute</error> ):</info>
+            
+            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
+            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
+
+EOT
+            );
     }
 
+    protected function initialize(InputInterface $input, OutputInterface $output)
+    {
+        $this->output = $output;
+        $this->input = $input;
+        $this->dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
+
+        $this->opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
+        $this->logger = $this->getContainer()->get('logger');
+
+        $this->user = trim($this->input->getOption('user'));
+        $this->password = trim($this->input->getOption('password'));
+        $this->host = trim($this->input->getOption('host'));
+        $this->id = $this->input->getOption('id');
+        $this->force = (true === $this->input->getOption('force'));
+
+        $this->clientService = new ClientService(
+            $this->host,
+            $this->user,
+            $this->password,
+            '/engage/ui/watch.html',
+            '/admin/index.html#/recordings',
+            '/dashboard/index.html',
+            false,
+            'delete-archive',
+            false,
+            true,
+            null,
+            $this->logger,
+            null
+        );
+
+        $this->seriesSyncService = $this->getContainer()->get('pumukit_opencast.series_sync');
+    }
+
+    /**
+     * @return int|void|null
+     *
+     * @throws \Exception
+     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $output->writeln(sprintf('<info>Starting command</info>'), OutputInterface::VERBOSITY_VERBOSE);
-        $dryRun = $input->getOption('dry-run');
-        $numSynced = $this->syncSeries($output, $dryRun);
-        $output->writeln(sprintf('<info>Synced %s series</info>', $numSynced));
-    }
+        $this->checkInputs();
 
-    protected function syncSeries(OutputInterface $output = null, bool $dryRun = false): int
-    {
-        $dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
-        $seriesRepo = $dm->getRepository(Series::class);
-        $allSeries = $seriesRepo->findBy(['properties.opencast' => ['$exists' => 0]]);
-        $dispatcher = $this->getContainer()->get('pumukitschema.series_dispatcher');
-
-        $numSynced = 0;
-        foreach ($allSeries as $series) {
-            ++$numSynced;
-            if (false === $dryRun) {
-                $dispatcher->dispatchCreate($series);
-            }
-            if ($output) {
-                $output->writeln(sprintf('<info>- Synced series with id %s </info>(%s)', $series->getId(), $numSynced), OutputInterface::VERBOSITY_VERBOSE);
+        if ($this->checkOpencastStatus()) {
+            $series = $this->getSeries();
+            if ($this->force) {
+                $this->syncSeries($series);
+            } else {
+                $this->showSeries($series);
             }
         }
+    }
 
-        return $numSynced;
+    /**
+     * @throws \Exception
+     */
+    private function checkInputs()
+    {
+        if (!$this->user || !$this->password || !$this->host) {
+            throw new \Exception('Please, set values for user, password and host');
+        }
+
+        if ($this->id) {
+            $validate = preg_match('/^[a-f\d]{24}$/i', $this->id);
+            if (0 === $validate || false === $validate) {
+                throw new \Exception('Please, use a valid ID');
+            }
+        }
+    }
+
+    /**
+     * @return bool
+     */
+    private function checkOpencastStatus()
+    {
+        if ($this->clientService->getAdminUrl()) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * @return mixed
+     */
+    private function getSeries()
+    {
+        $criteria['properties.opencast'] = ['$exists' => true];
+
+        if ($this->id) {
+            $criteria['_id'] = new \MongoId($this->id);
+        }
+
+        $series = $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
+
+        return $series;
+    }
+
+    /**
+     * @param $series
+     */
+    private function syncSeries($series)
+    {
+        $this->output->writeln(
+            [
+                '',
+                '<info> **** Sync Series **** </info>',
+                '',
+                '<comment> ----- Total: </comment>'.count($series),
+            ]
+        );
+
+        foreach ($series as $oneseries) {
+            if (!$this->clientService->getOpencastSeries($oneseries)) {
+                $this->seriesSyncService->createSeries($oneseries);
+            } else {
+                $this->output->writeln(' Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' ya existe en Opencast');
+            }
+        }
+    }
+
+    /**
+     * @param $series
+     */
+    private function showSeries($series)
+    {
+        $this->output->writeln(
+            [
+                '',
+                '<info> **** Finding Series **** </info>',
+                '',
+                '<comment> ----- Total: </comment>'.count($series),
+            ]
+        );
+
+        foreach ($series as $oneseries) {
+            if (!$this->clientService->getOpencastSeries($oneseries)) {
+                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - no existe en Opencast');
+            } else {
+                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - ya existe en Opencast');
+            }
+        }
     }
 }

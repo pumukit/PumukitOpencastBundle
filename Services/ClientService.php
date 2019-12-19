@@ -28,21 +28,23 @@ class ClientService
     private $logger;
     private $roleHierarchy;
 
-    public function __construct(
-        string $url = '',
-        string $user = '',
-        string $passwd = '',
-        string $player = '/engage/ui/watch.html',
-        string $scheduler = '/admin/index.html#/recordings',
-        string $dashboard = '/dashboard/index.html',
-        bool $deleteArchiveMediaPackage = false,
-        string $deletionWorkflowName = 'delete-archive',
-        bool $manageOpencastUsers = false,
-        bool $insecure = false,
-        ?string $adminUrl = null,
-        ?LoggerInterface $logger = null,
-        ?RoleHierarchy $roleHierarchy = null
-    ) {
+    /**
+     * ClientService constructor.
+     *
+     * @param string $url
+     * @param string $user
+     * @param string $passwd
+     * @param string $player
+     * @param string $scheduler
+     * @param string $dashboard
+     * @param bool   $deleteArchiveMediaPackage
+     * @param string $deletionWorkflowName
+     * @param bool   $manageOpencastUsers
+     * @param bool   $insecure
+     * @param null   $adminUrl
+     */
+    public function __construct($url = '', $user = '', $passwd = '', $player = '/engage/ui/watch.html', $scheduler = '/admin/index.html#/recordings', $dashboard = '/dashboard/index.html', $deleteArchiveMediaPackage = false, $deletionWorkflowName = 'delete-archive', $manageOpencastUsers = false, $insecure = false, $adminUrl = null, LoggerInterface $logger = null, RoleHierarchy $roleHierarchy = null)
+    {
         $this->logger = $logger;
 
         if (!function_exists('curl_init')) {
@@ -284,6 +286,10 @@ class ClientService
     }
 
     /**
+     * Apply workflow to media packages.
+     *
+     * @param string $workflowName
+     *
      * @throws \Exception
      */
     public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], string $workflowName = ''): bool
@@ -402,6 +408,8 @@ class ClientService
     }
 
     /**
+     * Stop workflow.
+     *
      * @throws \Exception
      */
     public function stopWorkflow(array $workflow = []): bool
@@ -420,6 +428,8 @@ class ClientService
     }
 
     /**
+     * Create User.
+     *
      * @throws \Exception
      */
     public function createUser(User $user): bool
@@ -448,6 +458,8 @@ class ClientService
     }
 
     /**
+     * Update User.
+     *
      * @throws \Exception
      */
     public function updateUser(User $user): bool
@@ -476,6 +488,8 @@ class ClientService
     }
 
     /**
+     * Delete User.
+     *
      * @throws \Exception
      */
     public function deleteUser(User $user): bool
@@ -595,6 +609,33 @@ class ClientService
     }
 
     /**
+     * Get an Opencast series.
+     *
+     * Get the Opencast series metadata associated to the PuMuKIT series.
+     *
+     * @param $id
+     *
+     * @return mixed|bool|null
+     */
+    public function getOpencastSeries($series)
+    {
+        $seriesOpencastId = $series->getProperty('opencast');
+        if (null === $seriesOpencastId) {
+            return null;
+        }
+        $requestUrl = "/api/series/$seriesOpencastId";
+        try {
+            $output = $this->request($requestUrl, [], 'GET', true);
+        } catch (\Exception $e) {
+            return null;
+        }
+
+        return $output;
+    }
+
+    /**
+     * @param string $url
+     *
      * @throws \Exception
      */
     public function getSpatialField(string $url)
