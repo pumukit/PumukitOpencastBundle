@@ -10,7 +10,7 @@
         "teltek"
     ],
     "homepage": "https://github.com/pumukit/PumukitOpencastBundle",
-    "license": "proprietary",
+    "license": "AGPL-3.0-or-later",
     "authors": [
         {
             "name": "Teltek Team",
