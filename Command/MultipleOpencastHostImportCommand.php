@@ -82,7 +82,7 @@ EOT
     protected function initialize(InputInterface $input, OutputInterface $output)
     {
         $this->opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
-        $this->secondsToSleep = $this->getContainer()->get('pumukit_opencast.seconds_to_sleep_on_commands');
+        $this->secondsToSleep = $this->getContainer()->getParameter('pumukit_opencast.seconds_to_sleep_on_commands');
 
         $this->user = trim($input->getOption('user'));
         $this->password = trim($input->getOption('password'));
