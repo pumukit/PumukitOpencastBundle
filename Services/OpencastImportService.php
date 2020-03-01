@@ -4,7 +4,7 @@ namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Psr\Log\LoggerInterface;
-use Pumukit\InspectionBundle\Services\InspectionServiceInterface;
+use Pumukit\InspectionBundle\Services\InspectionFfprobeService;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
@@ -47,7 +47,7 @@ class OpencastImportService
         MultimediaObjectService $mmsService,
         ClientService $opencastClient,
         OpencastService $opencastService,
-        InspectionServiceInterface $inspectionService,
+        InspectionFfprobeService $inspectionService,
         array $otherLocales,
         string $defaultTagImported,
         SeriesImportService $seriesImportService,

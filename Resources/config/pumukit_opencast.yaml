@@ -3,6 +3,18 @@ services:
     autowire:      true
     autoconfigure: true
     public:        true
+    bind:
+      $host: '%pumukit_opencast.host%'
+      $opencastShowImporterTab: '%pumukit_opencast.show_importer_tab%'
+      $opencastBatchImportInverted: '%pumukit_opencast.batchimport_inverted%'
+      $secondsToSleep: '%pumukit_opencast.seconds_to_sleep_on_commands%'
+      $opencastDeleteArchiveMediaPackage: '%pumukit_opencast.delete_archive_mediapackage%'
+      $otherLocales: '%pumukit.locales%'
+      $defaultTagImported: '%pumukit_opencast.default_tag_imported%'
+      $customLanguages: '%pumukit.customlanguages%'
+      $template: '%pumukit_notification.template%'
+      $accessUrl: ''
+      $subject: ''
 
   Pumukit\OpencastBundle\Controller\:
     resource: '../../Controller/'
@@ -36,3 +48,5 @@ services:
   Pumukit\OpencastBundle\Services\SeriesSyncService:
     class: Pumukit\OpencastBundle\Services\SeriesSyncService
 
+  Pumukit\OpencastBundle\Services\WorkflowService:
+    class: Pumukit\OpencastBundle\Services\WorkflowService

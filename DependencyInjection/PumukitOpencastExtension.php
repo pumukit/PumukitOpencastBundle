@@ -19,6 +19,7 @@ class PumukitOpencastExtension extends Extension
         $this->validateOpencastConfiguration($config['host'], $config['url_mapping'], $env);
 
         $container->setParameter('pumukit_opencast.show_importer_tab', $config['show_importer_tab']);
+        $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
 //        if (isset($config['host']) && $config['host']) {
 //            $env = $container->getParameter('kernel.environment');
 //            $this->validateOpencastConfiguration($config['host'], $config['url_mapping'], $env);
@@ -84,20 +85,20 @@ class PumukitOpencastExtension extends Extension
 //
 //            ;
 //
-//            $container->setParameter('pumukit_opencast.sbs', $config['sbs']);
-//            $container->setParameter('pumukit_opencast.sbs.generate_sbs', $config['sbs']['generate_sbs'] ? $config['sbs']['generate_sbs'] : false);
-//            $container->setParameter('pumukit_opencast.sbs.profile', $config['sbs']['generate_sbs'] ? $config['sbs']['profile'] : null);
-//            $container->setParameter('pumukit_opencast.sbs.use_flavour', $config['sbs']['generate_sbs'] ? $config['sbs']['use_flavour'] : false);
-//            $container->setParameter('pumukit_opencast.sbs.flavour', $config['sbs']['use_flavour'] ? $config['sbs']['flavour'] : null);
-//
-//            $container->setParameter('pumukit_opencast.use_redirect', $config['use_redirect']);
-//            $container->setParameter('pumukit_opencast.batchimport_inverted', $config['batchimport_inverted']);
-//            $container->setParameter('pumukit_opencast.delete_archive_mediapackage', $config['delete_archive_mediapackage']);
-//            $container->setParameter('pumukit_opencast.deletion_workflow_name', $config['deletion_workflow_name']);
-//            $container->setParameter('pumukit_opencast.url_mapping', $config['url_mapping']);
-//            $container->setParameter('pumukit_opencast.manage_opencast_users', $config['manage_opencast_users']);
-//            $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
-//
+        $container->setParameter('pumukit_opencast.sbs', $config['sbs']);
+        $container->setParameter('pumukit_opencast.sbs.generate_sbs', $config['sbs']['generate_sbs'] ? $config['sbs']['generate_sbs'] : false);
+        $container->setParameter('pumukit_opencast.sbs.profile', $config['sbs']['generate_sbs'] ? $config['sbs']['profile'] : null);
+        $container->setParameter('pumukit_opencast.sbs.use_flavour', $config['sbs']['generate_sbs'] ? $config['sbs']['use_flavour'] : false);
+        $container->setParameter('pumukit_opencast.sbs.flavour', $config['sbs']['use_flavour'] ? $config['sbs']['flavour'] : null);
+
+        $container->setParameter('pumukit_opencast.use_redirect', $config['use_redirect']);
+        $container->setParameter('pumukit_opencast.batchimport_inverted', $config['batchimport_inverted']);
+        $container->setParameter('pumukit_opencast.delete_archive_mediapackage', $config['delete_archive_mediapackage']);
+        $container->setParameter('pumukit_opencast.deletion_workflow_name', $config['deletion_workflow_name']);
+        $container->setParameter('pumukit_opencast.url_mapping', $config['url_mapping']);
+        $container->setParameter('pumukit_opencast.manage_opencast_users', $config['manage_opencast_users']);
+        $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
+
 //            $container
 //                ->register('pumukit_opencast.remove_listener', 'Pumukit\\OpencastBundle\\EventListener\\RemoveListener')
 //                ->addArgument(new Reference('pumukit_opencast.client'))
