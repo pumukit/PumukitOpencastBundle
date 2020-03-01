@@ -8,13 +8,13 @@ use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Services\MultimediaObjectService;
-use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/admin/opencast/mm")
@@ -36,15 +36,13 @@ class MultimediaObjectController extends AbstractController
         OpencastService $opencastService,
         bool $opencastSBSGenerate = false,
         string $opencastSBSProfile = ''
-    )
-    {
+    ) {
         $this->opencastClientService = $opencastClientService;
         $this->multimediaObjectService = $multimediaObjectService;
         $this->opencastImportService = $opencastImportService;
         $this->opencastService = $opencastService;
         $this->opencastSBSGenerate = $opencastSBSGenerate;
         $this->opencastSBSProfile = $opencastSBSProfile;
-
     }
 
     /**
@@ -126,7 +124,8 @@ class MultimediaObjectController extends AbstractController
         $this->opencastService->generateSbsTrack($multimediaObject, $opencastUrls);
 
         return $this->redirect(
-            $this->generateUrl('pumukitnewadmin_track_list',
+            $this->generateUrl(
+                'pumukitnewadmin_track_list',
                 ['id' => $multimediaObject->getId()]
             )
         );

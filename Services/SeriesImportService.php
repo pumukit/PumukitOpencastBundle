@@ -22,8 +22,7 @@ class SeriesImportService
         ClientService $opencastClient,
         SeriesEventDispatcherService $seriesDispatcher,
         array $otherLocales = []
-    )
-    {
+    ) {
         $this->dm = $documentManager;
         $this->factoryService = $factoryService;
         $this->opencastClient = $opencastClient;

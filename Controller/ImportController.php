@@ -6,9 +6,9 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/api/opencast")

@@ -4,21 +4,18 @@ namespace Pumukit\OpencastBundle\Controller;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use MongoDB\BSON\Regex;
-use Pagerfanta\Adapter\FixedAdapter;
-use Pagerfanta\Pagerfanta;
 use Pumukit\CoreBundle\Services\PaginationService;
-use Pumukit\EncoderBundle\Services\JobService;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
@@ -41,8 +38,7 @@ class MediaPackageController extends AbstractController
         OpencastService $opencastService,
         OpencastImportService $opencastImportService,
         PaginationService $paginationService
-    )
-    {
+    ) {
         $this->opencastShowImporterTab = $opencastShowImporterTab;
         $this->opencastClientService = $opencastClientService;
         $this->documentManager = $documentManager;
@@ -80,10 +76,12 @@ class MediaPackageController extends AbstractController
         } catch (\Exception $e) {
             return new Response(
                 $this->renderView(
-                    '@PumukitOpencast/MediaPackage/error.html.twig', [
+                    '@PumukitOpencast/MediaPackage/error.html.twig',
+                    [
                         'admin_url' => $this->opencastClientService->getUrl(),
-                        'message' => $e->getMessage()
-                    ]),
+                        'message' => $e->getMessage(),
+                    ]
+                ),
                 Response::HTTP_SERVICE_UNAVAILABLE
             );
         }
@@ -109,7 +107,7 @@ class MediaPackageController extends AbstractController
             'mediaPackages' => $pager,
             'multimediaObjects' => $repo,
             'player' => $this->opencastClientService->getPlayerUrl(),
-            'pics' => $pics
+            'pics' => $pics,
         ];
     }
 
@@ -118,7 +116,7 @@ class MediaPackageController extends AbstractController
      */
     public function importAction(Request $request, string $id): RedirectResponse
     {
-        if (!$this->container->getParameter('pumukit_opencast.show_importer_tab')) {
+        if (!$this->opencastShowImporterTab) {
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
         }
 

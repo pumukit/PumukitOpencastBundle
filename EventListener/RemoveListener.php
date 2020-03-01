@@ -18,8 +18,7 @@ class RemoveListener
         LoggerInterface $logger,
         bool $deleteArchiveMediaPackage = false,
         string $deletionWorkflowName = 'delete-archive'
-    )
-    {
+    ) {
         $this->clientService = $clientService;
         $this->logger = $logger;
         $this->deleteArchiveMediaPackage = $deleteArchiveMediaPackage;

@@ -36,7 +36,7 @@ class OpencastBatchImportCommand extends Command
           ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $startTime = microtime(true);
         $mediaPackages = $this->opencastClientService->getMediaPackages('', 1, 0);
@@ -72,5 +72,7 @@ class OpencastBatchImportCommand extends Command
         }
         $stopTime = microtime(true);
         $output->writeln('Finished importing '.$totalMediaPackages.' recordings in '.($stopTime - $startTime).' seconds');
+
+        return 0;
     }
 }

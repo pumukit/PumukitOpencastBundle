@@ -45,7 +45,7 @@ class OpencastSingleImportCommand extends Command
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $opencastId = $input->getArgument('id');
         if ($input->getOption('verbose')) {
@@ -67,6 +67,8 @@ class OpencastSingleImportCommand extends Command
                 $this->opencastImportService->importRecording($opencastId, $input->getOption('invert'));
             }
         }
+
+        return 0;
     }
 
     protected function completeMultimediaObject(MultimediaObject $multimediaObject, string $opencastId, bool $invert, string $language): void

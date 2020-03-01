@@ -1,0 +1,12 @@
+services:
+  _defaults:
+    autowire:      true
+    autoconfigure: true
+    public:        true
+
+  Pumukit\OpencastBundle\EventListener\SeriesListener:
+    class: Pumukit\OpencastBundle\EventListener\SeriesListener
+    tags:
+      - { name: "kernel.event_listener", event: "series.update", method: "onSeriesSync"}
+      - { name: "kernel.event_listener", event: "series.create", method: "onSeriesSync"}
+      - { name: "kernel.event_listener", event: "series.delete", method: "onSeriesSync" }

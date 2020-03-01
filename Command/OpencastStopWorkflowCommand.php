@@ -48,7 +48,7 @@ EOT
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $opencastVersion = $this->opencastClientService->getOpencastVersion();
         if ($opencastVersion < '2.0.0') {
@@ -80,7 +80,7 @@ EOT
         $total = $statistics['statistics']['total'] ?? 0;
 
         if (0 === $total) {
-            return null;
+            return 0;
         }
 
         $workflowName = 'retract';

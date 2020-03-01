@@ -17,7 +17,7 @@ use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 use Pumukit\SchemaBundle\Services\TagService;
 use Pumukit\SchemaBundle\Services\TrackService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OpencastImportService
 {
@@ -71,22 +71,12 @@ class OpencastImportService
         $this->dispatcher = $dispatcher;
     }
 
-    /**
-     * Given a media package id
-     * create a multimedia object
-     * with the media package metadata.
-     */
     public function importRecording(string $opencastId, ?bool $invert = false, ?User $loggedInUser = null): void
     {
         $mediaPackage = $this->opencastClient->getMediaPackage($opencastId);
         $this->importRecordingFromMediaPackage($mediaPackage, $invert, $loggedInUser);
     }
 
-    /**
-     * Given a media package
-     * create a multimedia object
-     * with the media package metadata.
-     */
     public function importRecordingFromMediaPackage(array $mediaPackage, ?bool $invert = false, ?User $loggedInUser = null): void
     {
         $multimediaObject = null;

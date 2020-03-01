@@ -101,7 +101,7 @@ EOT
         );
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->checkInputs();
 
@@ -113,6 +113,8 @@ EOT
                 $this->showSeries($series);
             }
         }
+
+        return 0;
     }
 
     private function checkInputs(): void

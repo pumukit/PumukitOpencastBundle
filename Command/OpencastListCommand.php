@@ -39,7 +39,7 @@ EOT
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         [$total, $mediaPackages] = $this->clientService->getMediaPackages('', 0, 0);
 
@@ -54,5 +54,7 @@ EOT
                 $output->writeln('MediaPackage - <info>'.$mediaPackage['id'].'</info>');
             }
         }
+
+        return 0;
     }
 }
