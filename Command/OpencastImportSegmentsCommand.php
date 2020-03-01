@@ -2,18 +2,19 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
+use MongoDB\BSON\ObjectId;
+use MongoDB\BSON\Regex;
+use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\SchemaBundle\Document\EmbeddedSegment;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-/**
- * Class OpencastImportSegmentsCommand.
- */
-class OpencastImportSegmentsCommand extends ContainerAwareCommand
+class OpencastImportSegmentsCommand extends Command
 {
     private $output;
     private $input;
@@ -24,9 +25,18 @@ class OpencastImportSegmentsCommand extends ContainerAwareCommand
     private $host;
     private $id;
     private $force;
+    /** @var ClientService */
     private $clientService;
 
-    protected function configure()
+    public function __construct(DocumentManager $documentManager, LoggerInterface $logger)
+    {
+        $this->dm = $documentManager;
+        $this->logger = $logger;
+
+        parent::__construct();
+    }
+
+    protected function configure(): void
     {
         $this
             ->setName('pumukit:opencast:import:segments')
@@ -64,13 +74,10 @@ EOT
         ;
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->output = $output;
         $this->input = $input;
-        $this->dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
-
-        $this->logger = $this->getContainer()->get('logger');
 
         $this->user = trim($this->input->getOption('user'));
         $this->password = trim($this->input->getOption('password'));
@@ -95,9 +102,6 @@ EOT
         );
     }
 
-    /**
-     * @throws \Exception
-     */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
         $this->checkInputs();
@@ -112,9 +116,6 @@ EOT
         }
     }
 
-    /**
-     * @throws \Exception
-     */
     private function checkInputs(): void
     {
         if (!$this->user || !$this->password || !$this->host) {
@@ -141,7 +142,7 @@ EOT
     private function getMultimediaObjects()
     {
         $criteria = [
-            'properties.opencasturl' => new \MongoRegex("/{$this->host}/i"),
+            'properties.opencasturl' => new Regex($this->host, 'i'),
         ];
 
         if ($this->force) {
@@ -149,7 +150,7 @@ EOT
         }
 
         if ($this->id) {
-            $criteria['_id'] = new \MongoId($this->id);
+            $criteria['_id'] = new ObjectId($this->id);
         }
 
         return $this->dm->getRepository(MultimediaObject::class)->findBy($criteria);
@@ -170,7 +171,7 @@ EOT
             $mediaPackage = $this->clientService->getFullMediaPackage($multimediaObject->getProperty('opencast'));
 
             $segments = 0;
-            if (isset($mediaPackage['segments'], $mediaPackage['segments']['segment'])) {
+            if (isset($mediaPackage['segments']['segment'])) {
                 if (!isset($mediaPackage['segments']['segment'][0])) {
                     $segments = [$mediaPackage['segments']['segment']];
                 } else {
@@ -191,7 +192,7 @@ EOT
         }
     }
 
-    private function showMultimediaObjects(array $multimediaObjects)
+    private function showMultimediaObjects(array $multimediaObjects): void
     {
         $this->output->writeln(
             [

@@ -2,16 +2,38 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Pumukit\SchemaBundle\Services\MultimediaObjectService;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class OpencastSingleImportCommand extends ContainerAwareCommand
+class OpencastSingleImportCommand extends Command
 {
-    protected function configure()
+    private $documentManager;
+    private $opencastImportService;
+    private $multimediaObjectService;
+    private $clientService;
+
+    public function __construct(
+        DocumentManager $documentManager,
+        OpencastImportService $opencastImportService,
+        MultimediaObjectService $multimediaObjectService,
+        ClientService $clientService
+    ) {
+        $this->documentManager = $documentManager;
+        $this->opencastImportService = $opencastImportService;
+        $this->multimediaObjectService = $multimediaObjectService;
+        $this->clientService = $clientService;
+        parent::__construct();
+    }
+
+    protected function configure(): void
     {
         $this
             ->setName('pumukit:opencast:import')
@@ -29,8 +51,8 @@ class OpencastSingleImportCommand extends ContainerAwareCommand
         if ($input->getOption('verbose')) {
             $output->writeln('Importing opencast recording: '.$opencastId);
         }
-        $opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
-        $mmobjRepo = $this->getContainer()->get('doctrine_mongodb')->getRepository(MultimediaObject::class);
+
+        $mmobjRepo = $this->documentManager->getRepository(MultimediaObject::class);
 
         if ($mmObjId = $input->getOption('mmobjid')) {
             if ($mmobj = $mmobjRepo->find($mmObjId)) {
@@ -42,44 +64,40 @@ class OpencastSingleImportCommand extends ContainerAwareCommand
             if ($mmobjRepo->findOneBy(['properties.opencast' => $opencastId])) {
                 $output->writeln('Mediapackage '.$opencastId.' has already been imported, skipping to next mediapackage');
             } else {
-                $opencastImportService->importRecording($opencastId, $input->getOption('invert'));
+                $this->opencastImportService->importRecording($opencastId, $input->getOption('invert'));
             }
         }
     }
 
     protected function completeMultimediaObject(MultimediaObject $multimediaObject, string $opencastId, bool $invert, string $language): void
     {
-        $opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
-        $opencastClient = $this->getContainer()->get('pumukit_opencast.client');
-        $mmsService = $this->getContainer()->get('pumukitschema.multimedia_object');
+        $mediaPackage = $this->clientService->getMediaPackage($opencastId);
 
-        $mediaPackage = $opencastClient->getMediaPackage($opencastId);
-
-        $properties = $opencastImportService->getMediaPackageField($mediaPackage, 'id');
+        $properties = $this->opencastImportService->getMediaPackageField($mediaPackage, 'id');
         if ($properties) {
             $multimediaObject->setProperty('opencast', $properties);
-            $multimediaObject->setProperty('opencasturl', $opencastClient->getPlayerUrl().'?id='.$properties);
+            $multimediaObject->setProperty('opencasturl', $this->clientService->getPlayerUrl().'?id='.$properties);
         }
-        $multimediaObject->setProperty('opencastinvert', (bool) $invert);
+        $multimediaObject->setProperty('opencastinvert', $invert);
 
         if ($language) {
             $parsedLocale = \Locale::parseLocale($language);
             $multimediaObject->setProperty('opencastlanguage', $parsedLocale['language']);
         }
 
-        $media = $opencastImportService->getMediaPackageField($mediaPackage, 'media');
-        $tracks = $opencastImportService->getMediaPackageField($media, 'track');
+        $media = $this->opencastImportService->getMediaPackageField($mediaPackage, 'media');
+        $tracks = $this->opencastImportService->getMediaPackageField($media, 'track');
         if (isset($tracks[0])) {
             // NOTE: Multiple tracks
             $limit = count($tracks);
             for ($i = 0; $i < $limit; ++$i) {
-                $opencastImportService->createTrackFromMediaPackage($mediaPackage, $multimediaObject, $i, ['display'], $language);
+                $this->opencastImportService->createTrackFromMediaPackage($mediaPackage, $multimediaObject, $i, ['display'], $language);
             }
         } else {
             // NOTE: Single track
-            $opencastImportService->createTrackFromMediaPackage($mediaPackage, $multimediaObject, null, ['display'], $language);
+            $this->opencastImportService->createTrackFromMediaPackage($mediaPackage, $multimediaObject, null, ['display'], $language);
         }
 
-        $mmsService->updateMultimediaObject($multimediaObject);
+        $this->multimediaObjectService->updateMultimediaObject($multimediaObject);
     }
 }
