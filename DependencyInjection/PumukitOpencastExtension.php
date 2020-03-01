@@ -103,6 +103,7 @@ class PumukitOpencastExtension extends Extension
             $container->setParameter('pumukit_opencast.deletion_workflow_name', $config['deletion_workflow_name']);
             $container->setParameter('pumukit_opencast.url_mapping', $config['url_mapping']);
             $container->setParameter('pumukit_opencast.manage_opencast_users', $config['manage_opencast_users']);
+            $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
 
             $container
                 ->register('pumukit_opencast.remove_listener', 'Pumukit\\OpencastBundle\\EventListener\\RemoveListener')

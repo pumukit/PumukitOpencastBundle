@@ -20,6 +20,7 @@ class MultipleOpencastHostImportCommand extends ContainerAwareCommand
     private $force;
     private $master;
     private $clientService;
+    private $secondsToSleep;
 
     protected function configure(): void
     {
@@ -73,6 +74,7 @@ EOT
     protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
+        $this->secondsToSleep = $this->getContainer()->getParameter('pumukit_opencast.seconds_to_sleep_on_commands');
 
         $this->user = trim($input->getOption('user'));
         $this->password = trim($input->getOption('password'));
@@ -178,6 +180,7 @@ EOT
 
         foreach ($multimediaObjects as $multimediaObject) {
             if (!$multimediaObject->getTrackWithTag('presentation/delivery') && !$multimediaObject->getTrackWithTag('presenter/delivery')) {
+                sleep($this->secondsToSleep);
                 $this->importTrackOnMultimediaObject(
                     $output,
                     $clientService,
@@ -207,6 +210,7 @@ EOT
 
         foreach ($multimediaObjects as $multimediaObject) {
             if (!$multimediaObject->getTrackWithTag('master')) {
+                sleep($this->secondsToSleep);
                 $this->importTrackOnMultimediaObject(
                     $output,
                     $clientService,

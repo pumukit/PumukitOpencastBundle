@@ -22,6 +22,10 @@ class Configuration implements ConfigurationInterface
 
         $rootNode
             ->children()
+            ->integerNode('seconds_to_sleep_on_commands')
+            ->defaultValue(1)
+            ->info('Seconds to sleep to fix request blocked by firewalls')
+            ->end()
             ->scalarNode('host')
             ->isRequired()
             ->info('Opencast server URL (Engage node in cluster).')
