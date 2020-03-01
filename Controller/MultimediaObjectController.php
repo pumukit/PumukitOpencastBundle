@@ -3,11 +3,15 @@
 namespace Pumukit\OpencastBundle\Controller;
 
 use Pumukit\OpencastBundle\Form\Type\MultimediaObjectType;
+use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\OpencastBundle\Services\OpencastImportService;
+use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
+use Pumukit\SchemaBundle\Services\MultimediaObjectService;
+use Symfony\Component\Routing\Annotation\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -16,35 +20,50 @@ use Symfony\Component\HttpFoundation\Response;
  * @Route("/admin/opencast/mm")
  * @Security("is_granted('ROLE_ACCESS_IMPORTER')")
  */
-class MultimediaObjectController extends Controller
+class MultimediaObjectController extends AbstractController
 {
+    private $opencastClientService;
+    private $multimediaObjectService;
+    private $opencastImportService;
+    private $opencastService;
+    private $opencastSBSGenerate;
+    private $opencastSBSProfile;
+
+    public function __construct(
+        ClientService $opencastClientService,
+        MultimediaObjectService $multimediaObjectService,
+        OpencastImportService $opencastImportService,
+        OpencastService $opencastService,
+        bool $opencastSBSGenerate = false,
+        string $opencastSBSProfile = ''
+    )
+    {
+        $this->opencastClientService = $opencastClientService;
+        $this->multimediaObjectService = $multimediaObjectService;
+        $this->opencastImportService = $opencastImportService;
+        $this->opencastService = $opencastService;
+        $this->opencastSBSGenerate = $opencastSBSGenerate;
+        $this->opencastSBSProfile = $opencastSBSProfile;
+
+    }
+
     /**
      * @Route("/index/{id}", name="pumukit_opencast_mm_index")
-     * @Template
+     * @Template("@PumukitOpencast/MultimediaObject/index.html.twig")
      */
-    public function indexAction(Request $request, MultimediaObject $multimediaObject): array
+    public function indexAction(MultimediaObject $multimediaObject): array
     {
-        $generateSbs = false;
-        if ($this->container->hasParameter('pumukit_opencast.sbs.generate_sbs')) {
-            $generateSbs = $this->container->getParameter('pumukit_opencast.sbs.generate_sbs');
-        }
-        $sbsProfile = '';
-        if ($this->container->hasParameter('pumukit_opencast.sbs.profile')) {
-            $sbsProfile = $this->container->getParameter('pumukit_opencast.sbs.profile');
-        }
-        $opencastClient = $this->get('pumukit_opencast.client');
-
         return [
             'mm' => $multimediaObject,
-            'generate_sbs' => $generateSbs,
-            'sbs_profile' => $sbsProfile,
-            'player' => $opencastClient->getPlayerUrl(),
+            'generate_sbs' => $this->opencastSBSGenerate,
+            'sbs_profile' => $this->opencastSBSProfile,
+            'player' => $this->opencastClientService->getPlayerUrl(),
         ];
     }
 
     /**
      * @Route("/update/{id}", name="pumukit_opencast_mm_update")
-     * @Template
+     * @Template("@PumukitOpencast/MultimediaObject/update.html.twig")
      */
     public function updateAction(Request $request, MultimediaObject $multimediaObject)
     {
@@ -55,12 +74,17 @@ class MultimediaObjectController extends Controller
             $form->handleRequest($request);
             if ($form->isValid()) {
                 try {
-                    $multimediaObject = $this->get('pumukitschema.multimedia_object')->updateMultimediaObject($multimediaObject);
+                    $multimediaObject = $this->multimediaObjectService->updateMultimediaObject($multimediaObject);
                 } catch (\Exception $e) {
                     return new Response($e->getMessage(), 400);
                 }
 
-                return $this->redirect($this->generateUrl('pumukitnewadmin_track_list', ['id' => $multimediaObject->getId()]));
+                return $this->redirect(
+                    $this->generateUrl(
+                        'pumukitnewadmin_track_list',
+                        ['id' => $multimediaObject->getId()]
+                    )
+                );
             }
         }
 
@@ -72,9 +96,9 @@ class MultimediaObjectController extends Controller
 
     /**
      * @Route("/info/{id}", name="pumukit_opencast_mm_info")
-     * @Template
+     * @Template("@PumukitOpencast/MultimediaObject/info.html.twig")
      */
-    public function infoAction(Request $request, MultimediaObject $multimediaObject): array
+    public function infoAction(MultimediaObject $multimediaObject): array
     {
         $presenterDeliveryUrl = '';
         $presentationDeliveryUrl = '';
@@ -98,9 +122,13 @@ class MultimediaObjectController extends Controller
      */
     public function generateSbsAction(Request $request, MultimediaObject $multimediaObject): RedirectResponse
     {
-        $opencastUrls = $this->get('pumukit_opencast.import')->getOpencastUrls($multimediaObject->getProperty('opencast'));
-        $this->get('pumukit_opencast.job')->generateSbsTrack($multimediaObject, $opencastUrls);
+        $opencastUrls = $this->opencastImportService->getOpencastUrls($multimediaObject->getProperty('opencast'));
+        $this->opencastService->generateSbsTrack($multimediaObject, $opencastUrls);
 
-        return $this->redirect($this->generateUrl('pumukitnewadmin_track_list', ['id' => $multimediaObject->getId()]));
+        return $this->redirect(
+            $this->generateUrl('pumukitnewadmin_track_list',
+                ['id' => $multimediaObject->getId()]
+            )
+        );
     }
 }

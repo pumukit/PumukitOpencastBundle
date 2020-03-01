@@ -5,24 +5,16 @@ namespace Pumukit\OpencastBundle\Event;
 final class OpencastEvents
 {
     /**
-     * The import.success event is thrown each time an import is finished successfully
-     * in the system.
+     * The import.success event is thrown each time an import is finished successfully in the system.
      *
-     * The event listener receives an
-     * Pumukit\OpencastBundle\Event\OpencastEvent instance.
-     *
-     * @var string
+     * The event listener receives an Pumukit\OpencastBundle\Event\OpencastEvent instance.
      */
-    const IMPORT_SUCCESS = 'import.success';
+    public const IMPORT_SUCCESS = 'import.success';
 
     /**
-     * The import.success event is thrown each time an import fails
-     * in the system.
+     * The import.success event is thrown each time an import fails in the system.
      *
-     * The event listener receives an
-     * Pumukit\OpencastBundle\Event\OpencastEvent instance.
-     *
-     * @var string
+     * The event listener receives an Pumukit\OpencastBundle\Event\OpencastEvent instance.
      */
-    const IMPORT_ERROR = 'import.error';
+    public const IMPORT_ERROR = 'import.error';
 }

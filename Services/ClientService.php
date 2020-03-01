@@ -612,6 +612,7 @@ class ClientService
      * Get the Opencast series metadata associated to the PuMuKIT series.
      *
      * @param $id
+     * @param mixed $series
      *
      * @return mixed|bool|null
      */
@@ -621,7 +622,8 @@ class ClientService
         if (null === $seriesOpencastId) {
             return null;
         }
-        $requestUrl = "/api/series/$seriesOpencastId";
+        $requestUrl = "/api/series/{$seriesOpencastId}";
+
         try {
             $output = $this->request($requestUrl, [], 'GET', true);
         } catch (\Exception $e) {

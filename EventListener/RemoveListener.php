@@ -13,7 +13,12 @@ class RemoveListener
     private $deletionWorkflowName;
     private $logger;
 
-    public function __construct(ClientService $clientService, LoggerInterface $logger, bool $deleteArchiveMediaPackage = false, string $deletionWorkflowName = 'delete-archive')
+    public function __construct(
+        ClientService $clientService,
+        LoggerInterface $logger,
+        bool $deleteArchiveMediaPackage = false,
+        string $deletionWorkflowName = 'delete-archive'
+    )
     {
         $this->clientService = $clientService;
         $this->logger = $logger;

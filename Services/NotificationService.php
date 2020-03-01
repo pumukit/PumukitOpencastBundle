@@ -72,7 +72,7 @@ class NotificationService
         ];
         foreach ($emailsList as $email => $name) {
             $parameters['username'] = $name;
-            $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters, false, true);
+            $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters);
         }
     }
 }
