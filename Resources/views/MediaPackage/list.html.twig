@@ -40,28 +40,27 @@
 
                     {% if import != 'imported' %}
                         <span class="dropdown dropleft">
-                <a href="#" id="list_mediaPackage_{{ mediaPackage.id }}" data-toggle="dropdown" aria-haspopup="true"
-                   aria-expanded="false">
-                  {% trans %}Import{% endtrans %}
-                </a>
-                <ul class="dropdown-menu" role="menu" aria-labelledby="list_mediaPackage_{{ mediaPackage.id }}">
-                  <li>
-                    <a href="{{ path('pumukitopencast_import', {'id': mediaPackage.id}) }}">
-                      <i class="mdi-editor-format-align-left"></i>{% trans %}Import{% endtrans %}
-                    </a>
-                  </li>
-                  <li>
-                    <a href="{{ path('pumukitopencast_import', {'id': mediaPackage.id, 'invert': true}) }}">
-                      <i class="mdi-editor-format-align-right"></i>{% trans %}Import inverted{% endtrans %} (CAMERA-SCREEN)
-                    </a>
-                  </li>
-                  <li>
-                    <a href="#" onclick="return false;">
-                      <strong>{% trans %}Cancel{% endtrans %}...</strong>
-                    </a>
-                  </li>
-                </ul>
-              </span>
+                            <a href="#" id="list_mediaPackage_{{ mediaPackage.id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                              {% trans %}Import{% endtrans %}
+                            </a>
+                            <ul class="dropdown-menu" role="menu" aria-labelledby="list_mediaPackage_{{ mediaPackage.id }}">
+                                <li>
+                                    <a href="{{ path('pumukitopencast_import', {'id': mediaPackage.id}) }}">
+                                        <i class="mdi-editor-format-align-left"></i>{% trans %}Import{% endtrans %}
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="{{ path('pumukitopencast_import', {'id': mediaPackage.id, 'invert': true}) }}">
+                                        <i class="mdi-editor-format-align-right"></i>{% trans %}Import inverted{% endtrans %} (CAMERA-SCREEN)
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="#" onclick="return false;">
+                                        <strong>{% trans %}Cancel{% endtrans %}...</strong>
+                                    </a>
+                                </li>
+                            </ul>
+                        </span>
                     {% endif %}
 
                 </td>
@@ -94,9 +93,7 @@
             <td colspan="10" class="foot-td">
                 <div class="col-md-8">
                     {{ mediaPackages.getNbResults }}
-                    {% transchoice mediaPackages.getNbResults %}
-                        {0} Media Packages |{1} Media Package|]1,Inf] Media Packages
-                    {% endtranschoice %}
+                    {{ "{0} Media Packages |{1} Media Package|]1,Inf] Media Packages"|trans({'%count%':  mediaPackages.getNbResults }) }}
                     {% if app.session.get('admin/mediapackage/criteria')|length != 0 %}
                         <a class="cancel-search-button" title="{% trans %}Cancel current search{% endtrans %}"
                            style="color:blue; font-weight:normal;"
