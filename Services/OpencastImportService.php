@@ -431,7 +431,9 @@ class OpencastImportService
                     $pic->addTag($type);
                     if ($tags) {
                         foreach ($tags as $tag) {
-                            $pic->addTag($tag);
+                            if (!is_array($tag)) {
+                                $pic->addTag($tag);
+                            }
                         }
                     }
                     if ($url) {
