@@ -4,6 +4,7 @@
             <li></li>
         </ul>
     </td>
+    <td></td>
     <td>
         <a title="{% trans %}Edit Opencast file of multimedia object{% endtrans %} {{ mm.id }}"
            data-toggle="modal" data-backdrop="static" data-dismiss="modal" data-target="#myModal"
@@ -11,13 +12,17 @@
             <i class="mdi-editor-mode-edit"></i>
         </a>
     </td>
-    <td>
-        <a title="{% trans %}File info of multimedia object{% endtrans %} {{ mm.id }}"
-           data-toggle="modal" data-backdrop="static" data-dismiss="modal" data-target="#myModal"
-           href="{{ path('pumukit_opencast_mm_info', {'id': mm.id}) }}">
-            <i class="mdi-action-info"></i>
-        </a>
-    </td>
+    {% if not is_naked() %}
+        <td>
+            <a title="{% trans %}File info of multimedia object{% endtrans %} {{ mm.id }}"
+               data-toggle="modal" data-backdrop="static" data-dismiss="modal" data-target="#myModal"
+               href="{{ path('pumukit_opencast_mm_info', {'id': mm.id}) }}">
+                <i class="mdi-action-info"></i>
+            </a>
+        </td>
+    {% else %}
+        <td></td>
+    {% endif %}
     <td>
         <div class="dropdown">
             <i class="mdi-image-camera-alt" id="list_capture_frame_{{ (mm.getTrackWithTag('presenter/delivery'))?mm.getTrackWithTag('presenter/delivery').getId(): 'null' }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></i>
@@ -51,11 +56,10 @@
             </ul>
         </div>
     </td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
-    <td></td>
+    <td colspan="3"></td>
+    {% if not is_naked() %}
+        <td colspan="2"></td>
+    {% endif %}
     <td>
         &nbsp;{% spaceless %}{{ mm.id }} - <strong>{% trans %}Opencast Recording{% endtrans %}</strong>
         &nbsp;<a target="_blank" href="{{ player }}?id={{ mm.getProperty('opencast') ~ (mm.getProperty('opencastinvert')?'&display=invert':'') }}">{{ mm.getProperty('opencast') }}</a>
