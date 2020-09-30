@@ -25,6 +25,7 @@ class OpencastImportSegmentsCommand extends ContainerAwareCommand
     private $id;
     private $force;
     private $clientService;
+    private $secondsToSleep;
 
     protected function configure()
     {
@@ -69,6 +70,7 @@ EOT
         $this->output = $output;
         $this->input = $input;
         $this->dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
+        $this->secondsToSleep = $this->getContainer()->getParameter('pumukit_opencast.seconds_to_sleep_on_commands');
 
         $this->logger = $this->getContainer()->get('logger');
 
@@ -167,6 +169,7 @@ EOT
         );
 
         foreach ($multimediaObjects as $multimediaObject) {
+            sleep($this->secondsToSleep);
             $mediaPackage = $this->clientService->getFullMediaPackage($multimediaObject->getProperty('opencast'));
 
             $segments = 0;
