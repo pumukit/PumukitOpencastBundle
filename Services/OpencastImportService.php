@@ -148,9 +148,9 @@ class OpencastImportService
 
         // - If the id does not exist, create a new mmobj
         if (null === $multimediaObject) {
-            $series = $this->seriesImportService->importSeries($mediaPackage, $loggedInUser);
+            $series = $this->seriesImportService->importSeries($mediaPackage);
 
-            $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
+            $multimediaObject = $this->factoryService->createMultimediaObject($series, true);
             $multimediaObject->setSeries($series);
 
             $title = $this->getMediaPackageField($mediaPackage, 'title');
