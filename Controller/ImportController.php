@@ -26,7 +26,7 @@ class ImportController extends Controller
         }
 
         $opencastImportService = $this->get('pumukit_opencast.import');
-        $opencastImportService->importRecordingFromMediaPackage($mediaPackage['mediapackage'], false, $this->getUser());
+        $opencastImportService->importRecordingFromMediaPackage($mediaPackage['mediapackage'], false, null);
 
         return new Response('Success', Response::HTTP_OK);
     }
