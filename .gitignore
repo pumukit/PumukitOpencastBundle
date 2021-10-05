@@ -2,4 +2,4 @@
 *.swp
 *.py[co]
 \#*\#
-.php_cs.cache
+.php-cs-fixer.cache
