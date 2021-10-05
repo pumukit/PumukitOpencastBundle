@@ -2,14 +2,36 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Psr\Log\LoggerInterface;
+use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\OpencastBundle\Services\WorkflowService;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class OpencastStopWorkflowCommand extends ContainerAwareCommand
+class OpencastStopWorkflowCommand extends Command
 {
-    protected function configure()
+    private $opencastWorkflowService;
+    private $opencastClientService;
+    private $opencastDeleteArchiveMediaPackage;
+    private $logger;
+
+    public function __construct(
+        WorkflowService $opencastWorkflowService,
+        ClientService $opencastClientService,
+        $opencastDeleteArchiveMediaPackage,
+        LoggerInterface $logger
+    ) {
+        $this->opencastWorkflowService = $opencastWorkflowService;
+        $this->opencastClientService = $opencastClientService;
+        $this->opencastDeleteArchiveMediaPackage = $opencastDeleteArchiveMediaPackage;
+        $this->logger = $logger;
+
+        parent::__construct();
+    }
+
+    protected function configure(): void
     {
         $this
             ->setName('pumukit:opencast:workflow:stop')
@@ -26,53 +48,46 @@ EOT
         ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $logger = $this->getContainer()->get('logger');
-
-        $opencastWorkflowService = $this->getContainer()->get('pumukit_opencast.workflow');
-        $opencastClientService = $this->getContainer()->get('pumukit_opencast.client');
-
-        $opencastVersion = $opencastClientService->getOpencastVersion();
+        $opencastVersion = $this->opencastClientService->getOpencastVersion();
         if ($opencastVersion < '2.0.0') {
-            $deleteArchiveMediaPackage = $this->getContainer()->getParameter('pumukit_opencast.delete_archive_mediapackage');
-
-            if ($deleteArchiveMediaPackage) {
+            if ($this->opencastDeleteArchiveMediaPackage) {
                 $mediaPackageId = $input->getOption('mediaPackageId');
-                $result = $opencastWorkflowService->stopSucceededWorkflows($mediaPackageId);
+                $result = $this->opencastWorkflowService->stopSucceededWorkflows($mediaPackageId);
                 if (!$result) {
                     $output->writeln('<error>Error on stopping workflows</error>');
-                    $logger->error('['.__CLASS__.']('.__FUNCTION__.') Error on stopping workflows');
+                    $this->logger->error('['.__CLASS__.']('.__FUNCTION__.') Error on stopping workflows');
 
                     return -1;
                 }
                 $output->writeln('<info>Successfully stopped workflows</info>');
-                $logger->info('['.__CLASS__.']('.__FUNCTION__.') Successfully stopped workflows');
+                $this->logger->info('['.__CLASS__.']('.__FUNCTION__.') Successfully stopped workflows');
             } else {
                 $output->writeln('<info>Not allowed to stop workflows</info>');
-                $logger->warning('['.__CLASS__.']('.__FUNCTION__.') Not allowed to stop workflows');
+                $this->logger->warning('['.__CLASS__.']('.__FUNCTION__.') Not allowed to stop workflows');
             }
 
             return 1;
         }
         if ($mediaPackageId = $input->getOption('mediaPackageId')) {
-            $opencastClientService->removeEvent($mediaPackageId);
+            $this->opencastClientService->removeEvent($mediaPackageId);
             $output->writeln('<info>Removed event with id'.$mediaPackageId.'</info>');
 
             return 1;
         }
-        $statistics = $opencastClientService->getWorkflowStatistics();
+        $statistics = $this->opencastClientService->getWorkflowStatistics();
         $total = $statistics['statistics']['total'] ?? 0;
 
         if (0 === $total) {
-            return null;
+            return 0;
         }
 
         $workflowName = 'retract';
-        $decode = $opencastClientService->getCountedWorkflowInstances('', $total, $workflowName);
+        $decode = $this->opencastClientService->getCountedWorkflowInstances('', $total, $workflowName);
         if (!isset($decode['workflows']['workflow'])) {
             $output->writeln('<error>Error on getCountedWorkflowInstances</error>');
-            $logger->error('['.__CLASS__.']('.__FUNCTION__.') Error on getCountedWorkflowInstances');
+            $this->logger->error('['.__CLASS__.']('.__FUNCTION__.') Error on getCountedWorkflowInstances');
 
             return 0;
         }
@@ -84,10 +99,9 @@ EOT
 
         foreach ($decode['workflows']['workflow'] as $workflow) {
             if (!isset($workflow['mediapackage']['id'])) {
-                //Error?
                 continue;
             }
-            $opencastClientService->removeEvent($workflow['mediapackage']['id']);
+            $this->opencastClientService->removeEvent($workflow['mediapackage']['id']);
         }
 
         return 1;

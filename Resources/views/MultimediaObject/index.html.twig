@@ -68,9 +68,9 @@
         <td></td>
     {% endif %}
     <td>
-        {% spaceless %}
+        {% apply spaceless %}
         &nbsp;{% if not is_naked() %}{{ mm.id }} - {% endif %}<strong>{% trans %}Opencast Recording{% endtrans %}</strong>
         &nbsp;<a target="_blank" href="{{ player }}?id={{ mm.getProperty('opencast') ~ (mm.getProperty('opencastinvert')?'&display=invert':'') }}&mode=embed">{{ mm.getProperty('opencast') }}</a>
-        {% endspaceless %}
+        {% endapply %}
     </td>
 </tr>

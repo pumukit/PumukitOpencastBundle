@@ -2,69 +2,99 @@
 
 namespace Pumukit\OpencastBundle\Controller;
 
-use Pagerfanta\Adapter\FixedAdapter;
-use Pagerfanta\Pagerfanta;
+use Doctrine\ODM\MongoDB\DocumentManager;
+use MongoDB\BSON\Regex;
+use Pumukit\CoreBundle\Services\PaginationService;
+use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\OpencastBundle\Services\OpencastImportService;
+use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * @Route("/admin")
  * @Security("is_granted('ROLE_ACCESS_IMPORTER')")
  */
-class MediaPackageController extends Controller
+class MediaPackageController extends AbstractController
 {
+    private $opencastShowImporterTab;
+    private $opencastClientService;
+    private $documentManager;
+    private $opencastService;
+    private $opencastImportService;
+    private $paginationService;
+
+    public function __construct(
+        $opencastShowImporterTab,
+        ?ClientService $opencastClientService,
+        DocumentManager $documentManager,
+        OpencastService $opencastService,
+        OpencastImportService $opencastImportService,
+        PaginationService $paginationService
+    ) {
+        $this->opencastShowImporterTab = $opencastShowImporterTab;
+        $this->opencastClientService = $opencastClientService;
+        $this->documentManager = $documentManager;
+        $this->opencastService = $opencastService;
+        $this->opencastImportService = $opencastImportService;
+        $this->paginationService = $paginationService;
+    }
+
     /**
      * @Route("/opencast/mediapackage", name="pumukitopencast")
-     * @Template("PumukitOpencastBundle:MediaPackage:index.html.twig")
+     * @Template("@PumukitOpencast/MediaPackage/index.html.twig")
      */
     public function indexAction(Request $request)
     {
-        if (!$this->container->getParameter('pumukit_opencast.show_importer_tab')) {
+        if (!$this->opencastShowImporterTab) {
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
         }
 
-        if (!$this->has('pumukit_opencast.client')) {
+        if (!$this->opencastClientService) {
             throw $this->createNotFoundException('PumukitOpencastBundle not configured.');
         }
 
-        $opencastClient = $this->get('pumukit_opencast.client');
-        $repository_multimediaObjects = $this->get('doctrine_mongodb')->getRepository(MultimediaObject::class);
+        $repository_multimediaObjects = $this->documentManager->getRepository(MultimediaObject::class);
 
         $limit = 10;
         $page = $request->get('page', 1);
         $criteria = $this->getCriteria($request);
 
         try {
-            [$total, $mediaPackages] = $opencastClient->getMediaPackages(
+            [$total, $mediaPackages] = $this->opencastClientService->getMediaPackages(
                 isset($criteria['name']) ? $criteria['name']->regex : '',
                 $limit,
                 ($page - 1) * $limit
             );
         } catch (\Exception $e) {
-            return new Response($this->renderView('PumukitOpencastBundle:MediaPackage:error.html.twig', ['admin_url' => $opencastClient->getUrl(), 'message' => $e->getMessage()]), 503);
+            return new Response(
+                $this->renderView(
+                    '@PumukitOpencast/MediaPackage/error.html.twig',
+                    [
+                        'admin_url' => $this->opencastClientService->getUrl(),
+                        'message' => $e->getMessage(),
+                    ]
+                ),
+                Response::HTTP_SERVICE_UNAVAILABLE
+            );
         }
 
         $currentPageOpencastIds = [];
 
-        $opencastService = $this->get('pumukit_opencast.job');
         $pics = [];
         foreach ($mediaPackages as $mediaPackage) {
             $currentPageOpencastIds[] = $mediaPackage['id'];
-            $pics[$mediaPackage['id']] = $opencastService->getMediaPackageThumbnail($mediaPackage);
+            $pics[$mediaPackage['id']] = $this->opencastService->getMediaPackageThumbnail($mediaPackage);
         }
 
-        $adapter = new FixedAdapter($total, $mediaPackages);
-        $pagerfanta = new Pagerfanta($adapter);
-
-        $pagerfanta->setMaxPerPage($limit);
-        $pagerfanta->setCurrentPage($page);
+        $pager = $this->paginationService->createFixedAdapter($total, $mediaPackages, $page, $limit);
 
         $repo = $repository_multimediaObjects->createQueryBuilder()
             ->field('properties.opencast')->exists(true)
@@ -73,7 +103,12 @@ class MediaPackageController extends Controller
             ->execute()
         ;
 
-        return ['mediaPackages' => $pagerfanta, 'multimediaObjects' => $repo, 'player' => $opencastClient->getPlayerUrl(), 'pics' => $pics];
+        return [
+            'mediaPackages' => $pager,
+            'multimediaObjects' => $repo,
+            'player' => $this->opencastClientService->getPlayerUrl(),
+            'pics' => $pics,
+        ];
     }
 
     /**
@@ -81,12 +116,11 @@ class MediaPackageController extends Controller
      */
     public function importAction(Request $request, string $id): RedirectResponse
     {
-        if (!$this->container->getParameter('pumukit_opencast.show_importer_tab')) {
+        if (!$this->opencastShowImporterTab) {
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
         }
 
-        $opencastService = $this->get('pumukit_opencast.import');
-        $opencastService->importRecording($id, $request->get('invert'), $this->getUser());
+        $this->opencastImportService->importRecording($id, $request->get('invert'), $this->getUser());
 
         if ($request->headers->get('referer')) {
             return $this->redirect($request->headers->get('referer'));
@@ -110,7 +144,7 @@ class MediaPackageController extends Controller
 
         foreach ($criteria as $property => $value) {
             if ('' !== $value) {
-                $new_criteria[$property] = new \MongoRegex('/'.$value.'/i');
+                $new_criteria[$property] = new Regex($value, 'i');
             }
         }
 

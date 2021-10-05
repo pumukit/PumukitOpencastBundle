@@ -4,7 +4,7 @@ namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
 use Psr\Log\LoggerInterface;
-use Pumukit\InspectionBundle\Services\InspectionServiceInterface;
+use Pumukit\InspectionBundle\Services\InspectionFfprobeService;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
@@ -17,7 +17,7 @@ use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 use Pumukit\SchemaBundle\Services\TagService;
 use Pumukit\SchemaBundle\Services\TrackService;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
-use Symfony\Component\Translation\TranslatorInterface;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 class OpencastImportService
 {
@@ -47,7 +47,7 @@ class OpencastImportService
         MultimediaObjectService $mmsService,
         ClientService $opencastClient,
         OpencastService $opencastService,
-        InspectionServiceInterface $inspectionService,
+        InspectionFfprobeService $inspectionService,
         array $otherLocales,
         string $defaultTagImported,
         SeriesImportService $seriesImportService,
@@ -71,22 +71,12 @@ class OpencastImportService
         $this->dispatcher = $dispatcher;
     }
 
-    /**
-     * Given a media package id
-     * create a multimedia object
-     * with the media package metadata.
-     */
     public function importRecording(string $opencastId, ?bool $invert = false, ?User $loggedInUser = null): void
     {
         $mediaPackage = $this->opencastClient->getMediaPackage($opencastId);
         $this->importRecordingFromMediaPackage($mediaPackage, $invert, $loggedInUser);
     }
 
-    /**
-     * Given a media package
-     * create a multimedia object
-     * with the media package metadata.
-     */
     public function importRecordingFromMediaPackage(array $mediaPackage, ?bool $invert = false, ?User $loggedInUser = null): void
     {
         $multimediaObject = null;

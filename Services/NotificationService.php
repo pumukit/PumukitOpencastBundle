@@ -9,7 +9,7 @@ use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\SchemaBundle\Document\User;
 use Symfony\Component\Routing\Exception\RouteNotFoundException;
 use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
-use Symfony\Component\Routing\Router;
+use Symfony\Component\Routing\RouterInterface;
 
 class NotificationService
 {
@@ -24,7 +24,7 @@ class NotificationService
     public function __construct(
         DocumentManager $documentManager,
         SenderService $senderService,
-        Router $router,
+        RouterInterface $router,
         LoggerInterface $logger,
         string $template,
         string $accessUrl,
@@ -72,7 +72,7 @@ class NotificationService
         ];
         foreach ($emailsList as $email => $name) {
             $parameters['username'] = $name;
-            $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters, false, true);
+            $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters);
         }
     }
 }

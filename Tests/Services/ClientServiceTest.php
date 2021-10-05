@@ -11,15 +11,9 @@ use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
  */
 class ClientServiceTest extends WebTestCase
 {
-    private $dm;
-    private $repoJobs;
-    private $repoMmobj;
-    private $trackService;
-    private $factoryService;
-    private $resourcesDir;
     private $clientService;
 
-    public function setUp()
+    public function setUp(): void
     {
         $options = ['environment' => 'test'];
         static::bootKernel($options);
@@ -31,14 +25,14 @@ class ClientServiceTest extends WebTestCase
         $this->clientService = static::$kernel->getContainer()->get('pumukitopencast.client');
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->clientService = null;
         gc_collect_cycles();
         parent::tearDown();
     }
 
-    public function testGetUserRoles()
+    public function testGetUserRoles(): void
     {
         $user = new User();
 
@@ -55,13 +49,13 @@ class ClientServiceTest extends WebTestCase
         $this->assertNotEquals('["ROLE_SUPER_ADMIN","ROLE_USER"]', $out);
     }
 
-    public function testGetMediaPackages()
+    public function testGetMediaPackages(): void
     {
         $this->markTestSkipped(
             'Integration test.'
         );
 
-        $media = $this->clientService->getMediaPackages(0, 0, 0);
+        $this->clientService->getMediaPackages(0, 0, 0);
     }
 
     private function invokeMethod(&$object, $methodName, array $parameters = [])

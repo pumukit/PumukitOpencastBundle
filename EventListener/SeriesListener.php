@@ -32,6 +32,7 @@ class SeriesListener
                 $this->seriesSyncService->updateSeries($series);
 
                 break;
+
             case 'series.create':
                 if ($series->getProperty('opencast')) {
                     $this->seriesSyncService->updateSeries($series);
@@ -40,6 +41,7 @@ class SeriesListener
                 }
 
                 break;
+
             case 'series.delete':
                 $this->seriesSyncService->deleteSeries($series);
 

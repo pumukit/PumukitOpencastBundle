@@ -1,0 +1,52 @@
+services:
+  _defaults:
+    autowire:      true
+    autoconfigure: true
+    public:        true
+    bind:
+      $host: '%pumukit_opencast.host%'
+      $opencastShowImporterTab: '%pumukit_opencast.show_importer_tab%'
+      $opencastBatchImportInverted: '%pumukit_opencast.batchimport_inverted%'
+      $secondsToSleep: '%pumukit_opencast.seconds_to_sleep_on_commands%'
+      $opencastDeleteArchiveMediaPackage: '%pumukit_opencast.delete_archive_mediapackage%'
+      $otherLocales: '%pumukit.locales%'
+      $defaultTagImported: '%pumukit_opencast.default_tag_imported%'
+      $customLanguages: '%pumukit.customlanguages%'
+      $template: '%pumukit_notification.template%'
+      $accessUrl: ''
+      $subject: ''
+
+  Pumukit\OpencastBundle\Controller\:
+    resource: '../../Controller/'
+    tags: ['controller.service_arguments']
+
+  Pumukit\OpencastBundle\Command\:
+    resource: '../../Command/'
+    tags: ['console.command']
+
+  Pumukit\OpencastBundle\Services\ClientService:
+    class: Pumukit\OpencastBundle\Services\ClientService
+
+  Pumukit\OpencastBundle\Services\OpencastService:
+    class: Pumukit\OpencastBundle\Services\OpencastService
+
+  Pumukit\OpencastBundle\Services\SeriesImportService:
+    class: Pumukit\OpencastBundle\Services\SeriesImportService
+
+  Pumukit\OpencastBundle\Services\OpencastImportService:
+    class: Pumukit\OpencastBundle\Services\OpencastImportService
+
+  Pumukit\OpencastBundle\EventListener\RemoveListener:
+    class: Pumukit\OpencastBundle\EventListener\RemoveListener
+
+  Pumukit\OpencastBundle\EventListener\UserListener:
+    class: Pumukit\OpencastBundle\EventListener\UserListener
+
+  Pumukit\OpencastBundle\Services\NotificationService:
+    class: Pumukit\OpencastBundle\Services\NotificationService
+
+  Pumukit\OpencastBundle\Services\SeriesSyncService:
+    class: Pumukit\OpencastBundle\Services\SeriesSyncService
+
+  Pumukit\OpencastBundle\Services\WorkflowService:
+    class: Pumukit\OpencastBundle\Services\WorkflowService

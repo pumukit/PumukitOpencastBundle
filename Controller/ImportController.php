@@ -2,17 +2,28 @@
 
 namespace Pumukit\OpencastBundle\Controller;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/api/opencast")
  */
-class ImportController extends Controller
+class ImportController extends AbstractController
 {
+    private $opencastImportService;
+    private $documentManager;
+
+    public function __construct(DocumentManager $documentManager, OpencastImportService $opencastImportService)
+    {
+        $this->documentManager = $documentManager;
+        $this->opencastImportService = $opencastImportService;
+    }
+
     /**
      * @Route("/import_event", name="pumukit_opencast_import_event")
      */
@@ -25,8 +36,7 @@ class ImportController extends Controller
             return new Response('No mediapackage ID', Response::HTTP_BAD_REQUEST);
         }
 
-        $opencastImportService = $this->get('pumukit_opencast.import');
-        $opencastImportService->importRecordingFromMediaPackage($mediaPackage['mediapackage'], false, null);
+        $this->opencastImportService->importRecordingFromMediaPackage($mediaPackage['mediapackage'], false, $this->getUser());
 
         return new Response('Success', Response::HTTP_OK);
     }
@@ -34,15 +44,12 @@ class ImportController extends Controller
     /**
      * @Route("/sync_tracks/{id}", name="pumukit_opencast_import_sync_tracks")
      */
-    public function syncTracksAction(Request $request, MultimediaObject $multimediaObject): Response
+    public function syncTracksAction(MultimediaObject $multimediaObject): Response
     {
-        $dm = $this->container->get('doctrine_mongodb.odm.document_manager');
+        $this->opencastImportService->syncTracks($multimediaObject);
 
-        $opencastImportService = $this->get('pumukit_opencast.import');
-        $opencastImportService->syncTracks($multimediaObject);
-
-        $dm->persist($multimediaObject);
-        $dm->flush();
+        $this->documentManager->persist($multimediaObject);
+        $this->documentManager->flush();
 
         return new Response('Success '.$multimediaObject->getTitle(), Response::HTTP_OK);
     }

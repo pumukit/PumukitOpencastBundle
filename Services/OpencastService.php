@@ -22,8 +22,15 @@ class OpencastService
     private $defaultVars;
     private $errorIfFileNotExist;
 
-    public function __construct(JobService $jobService, ProfileService $profileService, MultimediaObjectService $multimediaObjectService, array $sbsConfiguration = [], array $urlMapping = [], array $defaultVars = [], $errorIfFileNotExist = true)
-    {
+    public function __construct(
+        JobService $jobService,
+        ProfileService $profileService,
+        MultimediaObjectService $multimediaObjectService,
+        array $sbsConfiguration = [],
+        array $urlMapping = [],
+        array $defaultVars = [],
+        bool $errorIfFileNotExist = true
+    ) {
         $this->jobService = $jobService;
         $this->profileService = $profileService;
         $this->multimediaObjectService = $multimediaObjectService;
@@ -34,9 +41,6 @@ class OpencastService
         $this->initSbsConfiguration();
     }
 
-    /**
-     * Gen SBS according to configuration in parameters.
-     */
     public function genAutoSbs(MultimediaObject $multimediaObject, array $opencastUrls = [])
     {
         if (!$this->generateSbs) {

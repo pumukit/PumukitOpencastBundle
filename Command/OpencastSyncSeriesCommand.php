@@ -2,13 +2,18 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
+use MongoDB\BSON\ObjectId;
+use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Services\ClientService;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Pumukit\OpencastBundle\Services\SeriesSyncService;
+use Pumukit\SchemaBundle\Document\Series;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class OpencastSyncSeriesCommand extends ContainerAwareCommand
+class OpencastSyncSeriesCommand extends Command
 {
     private $output;
     private $input;
@@ -20,8 +25,20 @@ class OpencastSyncSeriesCommand extends ContainerAwareCommand
     private $host;
     private $id;
     private $force;
+    /** @var ClientService */
     private $clientService;
     private $seriesSyncService;
+
+    public function __construct(
+        DocumentManager $documentManager,
+        LoggerInterface $logger,
+        SeriesSyncService $opencastSeriesSyncService
+    ) {
+        $this->dm = $documentManager;
+        $this->logger = $logger;
+        $this->seriesSyncService = $opencastSeriesSyncService;
+        parent::__construct();
+    }
 
     protected function configure()
     {
@@ -35,34 +52,31 @@ class OpencastSyncSeriesCommand extends ContainerAwareCommand
             ->addOption('force', null, InputOption::VALUE_NONE, 'Set this parameter to execute this action')
             ->setHelp(
                 <<<'EOT'
-            
-            
+
+
             Command to synchronize PuMuKIT series in Opencast
-            
+
             <info> ** Example ( check and list ):</info>
-            
+
             <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
             <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
-            
+
             This example will be check the connection with these Opencast and list all multimedia objects from PuMuKIT find by regex host.
-            
+
             <info> ** Example ( <error>execute</error> ):</info>
-            
+
             <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
             <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
 
 EOT
-            );
+            )
+        ;
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->output = $output;
         $this->input = $input;
-        $this->dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
-
-        $this->opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
-        $this->logger = $this->getContainer()->get('logger');
 
         $this->user = trim($this->input->getOption('user'));
         $this->password = trim($this->input->getOption('password'));
@@ -85,16 +99,9 @@ EOT
             $this->logger,
             null
         );
-
-        $this->seriesSyncService = $this->getContainer()->get('pumukit_opencast.series_sync');
     }
 
-    /**
-     * @return int|void|null
-     *
-     * @throws \Exception
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->checkInputs();
 
@@ -106,12 +113,11 @@ EOT
                 $this->showSeries($series);
             }
         }
+
+        return 0;
     }
 
-    /**
-     * @throws \Exception
-     */
-    private function checkInputs()
+    private function checkInputs(): void
     {
         if (!$this->user || !$this->password || !$this->host) {
             throw new \Exception('Please, set values for user, password and host');
@@ -125,10 +131,7 @@ EOT
         }
     }
 
-    /**
-     * @return bool
-     */
-    private function checkOpencastStatus()
+    private function checkOpencastStatus(): bool
     {
         if ($this->clientService->getAdminUrl()) {
             return true;
@@ -137,26 +140,18 @@ EOT
         return false;
     }
 
-    /**
-     * @return mixed
-     */
     private function getSeries()
     {
         $criteria['properties.opencast'] = ['$exists' => true];
 
         if ($this->id) {
-            $criteria['_id'] = new \MongoId($this->id);
+            $criteria['_id'] = new ObjectId($this->id);
         }
 
-        $series = $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
-
-        return $series;
+        return $this->dm->getRepository(Series::class)->findBy($criteria);
     }
 
-    /**
-     * @param $series
-     */
-    private function syncSeries($series)
+    private function syncSeries($series): void
     {
         $this->output->writeln(
             [
@@ -167,19 +162,16 @@ EOT
             ]
         );
 
-        foreach ($series as $oneseries) {
-            if (!$this->clientService->getOpencastSeries($oneseries)) {
-                $this->seriesSyncService->createSeries($oneseries);
+        foreach ($series as $oneSeries) {
+            if (!$this->clientService->getOpencastSeries($oneSeries)) {
+                $this->seriesSyncService->createSeries($oneSeries);
             } else {
-                $this->output->writeln(' Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' ya existe en Opencast');
+                $this->output->writeln(' Series: '.$oneSeries->getId().' OC series: '.$oneSeries->getProperty('opencast').' ya existe en Opencast');
             }
         }
     }
 
-    /**
-     * @param $series
-     */
-    private function showSeries($series)
+    private function showSeries($series): void
     {
         $this->output->writeln(
             [
@@ -190,11 +182,11 @@ EOT
             ]
         );
 
-        foreach ($series as $oneseries) {
-            if (!$this->clientService->getOpencastSeries($oneseries)) {
-                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - no existe en Opencast');
+        foreach ($series as $oneSeries) {
+            if (!$this->clientService->getOpencastSeries($oneSeries)) {
+                $this->output->writeln(' Series: '.$oneSeries->getId().' Opencast Series: -'.$oneSeries->getProperty('opencast').' - no existe en Opencast');
             } else {
-                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - ya existe en Opencast');
+                $this->output->writeln(' Series: '.$oneSeries->getId().' Opencast Series: -'.$oneSeries->getProperty('opencast').' - ya existe en Opencast');
             }
         }
     }

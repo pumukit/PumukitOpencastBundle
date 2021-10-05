@@ -16,8 +16,13 @@ class SeriesImportService
     private $seriesDispatcher;
     private $otherLocales;
 
-    public function __construct(DocumentManager $documentManager, FactoryService $factoryService, ClientService $opencastClient, SeriesEventDispatcherService $seriesDispatcher, array $otherLocales = [])
-    {
+    public function __construct(
+        DocumentManager $documentManager,
+        FactoryService $factoryService,
+        ClientService $opencastClient,
+        SeriesEventDispatcherService $seriesDispatcher,
+        array $otherLocales = []
+    ) {
         $this->dm = $documentManager;
         $this->factoryService = $factoryService;
         $this->opencastClient = $opencastClient;

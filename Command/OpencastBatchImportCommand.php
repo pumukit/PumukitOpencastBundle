@@ -2,15 +2,32 @@
 
 namespace Pumukit\OpencastBundle\Command;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class OpencastBatchImportCommand extends ContainerAwareCommand
+class OpencastBatchImportCommand extends Command
 {
-    protected function configure()
+    private $documentManager;
+    private $opencastClientService;
+    private $opencastImportService;
+    private $opencastBatchImportInverted;
+
+    public function __construct(DocumentManager $documentManager, ClientService $opencastClientService, OpencastImportService $opencastImportService, $opencastBatchImportInverted)
+    {
+        $this->documentManager = $documentManager;
+        $this->opencastClientService = $opencastClientService;
+        $this->opencastImportService = $opencastImportService;
+        $this->opencastBatchImportInverted = $opencastBatchImportInverted;
+        parent::__construct();
+    }
+
+    protected function configure(): void
     {
         $this
             ->setName('pumukit:opencast:batchimport')
@@ -19,17 +36,16 @@ class OpencastBatchImportCommand extends ContainerAwareCommand
           ;
     }
 
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $startTime = microtime(true);
-        $opencastClientService = $this->getContainer()->get('pumukit_opencast.client');
-        $mediaPackages = $opencastClientService->getMediaPackages('', 1, 0);
+        $mediaPackages = $this->opencastClientService->getMediaPackages('', 1, 0);
 
         $invert = $input->getOption('invert');
         if (('0' === $invert) || ('1' === $invert)) {
             $invert = ('1' === $invert);
         } else {
-            $invert = $this->getContainer()->getParameter('pumukit_opencast.batchimport_inverted');
+            $invert = $this->opencastBatchImportInverted;
         }
 
         $totalMediaPackages = $mediaPackages[0];
@@ -40,22 +56,23 @@ class OpencastBatchImportCommand extends ContainerAwareCommand
 
         while ($batchPlace < $totalMediaPackages) {
             $output->writeln('Importing recordings '.$batchPlace.' to '.($batchPlace + $batchSize));
-            $mediaPackages = $opencastClientService->getMediaPackages('', $batchSize, $batchPlace);
+            $mediaPackages = $this->opencastClientService->getMediaPackages('', $batchSize, $batchPlace);
 
-            $opencastImportService = $this->getContainer()->get('pumukit_opencast.import');
-            $repositoryMultimediaObjects = $this->getContainer()->get('doctrine_mongodb')->getRepository(MultimediaObject::class);
+            $repositoryMultimediaObjects = $this->documentManager->getRepository(MultimediaObject::class);
 
             foreach ($mediaPackages[1] as $mediaPackage) {
                 $output->writeln('Importing mediapackage: '.$mediaPackage['id']);
                 if ($repositoryMultimediaObjects->findOneBy(['properties.opencast' => $mediaPackage['id']])) {
                     $output->writeln('Mediapackage '.$mediaPackage['id'].' has already been imported, skipping to next mediapackage');
                 } else {
-                    $opencastImportService->importRecording($mediaPackage['id'], $invert);
+                    $this->opencastImportService->importRecording($mediaPackage['id'], $invert);
                 }
             }
             $batchPlace += $batchSize;
         }
         $stopTime = microtime(true);
         $output->writeln('Finished importing '.$totalMediaPackages.' recordings in '.($stopTime - $startTime).' seconds');
+
+        return 0;
     }
 }
