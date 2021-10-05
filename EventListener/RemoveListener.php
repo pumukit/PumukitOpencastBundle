@@ -30,12 +30,17 @@ class RemoveListener
         try {
             $multimediaObject = $event->getMultimediaObject();
             if ($mediaPackageId = $multimediaObject->getProperty('opencast')) {
-                $output = $this->clientService->applyWorkflowToMediaPackages([$mediaPackageId]);
-                if (!$output) {
-                    throw new \Exception('Error on deleting Opencast media package "'
+                $opencastVersion = $this->clientService->getOpencastVersion();
+                if (version_compare($opencastVersion, '9.0.0', '<')) {
+                    $output = $this->clientService->applyWorkflowToMediaPackages([$mediaPackageId]);
+                    if (!$output) {
+                        throw new \Exception('Error on deleting Opencast media package "'
                                          .$mediaPackageId.'" from archive '
                                          .'using workflow name "'
                                          .$this->deletionWorkflowName.'"');
+                    }
+                } else {
+                    $this->clientService->removeEvent($mediaPackageId);
                 }
             }
         } catch (\Exception $e) {

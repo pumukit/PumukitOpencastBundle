@@ -151,7 +151,7 @@
       </trans-unit>
       <trans-unit id="CscPjL9" resname="i18n.one.Series">
         <source>i18n.one.Series</source>
-        <target state="translated">Serie</target>
+        <target>serie</target>
       </trans-unit>
     </body>
   </file>
