@@ -151,7 +151,7 @@
       </trans-unit>
       <trans-unit id="CscPjL9" resname="i18n.one.Series">
         <source>i18n.one.Series</source>
-        <target>Series</target>
+        <target>series</target>
       </trans-unit>
       <trans-unit id="aSCTz9l" resname='From Opencast. Used "%title%" (%id%) as template.'>
         <source>From Opencast. Used "%title%" (%id%) as template.</source>

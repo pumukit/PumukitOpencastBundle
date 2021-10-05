@@ -563,9 +563,22 @@ class ClientService
 
     public function removeEvent(string $id): void
     {
-        $output = $this->request('/admin-ng/event/'.$id, [], 'DELETE', true);
-        if (!$output) {
-            throw new \Exception("Can't access to admin-ng/event");
+        $opencastVersion = $this->getOpencastVersion();
+        if (version_compare($opencastVersion, '9.0.0', '<')) {
+            $output = $this->request('/admin-ng/event/'.$id, [], 'DELETE', true);
+            if (!$output) {
+                throw new \Exception("Can't access to admin-ng/event");
+            }
+        } else {
+            $output = $this->request('/api/events/'.$id, [], 'DELETE', true);
+
+            if (!in_array((int) $output['status'], [
+                Response::HTTP_ACCEPTED,
+                Response::HTTP_NO_CONTENT,
+            ], true)) {
+                $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status']);
+                throw new \Exception("Can't access to api/events");
+            }
         }
     }
 

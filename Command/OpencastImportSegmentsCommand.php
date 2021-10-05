@@ -27,6 +27,7 @@ class OpencastImportSegmentsCommand extends Command
     private $force;
     /** @var ClientService */
     private $clientService;
+    private $secondsToSleep;
 
     public function __construct(DocumentManager $documentManager, LoggerInterface $logger)
     {
@@ -79,6 +80,7 @@ EOT
         $this->output = $output;
         $this->input = $input;
 
+        $this->secondsToSleep = $this->getContainer()->getParameter('pumukit_opencast.seconds_to_sleep_on_commands');
         $this->user = trim($this->input->getOption('user'));
         $this->password = trim($this->input->getOption('password'));
         $this->host = trim($this->input->getOption('host'));
@@ -170,6 +172,7 @@ EOT
         );
 
         foreach ($multimediaObjects as $multimediaObject) {
+            sleep($this->secondsToSleep);
             $mediaPackage = $this->clientService->getFullMediaPackage($multimediaObject->getProperty('opencast'));
 
             $segments = 0;
