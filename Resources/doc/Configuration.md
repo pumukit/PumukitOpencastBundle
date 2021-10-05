@@ -10,11 +10,11 @@ This is the Opencast Bundle Configuration Guide. Check our [README](README.md) t
 
 ## 1. Parameters
 
-Add your Opencast server configuration to your `app/config/parameters.yml` file:
+Add your Opencast server configuration to your `config/pumukit_opencast.yml` file:
 
 ```
 pumukit_opencast:
-    host: 'http://demo.opencast.org:8080'
+    host: 'https://demo.opencast.org:8080'
     username: 'opencast_system_account'
     password: 'CHANGE_ME'
     player: /engage/ui/watch.html
@@ -32,10 +32,10 @@ pumukit_opencast:
     sync_series_with_opencast: false
     url_mapping:
         -
-          url: 'http://demo.opencast.org/static/engage-player/'
+          url: 'https://demo.opencast.org/static/engage-player/'
           path: /srv/opencast/downloads/engage-player/
         -
-          url: 'http://engage-demo.opencast.org/static/engage-player/'
+          url: 'https://engage-demo.opencast.org/static/engage-player/'
           path: /mnt/path/to/share/srv/opencast/downloads/engage-player/
         ...
 ```
@@ -124,9 +124,9 @@ The recommendation on a development environment is to run commands every minute.
 The recommendation on a production environment is to run commands every day, e.g.: every day at time 23:40.
 
 ```
-40 23 * * *     /usr/bin/php /var/www/pumukit/app/console pumukit:opencast:batchimport --env=prod
-40 23 * * *     /usr/bin/php /var/www/pumukit/app/console pumukit:opencast:batchimport --env=prod -i 1
-40 23 * * *     /usr/bin/php /var/www/pumukit/app/console pumukit:opencast:batchimport --env=prod -i 0
+40 23 * * *     /usr/bin/php /var/www/pumukit/bin/console pumukit:opencast:batchimport --env=prod
+40 23 * * *     /usr/bin/php /var/www/pumukit/bin/console pumukit:opencast:batchimport --env=prod -i 1
+40 23 * * *     /usr/bin/php /var/www/pumukit/bin/console pumukit:opencast:batchimport --env=prod -i 0
 ```
 
 ### 2.2. Workflow Stop
@@ -150,5 +150,5 @@ The recommendation on a development environment is to run commands every minute.
 The recommendation on a production environment is to run commands every day, e.g.: every day at time 23:40.
 
 ```
-40 23 * * *     /usr/bin/php /var/www/pumukit/app/console pumukit:opencast:workflow:stop --env=prod
+40 23 * * *     /usr/bin/php /var/www/pumukit/bin/console pumukit:opencast:workflow:stop --env=prod
 ```
