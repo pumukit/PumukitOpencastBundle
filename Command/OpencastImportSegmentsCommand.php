@@ -29,10 +29,11 @@ class OpencastImportSegmentsCommand extends Command
     private $clientService;
     private $secondsToSleep;
 
-    public function __construct(DocumentManager $documentManager, LoggerInterface $logger)
+    public function __construct(DocumentManager $documentManager, LoggerInterface $logger, int $secondsToSleep)
     {
         $this->dm = $documentManager;
         $this->logger = $logger;
+        $this->secondsToSleep = $secondsToSleep;
 
         parent::__construct();
     }
@@ -80,7 +81,6 @@ EOT
         $this->output = $output;
         $this->input = $input;
 
-        $this->secondsToSleep = $this->getContainer()->getParameter('pumukit_opencast.seconds_to_sleep_on_commands');
         $this->user = trim($this->input->getOption('user'));
         $this->password = trim($this->input->getOption('password'));
         $this->host = trim($this->input->getOption('host'));
