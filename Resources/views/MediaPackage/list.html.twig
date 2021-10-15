@@ -79,10 +79,10 @@
                     {{ mediaPackage.seriestitle|default("") }}
                 </td>
                 <td headers="th-duration">
-                    {{ (((mediaPackage.duration)//1000)-3600)|localizeddate('none','medium',app.request.getLocale()) }}
+                    {{ (((mediaPackage.duration)//1000)-3600)|date('Y/m/d') }}
                 </td>
                 <td headers="th-date">
-                    {{ mediaPackage.start|localizeddate('medium','none',app.request.getLocale()) }}
+                    {{ mediaPackage.start|date('Y/m/d') }}
                 </td>
             </tr>
         {% endfor %}
