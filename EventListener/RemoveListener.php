@@ -4,17 +4,25 @@ namespace Pumukit\OpencastBundle\EventListener;
 
 use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Event\MultimediaObjectEvent;
 
 class RemoveListener
 {
+    private $documentManager;
     private $clientService;
     private $deleteArchiveMediaPackage;
     private $deletionWorkflowName;
     private $logger;
 
-    public function __construct(ClientService $clientService, LoggerInterface $logger, bool $deleteArchiveMediaPackage = false, string $deletionWorkflowName = 'delete-archive')
-    {
+    public function __construct(
+        DocumentManager $documentManager,
+        ClientService $clientService,
+        LoggerInterface $logger,
+        bool $deleteArchiveMediaPackage = false,
+        string $deletionWorkflowName = 'delete-archive'
+    ) {
+        $this->documentManager = $documentManager;
         $this->clientService = $clientService;
         $this->logger = $logger;
         $this->deleteArchiveMediaPackage = $deleteArchiveMediaPackage;
@@ -29,7 +37,13 @@ class RemoveListener
 
         try {
             $multimediaObject = $event->getMultimediaObject();
-            if ($mediaPackageId = $multimediaObject->getProperty('opencast')) {
+            $mediaPackageId = $multimediaObject->getProperty('opencast');
+
+            $multimediaObjects = $this->documentManager->getRepository(MultimediaObject::class)->findBy([
+                'properties.opencast' => $mediaPackageId
+            ]);
+
+            if (count($multimediaObjects) === 1) {
                 $opencastVersion = $this->clientService->getOpencastVersion();
                 if (version_compare($opencastVersion, '9.0.0', '<')) {
                     $output = $this->clientService->applyWorkflowToMediaPackages([$mediaPackageId]);

@@ -13,7 +13,7 @@ final class OpencastEvents
      *
      * @var string
      */
-    const IMPORT_SUCCESS = 'import.success';
+    public const IMPORT_SUCCESS = 'import.success';
 
     /**
      * The import.success event is thrown each time an import fails
@@ -24,5 +24,5 @@ final class OpencastEvents
      *
      * @var string
      */
-    const IMPORT_ERROR = 'import.error';
+    public const IMPORT_ERROR = 'import.error';
 }
