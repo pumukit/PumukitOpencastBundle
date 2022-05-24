@@ -3,6 +3,7 @@
 namespace Pumukit\OpencastBundle\EventListener;
 
 use Psr\Log\LoggerInterface;
+use Doctrine\ODM\MongoDB\DocumentManager;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Event\MultimediaObjectEvent;
