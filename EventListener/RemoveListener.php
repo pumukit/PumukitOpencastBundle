@@ -44,6 +44,9 @@ class RemoveListener
                 'properties.opencast' => $mediaPackageId
             ]);
 
+            $this->logger->info('***** Count multimedia objects with mediapackageID: ' . $mediaPackageId);
+            $this->logger->info('Count = '. count($multimediaObjects));
+
             if (count($multimediaObjects) === 1) {
                 $opencastVersion = $this->clientService->getOpencastVersion();
                 if (version_compare($opencastVersion, '9.0.0', '<')) {
