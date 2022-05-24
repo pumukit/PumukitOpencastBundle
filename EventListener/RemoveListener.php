@@ -44,7 +44,7 @@ class RemoveListener
                 'properties.opencast' => $mediaPackageId
             ]);
 
-            if (count($multimediaObjects) === 1) {
+            if (count($multimediaObjects) === 0) {
                 $opencastVersion = $this->clientService->getOpencastVersion();
                 if (version_compare($opencastVersion, '9.0.0', '<')) {
                     $output = $this->clientService->applyWorkflowToMediaPackages([$mediaPackageId]);
