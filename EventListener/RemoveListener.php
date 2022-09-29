@@ -39,6 +39,9 @@ class RemoveListener
         try {
             $multimediaObject = $event->getMultimediaObject();
             $mediaPackageId = $multimediaObject->getProperty('opencast');
+            if (!$mediaPackageId) {
+                return;
+            }
 
             $multimediaObjects = $this->documentManager->getRepository(MultimediaObject::class)->findBy([
                 'properties.opencast' => $mediaPackageId
