@@ -3,12 +3,14 @@
 namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
+use MongoDB\BSON\ObjectId;
 use Psr\Log\LoggerInterface;
 use Pumukit\InspectionBundle\Services\InspectionServiceInterface;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\Pic;
+use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\Tag;
 use Pumukit\SchemaBundle\Document\Track;
 use Pumukit\SchemaBundle\Document\User;
@@ -150,6 +152,8 @@ class OpencastImportService
         if (null === $multimediaObject) {
             $series = $this->seriesImportService->importSeries($mediaPackage, $loggedInUser);
 
+            $loggedInUser = $this->findOwnerForMultimediaObject($series);
+
             $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
             $multimediaObject->setSeries($series);
 
@@ -163,7 +167,7 @@ class OpencastImportService
                 $multimediaObject->setTitle($title, $locale);
             }
 
-            // -- If it exist, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
+        // -- If it exist, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
         } elseif (count($multimediaObject->getTracks()) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
@@ -608,5 +612,18 @@ class OpencastImportService
         $pic->setUrl($url);
 
         return true;
+    }
+
+    private function findOwnerForMultimediaObject(Series $series)
+    {
+        $prototype = $this->dm->getRepository(MultimediaObject::class)->findOneBy([
+            'series' => new ObjectId($series->getId()),
+            'status' => MultimediaObject::STATUS_PROTOTYPE
+        ]);
+
+        $people = $prototype->getPeopleByRoleCod('owner', true);
+        $embeddedPerson = $people[0];
+
+        return $this->dm->getRepository(User::class)->findOneBy(['person' => $embeddedPerson->getId()]);
     }
 }

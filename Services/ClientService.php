@@ -763,25 +763,25 @@ class ClientService
         }
 
         switch ($method) {
-        case 'GET':
-            break;
-        case 'POST':
-            curl_setopt($request, CURLOPT_POST, 1);
-            curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+            case 'GET':
+                break;
+            case 'POST':
+                curl_setopt($request, CURLOPT_POST, 1);
+                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
 
-            break;
-        case 'PUT':
-            $header[] = 'Content-Length: '.strlen($fields);
-            curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+                break;
+            case 'PUT':
+                $header[] = 'Content-Length: '.strlen($fields);
+                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
+                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
 
-            break;
-        case 'DELETE':
-            curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
+                break;
+            case 'DELETE':
+                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
 
-            break;
-        default:
-            throw new \Exception('Method "'.$method.'" not allowed.');
+                break;
+            default:
+                throw new \Exception('Method "'.$method.'" not allowed.');
         }
 
         // NOTE: use - curl_setopt($request, CURLOPT_VERBOSE, true); to debug
