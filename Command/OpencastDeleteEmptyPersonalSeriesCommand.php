@@ -36,7 +36,7 @@ class OpencastDeleteEmptyPersonalSeriesCommand extends ContainerAwareCommand
                 <<<'EOT'
             
             
-            Command to synchronize PuMuKIT series in Opencast
+            Command to delete in Opencast the personal series that do not have videos
             
             <info> ** Example ( check and list ):</info>
             
@@ -170,13 +170,14 @@ EOT
             ]
         );
 
-        /*foreach ($series as $oneseries) {
-            if (!$this->clientService->getOpencastSeries($oneseries)) {
+        foreach ($series as $oneseries) {
+            if ($this->clientService->getOpencastSeries($oneseries)) {
+                $this->output->writeln(' ** Borrando serie: '.$oneseries->getId().' OC serie: '.$oneseries->getProperty('opencast'));
                 $this->seriesSyncService->createSeries($oneseries);
             } else {
-                $this->output->writeln(' Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' ya existe en Opencast');
+                $this->output->writeln(' ** Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' no existe en Opencast');
             }
-        }*/
+        }
     }
 
     /**
