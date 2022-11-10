@@ -172,10 +172,10 @@ EOT
 
         foreach ($series as $oneseries) {
             if ($this->clientService->getOpencastSeries($oneseries)) {
-                $this->output->writeln(' ** Borrando serie: '.$oneseries->getId().' OC serie: '.$oneseries->getProperty('opencast'));
+                $this->output->writeln(' ** Removing series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast'));
                 $this->seriesSyncService->createSeries($oneseries);
             } else {
-                $this->output->writeln(' ** Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' no existe en Opencast');
+                $this->output->writeln(' ** Series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast').' doesnt exist in Opencast');
             }
         }
     }
@@ -196,9 +196,9 @@ EOT
 
         foreach ($series as $oneseries) {
             if (!$this->clientService->getOpencastSeries($oneseries)) {
-                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - no existe en Opencast');
+                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - doesnt exist in Opencast');
             } else {
-                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - se va a borrar en Opencast');
+                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - will be deleted on Opencast');
             }
         }
     }
