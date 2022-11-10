@@ -21,6 +21,7 @@ class OpencastDeleteEmptyPersonalSeriesCommand extends ContainerAwareCommand
     private $force;
     private $clientService;
     private $seriesSyncService;
+    private $locale;
 
     protected function configure()
     {
@@ -59,6 +60,7 @@ EOT
         $this->output = $output;
         $this->input = $input;
         $this->dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
+        $this->locale = $this->getContainer()->getParameter('locale');
 
         $this->logger = $this->getContainer()->get('logger');
 
@@ -146,7 +148,7 @@ EOT
             $criteria['_id'] = new \MongoId($this->id);
         }
 
-        $criteria['title.en'] = [
+        $criteria["title.$this->locale"] = [
                 '$regex' => 'Videos of ',
                 '$options' => 'i',
         ];
