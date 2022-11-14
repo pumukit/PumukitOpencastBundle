@@ -171,7 +171,7 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            if ($this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries) == 0 ){
+            if ($this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries) == 0) {
                 if ($this->clientService->getOpencastSeries($oneseries)) {
                     $this->output->writeln(' ** Borrando serie: '.$oneseries->getId().' OC serie: '.$oneseries->getProperty('opencast'));
                     $this->seriesSyncService->createSeries($oneseries);
