@@ -199,10 +199,12 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            if (!$this->clientService->getOpencastSeries($oneseries)) {
-                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - doesnt exist in Opencast');
-            } else {
-                $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - will be deleted on Opencast');
+            if ($this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries) == 0) {
+                if (!$this->clientService->getOpencastSeries($oneseries)) {
+                    $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - doesnt exist in Opencast');
+                } else {
+                    $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - will be deleted on Opencast');
+                }
             }
         }
     }
