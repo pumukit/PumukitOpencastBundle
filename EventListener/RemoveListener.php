@@ -2,8 +2,8 @@
 
 namespace Pumukit\OpencastBundle\EventListener;
 
-use Psr\Log\LoggerInterface;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Event\MultimediaObjectEvent;
@@ -44,10 +44,10 @@ class RemoveListener
             }
 
             $multimediaObjects = $this->documentManager->getRepository(MultimediaObject::class)->findBy([
-                'properties.opencast' => $mediaPackageId
+                'properties.opencast' => $mediaPackageId,
             ]);
 
-            if (count($multimediaObjects) === 0) {
+            if (0 === count($multimediaObjects)) {
                 $opencastVersion = $this->clientService->getOpencastVersion();
                 if (version_compare($opencastVersion, '9.0.0', '<')) {
                     $output = $this->clientService->applyWorkflowToMediaPackages([$mediaPackageId]);

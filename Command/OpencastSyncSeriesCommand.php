@@ -52,7 +52,8 @@ class OpencastSyncSeriesCommand extends ContainerAwareCommand
             <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
 
 EOT
-            );
+            )
+        ;
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
@@ -90,9 +91,9 @@ EOT
     }
 
     /**
-     * @return int|void|null
-     *
      * @throws \Exception
+     *
+     * @return int|void|null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -148,9 +149,7 @@ EOT
             $criteria['_id'] = new \MongoId($this->id);
         }
 
-        $series = $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
-
-        return $series;
+        return $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
     }
 
     /**

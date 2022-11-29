@@ -167,7 +167,7 @@ class OpencastImportService
                 $multimediaObject->setTitle($title, $locale);
             }
 
-        // -- If it exist, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
+            // -- If it exist, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
         } elseif (count($multimediaObject->getTracks()) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
@@ -618,7 +618,7 @@ class OpencastImportService
     {
         $prototype = $this->dm->getRepository(MultimediaObject::class)->findOneBy([
             'series' => new ObjectId($series->getId()),
-            'status' => MultimediaObject::STATUS_PROTOTYPE
+            'status' => MultimediaObject::STATUS_PROTOTYPE,
         ]);
 
         $people = $prototype->getPeopleByRoleCod('owner', true);
