@@ -152,7 +152,10 @@ class OpencastImportService
         if (null === $multimediaObject) {
             $series = $this->seriesImportService->importSeries($mediaPackage, $loggedInUser);
 
-            $loggedInUser = $this->findOwnerForMultimediaObject($series);
+            $loggedInUserOnMultimediaObject = $this->findOwnerForMultimediaObject($series);
+            if (null !== $loggedInUserOnMultimediaObject && null === $loggedInUser) {
+                $loggedInUser = $loggedInUserOnMultimediaObject;
+            }
 
             $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
             $multimediaObject->setSeries($series);
