@@ -622,8 +622,16 @@ class OpencastImportService
         ]);
 
         $people = $prototype->getPeopleByRoleCod('owner', true);
-        $embeddedPerson = $people[0];
 
-        return $this->dm->getRepository(User::class)->findOneBy(['person' => $embeddedPerson->getId()]);
+        try {
+            $embeddedPerson = $people[0];
+            $ownerId = $embeddedPerson->getId();
+        } catch (\Exception $exception) {
+            $this->logger->warning('Prototype '.$prototype->getId().' from series '.$series->getId().' havent got owner.');
+
+            return null;
+        }
+
+        return $this->dm->getRepository(User::class)->findOneBy(['person' => $ownerId]);
     }
 }
