@@ -153,12 +153,12 @@ class OpencastImportService
             $series = $this->seriesImportService->importSeries($mediaPackage, $loggedInUser);
 
             $loggedInUserOnMultimediaObject = $this->findOwnerForMultimediaObject($series);
-            if (null !== $loggedInUserOnMultimediaObject && null === $loggedInUser) {
-                $loggedInUser = $loggedInUserOnMultimediaObject;
+            if (null === $loggedInUserOnMultimediaObject) {
+                $loggedInUser = null;
             }
 
             $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
-            $multimediaObject->setSeries($series);
+            //$multimediaObject->setSeries($series);
 
             $title = $this->getMediaPackageField($mediaPackage, 'title');
 
@@ -170,7 +170,7 @@ class OpencastImportService
                 $multimediaObject->setTitle($title, $locale);
             }
 
-            // -- If it exist, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
+            // -- If it exists, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
         } elseif (count($multimediaObject->getTracks()) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
@@ -625,15 +625,12 @@ class OpencastImportService
         ]);
 
         $people = $prototype->getPeopleByRoleCod('owner', true);
+        $embeddedPerson = $people[0];
 
-        try {
-            $embeddedPerson = $people[0];
-            $ownerId = $embeddedPerson->getId();
-        } catch (\Exception $exception) {
-            $this->logger->warning('Prototype '.$prototype->getId().' from series '.$series->getId().' havent got owner.');
-
+        if (empty($embeddedPerson)) {
             return null;
         }
+        $ownerId = $embeddedPerson->getId();
 
         return $this->dm->getRepository(User::class)->findOneBy(['person' => $ownerId]);
     }
