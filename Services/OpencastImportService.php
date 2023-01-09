@@ -152,10 +152,7 @@ class OpencastImportService
         if (null === $multimediaObject) {
             $series = $this->seriesImportService->importSeries($mediaPackage, $loggedInUser);
 
-            $loggedInUserOnMultimediaObject = $this->findOwnerForMultimediaObject($series);
-            if (null === $loggedInUserOnMultimediaObject) {
-                $loggedInUser = null;
-            }
+            $loggedInUser = $this->selectOwnerForMultimediaObject($series, $loggedInUser);
 
             $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
             //$multimediaObject->setSeries($series);
@@ -617,8 +614,12 @@ class OpencastImportService
         return true;
     }
 
-    private function findOwnerForMultimediaObject(Series $series)
+    private function selectOwnerForMultimediaObject(Series $series, ?User $loggedInUser)
     {
+        if ($loggedInUser) {
+            return $loggedInUser;
+        }
+
         $prototype = $this->dm->getRepository(MultimediaObject::class)->findOneBy([
             'series' => new ObjectId($series->getId()),
             'status' => MultimediaObject::STATUS_PROTOTYPE,
@@ -626,12 +627,10 @@ class OpencastImportService
 
         $people = $prototype->getPeopleByRoleCod('owner', true);
         $embeddedPerson = $people[0];
-
         if (empty($embeddedPerson)) {
             return null;
         }
-        $ownerId = $embeddedPerson->getId();
 
-        return $this->dm->getRepository(User::class)->findOneBy(['person' => $ownerId]);
+        return $this->dm->getRepository(User::class)->findOneBy(['person' => $embeddedPerson->getId()]);
     }
 }
