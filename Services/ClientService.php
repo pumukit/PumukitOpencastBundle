@@ -94,8 +94,8 @@ class ClientService
         $output = $this->request('/info/components.json');
         $decode = $this->decodeJson($output['var']);
 
-        if (isset($decode['admin']) &&
-            filter_var($decode['admin'], FILTER_VALIDATE_URL)) {
+        if (isset($decode['admin'])
+            && filter_var($decode['admin'], FILTER_VALIDATE_URL)) {
             $this->adminUrl = $decode['admin'];
         }
 
@@ -612,6 +612,7 @@ class ClientService
      * Get the Opencast series metadata associated to the PuMuKIT series.
      *
      * @param $id
+     * @param mixed $series
      *
      * @return mixed|bool|null
      */
@@ -621,7 +622,8 @@ class ClientService
         if (null === $seriesOpencastId) {
             return null;
         }
-        $requestUrl = "/api/series/$seriesOpencastId";
+        $requestUrl = "/api/series/{$seriesOpencastId}";
+
         try {
             $output = $this->request($requestUrl, [], 'GET', true);
         } catch (\Exception $e) {
@@ -681,6 +683,7 @@ class ClientService
                 Response::HTTP_NO_CONTENT,
             ], true)) {
                 $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status']);
+
                 throw new \Exception("Can't access to api/events");
             }
         }
@@ -763,25 +766,29 @@ class ClientService
         }
 
         switch ($method) {
-        case 'GET':
-            break;
-        case 'POST':
-            curl_setopt($request, CURLOPT_POST, 1);
-            curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+            case 'GET':
+                break;
 
-            break;
-        case 'PUT':
-            $header[] = 'Content-Length: '.strlen($fields);
-            curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+            case 'POST':
+                curl_setopt($request, CURLOPT_POST, 1);
+                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
 
-            break;
-        case 'DELETE':
-            curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
+                break;
 
-            break;
-        default:
-            throw new \Exception('Method "'.$method.'" not allowed.');
+            case 'PUT':
+                $header[] = 'Content-Length: '.strlen($fields);
+                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
+                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+
+                break;
+
+            case 'DELETE':
+                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
+
+                break;
+
+            default:
+                throw new \Exception('Method "'.$method.'" not allowed.');
         }
 
         // NOTE: use - curl_setopt($request, CURLOPT_VERBOSE, true); to debug

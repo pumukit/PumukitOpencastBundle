@@ -135,7 +135,7 @@ class PumukitOpencastExtension extends Extension
                 ->addArgument($config['notifications']['url'])
                 ->addArgument($config['notifications']['subject'])
                 ->addTag('kernel.event_listener', ['event' => 'import.success', 'method' => 'onImportSuccess'])
-                ;
+            ;
         }
 
         $container->setParameter('pumukit_opencast.scheduler_on_menu', $config['scheduler_on_menu']);

@@ -52,7 +52,8 @@ class OpencastDeleteEmptyPersonalSeriesCommand extends ContainerAwareCommand
             <comment>php app/console pumukit:opencast:delete:empty:personal:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
 
 EOT
-            );
+            )
+        ;
     }
 
     protected function initialize(InputInterface $input, OutputInterface $output)
@@ -90,9 +91,9 @@ EOT
     }
 
     /**
-     * @return int|void|null
-     *
      * @throws \Exception
+     *
+     * @return int|void|null
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
@@ -148,14 +149,12 @@ EOT
             $criteria['_id'] = new \MongoId($this->id);
         }
 
-        $criteria["title.$this->locale"] = [
-                '$regex' => 'Videos of ',
-                '$options' => 'i',
+        $criteria["title.{$this->locale}"] = [
+            '$regex' => 'Videos of ',
+            '$options' => 'i',
         ];
 
-        $series = $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
-
-        return $series;
+        return $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
     }
 
     /**
@@ -173,7 +172,7 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            if ($this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries) == 0) {
+            if (0 == $this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries)) {
                 if ($this->clientService->getOpencastSeries($oneseries)) {
                     $this->output->writeln(' ** Removing series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast'));
                     $this->seriesSyncService->deleteSeries($oneseries);
@@ -199,7 +198,7 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            if ($this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries) == 0) {
+            if (0 == $this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries)) {
                 if (!$this->clientService->getOpencastSeries($oneseries)) {
                     $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - doesnt exist in Opencast');
                 } else {
