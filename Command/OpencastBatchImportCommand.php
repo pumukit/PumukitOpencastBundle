@@ -33,7 +33,7 @@ class OpencastBatchImportCommand extends Command
             ->setName('pumukit:opencast:batchimport')
             ->setDescription('Import the complete opencast repository')
             ->addOption('invert', 'i', InputOption::VALUE_OPTIONAL, 'Inverted recording (CAMERA <-> SCREEN)')
-          ;
+        ;
     }
 
     protected function execute(InputInterface $input, OutputInterface $output): int

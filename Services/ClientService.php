@@ -120,7 +120,7 @@ class ClientService
         }
 
         $return[0] = $decode['search-results']['total'];
-        if ($decode['search-results']['limit'] > 1) {
+        if (isset($decode['search-results']['result'][0])) {
             foreach ($decode['search-results']['result'] as $media) {
                 $return[1][] = $media['mediapackage'];
             }
@@ -143,7 +143,7 @@ class ClientService
         if (0 === (int) $decode['search-results']['total']) {
             return null;
         }
-        if ($decode['search-results']['limit'] > 1) {
+        if (isset($decode['search-results']['result'][0])) {
             return $decode['search-results']['result'][0]['mediapackage'];
         }
 
@@ -162,7 +162,7 @@ class ClientService
         if (0 === (int) $decode['search-results']['total']) {
             return false;
         }
-        if ($decode['search-results']['limit'] > 1) {
+        if (isset($decode['search-results']['result'][0])) {
             return $decode['search-results']['result'][0];
         }
 
