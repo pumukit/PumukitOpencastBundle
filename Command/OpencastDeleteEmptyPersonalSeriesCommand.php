@@ -1,19 +1,24 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Command;
 
+use Doctrine\ODM\MongoDB\DocumentManager;
+use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Services\ClientService;
-use Symfony\Bundle\FrameworkBundle\Command\ContainerAwareCommand;
+use Pumukit\OpencastBundle\Services\SeriesSyncService;
+use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class OpencastDeleteEmptyPersonalSeriesCommand extends ContainerAwareCommand
+class OpencastDeleteEmptyPersonalSeriesCommand extends Command
 {
+    private $documentManager;
+    private $logger;
     private $output;
     private $input;
-    private $dm;
-    private $logger;
     private $user;
     private $password;
     private $host;
@@ -22,6 +27,16 @@ class OpencastDeleteEmptyPersonalSeriesCommand extends ContainerAwareCommand
     private $clientService;
     private $seriesSyncService;
     private $locale;
+
+    public function __construct(DocumentManager $documentManager, LoggerInterface $logger, SeriesSyncService $seriesSyncService, string $locale)
+    {
+        $this->documentManager = $documentManager;
+        $this->logger = $logger;
+        $this->locale = $locale;
+        $this->seriesSyncService = $seriesSyncService;
+
+        parent::__construct();
+    }
 
     protected function configure()
     {
@@ -35,19 +50,19 @@ class OpencastDeleteEmptyPersonalSeriesCommand extends ContainerAwareCommand
             ->addOption('force', null, InputOption::VALUE_NONE, 'Set this parameter to execute this action')
             ->setHelp(
                 <<<'EOT'
-            
-            
+
+
             Command to delete in Opencast the personal series that do not have videos
-            
+
             <info> ** Example ( check and list ):</info>
-            
+
             <comment>php app/console pumukit:opencast:delete:empty:personal:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
             <comment>php app/console pumukit:opencast:delete:empty:personal:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
-            
+
             This example will be check the connection with these Opencast and list all multimedia objects from PuMuKIT find by regex host.
-            
+
             <info> ** Example ( <error>execute</error> ):</info>
-            
+
             <comment>php app/console pumukit:opencast:delete:empty:personal:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
             <comment>php app/console pumukit:opencast:delete:empty:personal:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
 
@@ -56,14 +71,10 @@ EOT
         ;
     }
 
-    protected function initialize(InputInterface $input, OutputInterface $output)
+    protected function initialize(InputInterface $input, OutputInterface $output): void
     {
         $this->output = $output;
         $this->input = $input;
-        $this->dm = $this->getContainer()->get('doctrine_mongodb')->getManager();
-        $this->locale = $this->getContainer()->getParameter('locale');
-
-        $this->logger = $this->getContainer()->get('logger');
 
         $this->user = trim($this->input->getOption('user'));
         $this->password = trim($this->input->getOption('password'));
@@ -86,16 +97,9 @@ EOT
             $this->logger,
             null
         );
-
-        $this->seriesSyncService = $this->getContainer()->get('pumukit_opencast.series_sync');
     }
 
-    /**
-     * @throws \Exception
-     *
-     * @return int|void|null
-     */
-    protected function execute(InputInterface $input, OutputInterface $output)
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->checkInputs();
 
@@ -107,11 +111,10 @@ EOT
                 $this->showSeries($series);
             }
         }
+
+        return 0;
     }
 
-    /**
-     * @throws \Exception
-     */
     private function checkInputs()
     {
         if (!$this->user || !$this->password || !$this->host) {
@@ -126,9 +129,6 @@ EOT
         }
     }
 
-    /**
-     * @return bool
-     */
     private function checkOpencastStatus()
     {
         if ($this->clientService->getAdminUrl()) {
@@ -138,9 +138,6 @@ EOT
         return false;
     }
 
-    /**
-     * @return mixed
-     */
     private function getSeries()
     {
         $criteria['properties.opencast'] = ['$exists' => true];
@@ -154,12 +151,9 @@ EOT
             '$options' => 'i',
         ];
 
-        return $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
+        return $this->documentManager->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
     }
 
-    /**
-     * @param $series
-     */
     private function deleteSeries($series)
     {
         $this->output->writeln(
@@ -172,7 +166,7 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            if (0 == $this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries)) {
+            if (0 == $this->documentManager->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries)) {
                 if ($this->clientService->getOpencastSeries($oneseries)) {
                     $this->output->writeln(' ** Removing series: '.$oneseries->getId().' OC series: '.$oneseries->getProperty('opencast'));
                     $this->seriesSyncService->deleteSeries($oneseries);
@@ -183,9 +177,6 @@ EOT
         }
     }
 
-    /**
-     * @param $series
-     */
     private function showSeries($series)
     {
         $this->output->writeln(
@@ -198,7 +189,7 @@ EOT
         );
 
         foreach ($series as $oneseries) {
-            if (0 == $this->dm->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries)) {
+            if (0 == $this->documentManager->getRepository('PumukitSchemaBundle:Series')->countMultimediaObjects($oneseries)) {
                 if (!$this->clientService->getOpencastSeries($oneseries)) {
                     $this->output->writeln(' Series: '.$oneseries->getId().' Opencast Series: -'.$oneseries->getProperty('opencast').' - doesnt exist in Opencast');
                 } else {

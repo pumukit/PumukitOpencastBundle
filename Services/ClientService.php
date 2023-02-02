@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Services;
 
 use Psr\Log\LoggerInterface;
@@ -7,7 +9,6 @@ use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Security\RoleHierarchy;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Security\Core\Role\Role;
 
 class ClientService
 {
@@ -450,7 +451,7 @@ class ClientService
                 'value' => $series->getDescription(),
             ],
         ];
-        //There is an Opencast API error. The 'type' parameter should be taken from the form,
+        // There is an Opencast API error. The 'type' parameter should be taken from the form,
         //  but it is taken from the query. Added 'type' in both ways for good measure.
         $type = 'dublincore/series';
         $params = [
@@ -650,29 +651,29 @@ class ClientService
         }
 
         switch ($method) {
-        case 'GET':
-            break;
+            case 'GET':
+                break;
 
-        case 'POST':
-            curl_setopt($request, CURLOPT_POST, 1);
-            curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+            case 'POST':
+                curl_setopt($request, CURLOPT_POST, 1);
+                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
 
-            break;
+                break;
 
-        case 'PUT':
-            $header[] = 'Content-Length: '.strlen($fields);
-            curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
-            curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
+            case 'PUT':
+                $header[] = 'Content-Length: '.strlen($fields);
+                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
+                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
 
-            break;
+                break;
 
-        case 'DELETE':
-            curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
+            case 'DELETE':
+                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
 
-            break;
+                break;
 
-        default:
-            throw new \Exception('Method "'.$method.'" not allowed.');
+            default:
+                throw new \Exception('Method "'.$method.'" not allowed.');
         }
 
         // NOTE: use - curl_setopt($request, CURLOPT_VERBOSE, true); to debug
@@ -737,13 +738,7 @@ class ClientService
     private function getUserRoles(User $user): string
     {
         if ($this->roleHierarchy) {
-            $userRoles = array_map(static function ($r) {
-                return new Role($r);
-            }, $user->getRoles());
-            $allRoles = $this->roleHierarchy->getReachableRoles($userRoles);
-            $roles = array_map(static function ($r) {
-                return $r->getRole();
-            }, $allRoles);
+            $roles = $this->roleHierarchy->getReachableRoleNames($user->getRoles());
         } else {
             $roles = $user->getRoles();
         }

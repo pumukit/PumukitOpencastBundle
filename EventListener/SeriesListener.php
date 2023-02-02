@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\EventListener;
 
 use Psr\Log\LoggerInterface;
@@ -21,7 +23,7 @@ class SeriesListener
     {
         $series = $event->getSeries();
 
-        //TTK-21470: Since having a series in an Opencast object is not required, but it is in PuMuKIT
+        // TTK-21470: Since having a series in an Opencast object is not required, but it is in PuMuKIT
         // we need THIS series to not be synced to Opencast. Ideally series would be OPTIONAL.
         if ('default' === $series->getProperty('opencast')) {
             return;

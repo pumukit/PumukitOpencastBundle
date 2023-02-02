@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
@@ -20,71 +22,7 @@ class PumukitOpencastExtension extends Extension
 
         $container->setParameter('pumukit_opencast.show_importer_tab', $config['show_importer_tab']);
         $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
-//        if (isset($config['host']) && $config['host']) {
-//            $env = $container->getParameter('kernel.environment');
-//            $this->validateOpencastConfiguration($config['host'], $config['url_mapping'], $env);
-//
-//            $container
-//                ->register('pumukit_opencast.client', 'Pumukit\\OpencastBundle\\Services\\ClientService')
-//                ->addArgument($config['host'])
-//                ->addArgument($config['username'])
-//                ->addArgument($config['password'])
-//                ->addArgument($config['player'])
-//                ->addArgument($config['scheduler'])
-//                ->addArgument($config['dashboard'])
-//                ->addArgument($config['delete_archive_mediapackage'])
-//                ->addArgument($config['deletion_workflow_name'])
-//                ->addArgument($config['manage_opencast_users'])
-//                ->addArgument(new Parameter('pumukit.insecure_http_client'))
-//                ->addArgument($config['admin_host'])
-//                ->addArgument(new Reference('logger'))
-//                ->addArgument(new Reference('security.role_hierarchy'))
-//            ;
-//
-//            $container
-//                ->register('pumukit_opencast.job', 'Pumukit\\OpencastBundle\\Services\\OpencastService')
-//                ->addArgument(new Reference('pumukitencoder.job'))
-//                ->addArgument(new Reference('pumukitencoder.profile'))
-//                ->addArgument(new Reference('pumukitschema.multimedia_object'))
-//                ->addArgument($config['sbs'])
-//                ->addArgument($config['url_mapping'])
-//                ->addArgument(['opencast_host' => $config['host'], 'opencast_username' => $config['username'], 'opencast_password' => $config['password']])
-//                ->addArgument($config['error_if_file_not_exist'])
-//            ;
-//
-//            $container
-//                ->register('pumukit_opencast.series_importer', 'Pumukit\\OpencastBundle\\Services\\SeriesImportService')
-//                ->addArgument(new Reference('doctrine_mongodb.odm.document_manager'))
-//                ->addArgument(new Reference('pumukitschema.factory'))
-//                ->addArgument(new Reference('pumukit_opencast.client'))
-//                ->addArgument(new Reference('pumukitschema.series_dispatcher'))
-//                ->addArgument(new Parameter('pumukit.locales'))
-//            ;
-//
-//            $pumukitcustomlanguages = $container->hasParameter('pumukit.customlanguages') ?
-//                new Parameter('pumukit.customlanguages') :
-//                [];
-//
-//            $container
-//                ->register('pumukit_opencast.import', 'Pumukit\\OpencastBundle\\Services\\OpencastImportService')
-//                ->addArgument(new Reference('doctrine_mongodb.odm.document_manager'))
-//                ->addArgument(new Reference('pumukitschema.factory'))
-//                ->addArgument(new Reference('logger'))
-//                ->addArgument(new Reference('translator'))
-//                ->addArgument(new Reference('pumukitschema.track'))
-//                ->addArgument(new Reference('pumukitschema.tag'))
-//                ->addArgument(new Reference('pumukitschema.multimedia_object'))
-//                ->addArgument(new Reference('pumukit_opencast.client'))
-//                ->addArgument(new Reference('pumukit_opencast.job'))
-//                ->addArgument(new Reference('pumukit.inspection'))
-//                ->addArgument(new Parameter('pumukit.locales'))
-//                ->addArgument(new Parameter('pumukit_opencast.default_tag_imported'))
-//                ->addArgument(new Reference('pumukit_opencast.series_importer'))
-//                ->addArgument($pumukitcustomlanguages)
-//                ->addArgument(new Reference('event_dispatcher'))
-//
-//            ;
-//
+
         $container->setParameter('pumukit_opencast.sbs', $config['sbs']);
         $container->setParameter('pumukit_opencast.sbs.generate_sbs', $config['sbs']['generate_sbs'] ? $config['sbs']['generate_sbs'] : false);
         $container->setParameter('pumukit_opencast.sbs.profile', $config['sbs']['generate_sbs'] ? $config['sbs']['profile'] : null);
@@ -98,38 +36,6 @@ class PumukitOpencastExtension extends Extension
         $container->setParameter('pumukit_opencast.url_mapping', $config['url_mapping']);
         $container->setParameter('pumukit_opencast.manage_opencast_users', $config['manage_opencast_users']);
         $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
-
-//            $container
-//                ->register('pumukit_opencast.remove_listener', 'Pumukit\\OpencastBundle\\EventListener\\RemoveListener')
-//                ->addArgument(new Reference('pumukit_opencast.client'))
-//                ->addArgument(new Reference('logger'))
-//                ->addArgument($config['delete_archive_mediapackage'])
-//                ->addArgument($config['deletion_workflow_name'])
-//                ->addTag('kernel.event_listener', ['event' => 'multimediaobject.delete', 'method' => 'onMultimediaObjectDelete'])
-//            ;
-//
-//            $container
-//                ->register('pumukit_opencast.user_listener', 'Pumukit\\OpencastBundle\\EventListener\\UserListener')
-//                ->addArgument(new Reference('pumukit_opencast.client'))
-//                ->addArgument(new Reference('logger'))
-//                ->addArgument($config['manage_opencast_users'])
-//                ->addTag('kernel.event_listener', ['event' => 'user.create', 'method' => 'onUserCreate'])
-//                ->addTag('kernel.event_listener', ['event' => 'user.update', 'method' => 'onUserUpdate'])
-//                ->addTag('kernel.event_listener', ['event' => 'user.delete', 'method' => 'onUserDelete'])
-//            ;
-//
-//            $container
-//                ->register('pumukit_opencast.notification_listener', 'Pumukit\\OpencastBundle\\Services\\NotificationService')
-//                ->addArgument(new Reference('doctrine_mongodb.odm.document_manager'))
-//                ->addArgument(new Reference('pumukit_notification.sender'))
-//                ->addArgument(new Reference('router'))
-//                ->addArgument(new Reference('logger'))
-//                ->addArgument($config['notifications']['template'])
-//                ->addArgument($config['notifications']['url'])
-//                ->addArgument($config['notifications']['subject'])
-//                ->addTag('kernel.event_listener', ['event' => 'import.success', 'method' => 'onImportSuccess'])
-//                ;
-//        }
 
         $container->setParameter('pumukit_opencast.scheduler_on_menu', $config['scheduler_on_menu']);
         $container->setParameter('pumukit_opencast.host', $config['host']);

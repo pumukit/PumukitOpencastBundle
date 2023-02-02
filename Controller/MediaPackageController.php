@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Controller;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -10,7 +12,6 @@ use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -20,6 +21,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 
 /**
  * @Route("/admin")
+ *
  * @Security("is_granted('ROLE_ACCESS_IMPORTER')")
  */
 class MediaPackageController extends AbstractController
@@ -49,9 +51,8 @@ class MediaPackageController extends AbstractController
 
     /**
      * @Route("/opencast/mediapackage", name="pumukitopencast")
-     * @Template("@PumukitOpencast/MediaPackage/index.html.twig")
      */
-    public function indexAction(Request $request)
+    public function indexAction(Request $request): Response
     {
         if (!$this->opencastShowImporterTab) {
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
@@ -103,12 +104,12 @@ class MediaPackageController extends AbstractController
             ->execute()
         ;
 
-        return [
+        return $this->render('@PumukitOpencast/MediaPackage/index.html.twig', [
             'mediaPackages' => $pager,
             'multimediaObjects' => $repo,
             'player' => $this->opencastClientService->getPlayerUrl(),
             'pics' => $pics,
-        ];
+        ]);
     }
 
     /**

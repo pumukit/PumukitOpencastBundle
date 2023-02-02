@@ -19,6 +19,8 @@
     ],
     "require": {
         "php": ">=7.2",
+        "ext-simplexml": "*",
+        "ext-libxml": "*",
         "pumukit/pumukit": "^4.0"
     },
     "autoload": {

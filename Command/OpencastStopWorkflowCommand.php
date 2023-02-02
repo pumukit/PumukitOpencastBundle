@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Command;
 
 use Psr\Log\LoggerInterface;

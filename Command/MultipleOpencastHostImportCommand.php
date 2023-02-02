@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Command;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -24,6 +26,7 @@ class MultipleOpencastHostImportCommand extends Command
     private $id;
     private $force;
     private $master;
+
     /** @var ClientService */
     private $clientService;
     private $secondsToSleep;

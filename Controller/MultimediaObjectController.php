@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Controller;
 
 use Pumukit\OpencastBundle\Form\Type\MultimediaObjectType;
@@ -9,7 +11,6 @@ use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Template;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -18,6 +19,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 /**
  * @Route("/admin/opencast/mm")
+ *
  * @Security("is_granted('ROLE_ACCESS_IMPORTER')")
  */
 class MultimediaObjectController extends AbstractController
@@ -47,23 +49,21 @@ class MultimediaObjectController extends AbstractController
 
     /**
      * @Route("/index/{id}", name="pumukit_opencast_mm_index")
-     * @Template("@PumukitOpencast/MultimediaObject/index.html.twig")
      */
-    public function indexAction(MultimediaObject $multimediaObject): array
+    public function indexAction(MultimediaObject $multimediaObject): Response
     {
-        return [
+        return $this->render('@PumukitOpencast/MultimediaObject/index.html.twig', [
             'mm' => $multimediaObject,
             'generate_sbs' => $this->opencastSBSGenerate,
             'sbs_profile' => $this->opencastSBSProfile,
             'player' => $this->opencastClientService->getPlayerUrl(),
-        ];
+        ]);
     }
 
     /**
      * @Route("/update/{id}", name="pumukit_opencast_mm_update")
-     * @Template("@PumukitOpencast/MultimediaObject/update.html.twig")
      */
-    public function updateAction(Request $request, MultimediaObject $multimediaObject)
+    public function updateAction(Request $request, MultimediaObject $multimediaObject): Response
     {
         $translator = $this->get('translator');
         $locale = $request->getLocale();
@@ -86,17 +86,16 @@ class MultimediaObjectController extends AbstractController
             }
         }
 
-        return [
+        return $this->render('@PumukitOpencast/MultimediaObject/update.html.twig', [
             'form' => $form->createView(),
             'multimediaObject' => $multimediaObject,
-        ];
+        ]);
     }
 
     /**
      * @Route("/info/{id}", name="pumukit_opencast_mm_info")
-     * @Template("@PumukitOpencast/MultimediaObject/info.html.twig")
      */
-    public function infoAction(MultimediaObject $multimediaObject): array
+    public function infoAction(MultimediaObject $multimediaObject): Response
     {
         $presenterDeliveryUrl = '';
         $presentationDeliveryUrl = '';
@@ -109,10 +108,10 @@ class MultimediaObjectController extends AbstractController
             $presentationDeliveryUrl = $presentationDeliveryTrack->getUrl();
         }
 
-        return [
+        return $this->render('@PumukitOpencast/MultimediaObject/info.html.twig', [
             'presenter_delivery_url' => $presenterDeliveryUrl,
             'presentation_delivery_url' => $presentationDeliveryUrl,
-        ];
+        ]);
     }
 
     /**

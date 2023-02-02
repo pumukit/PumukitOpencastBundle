@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -96,7 +98,7 @@ class OpencastImportService
             return;
         }
 
-        //Check if mp has Galicaster properties and look for an mmobj with the given id.
+        // Check if mp has Galicaster properties and look for an mmobj with the given id.
         $galicasterPropertiesUrl = null;
         foreach ($mediaPackage['attachments']['attachment'] as $attachment) {
             if ('galicaster-properties' !== $attachment['id']) {
@@ -112,8 +114,8 @@ class OpencastImportService
             $galicasterProperties = $this->opencastClient->getGalicasterPropertiesFromUrl($galicasterPropertiesUrl);
         } else {
             $this->logger->warning(sprintf('No \'galicaster-properties\' id exist on attachments list from mediapackage.'));
-            //NOTE: This will only work correctly if the mp was only ingested once. We need to figure out and pass it
-            //the correct 'mediapackage version', but the endpoint with that info does not work currently.
+            // NOTE: This will only work correctly if the mp was only ingested once. We need to figure out and pass it
+            // the correct 'mediapackage version', but the endpoint with that info does not work currently.
             $galicasterProperties = $this->opencastClient->getGalicasterProperties($mediaPackageId);
         }
 
@@ -122,7 +124,7 @@ class OpencastImportService
             $multimediaObject = $multimediaObjectRepository->find($multimediaObjectId);
         }
 
-        //We try to initialize the tracks before anything to prevent importing if any tracks have wrong data
+        // We try to initialize the tracks before anything to prevent importing if any tracks have wrong data
         $media = $this->getMediaPackageField($mediaPackage, 'media');
         $opencastTracks = $this->getMediaPackageField($media, 'track');
         $language = $this->getMediaPackageLanguage($mediaPackage);
@@ -145,7 +147,7 @@ class OpencastImportService
             $loggedInUser = $this->selectOwnerForMultimediaObject($series, $loggedInUser);
 
             $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
-            //$multimediaObject->setSeries($series);
+            // $multimediaObject->setSeries($series);
 
             $title = $this->getMediaPackageField($mediaPackage, 'title');
 
@@ -157,7 +159,7 @@ class OpencastImportService
                 $multimediaObject->setTitle($title, $locale);
             }
 
-            // -- If it exists, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
+        // -- If it exists, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
         } elseif (count($multimediaObject->getTracks()) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
@@ -245,7 +247,7 @@ class OpencastImportService
         }
 
         $event = new ImportEvent($multimediaObject);
-        $this->dispatcher->dispatch(OpencastEvents::IMPORT_SUCCESS, $event);
+        $this->dispatcher->dispatch($event, OpencastEvents::IMPORT_SUCCESS);
     }
 
     public function getOpencastUrls($opencastId = ''): array
@@ -482,7 +484,7 @@ class OpencastImportService
         $type = $this->getMediaPackageField($attachment, 'type');
         $url = $this->getMediaPackageField($attachment, 'url');
         if (!$url) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'] '.'No url on pic attachment '.json_encode($attachment));
+            $this->logger->error(__CLASS__.'['.__FUNCTION__.'] No url on pic attachment '.json_encode($attachment));
 
             return $multimediaObject;
         }

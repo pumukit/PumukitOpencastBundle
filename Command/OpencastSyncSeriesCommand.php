@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Command;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
@@ -18,13 +20,13 @@ class OpencastSyncSeriesCommand extends Command
     private $output;
     private $input;
     private $dm;
-    private $opencastImportService;
     private $logger;
     private $user;
     private $password;
     private $host;
     private $id;
     private $force;
+
     /** @var ClientService */
     private $clientService;
     private $seriesSyncService;
