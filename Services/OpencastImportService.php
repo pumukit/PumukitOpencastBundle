@@ -158,7 +158,6 @@ class OpencastImportService
             foreach ($this->otherLocales as $locale) {
                 $multimediaObject->setTitle($title, $locale);
             }
-
         } elseif (count($multimediaObject->getTracks()) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
