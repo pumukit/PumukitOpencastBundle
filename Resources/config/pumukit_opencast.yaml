@@ -15,6 +15,7 @@ services:
       $template: '%pumukit_notification.template%'
       $accessUrl: ''
       $subject: ''
+      $locale: '%locale%'
 
   Pumukit\OpencastBundle\Controller\:
     resource: '../../Controller/'
@@ -50,3 +51,6 @@ services:
 
   Pumukit\OpencastBundle\Services\WorkflowService:
     class: Pumukit\OpencastBundle\Services\WorkflowService
+
+  Pumukit\OpencastBundle\Command\OpencastDeleteEmptyPersonalSeriesCommand:
+    class: Pumukit\OpencastBundle\Command\OpencastDeleteEmptyPersonalSeriesCommand
