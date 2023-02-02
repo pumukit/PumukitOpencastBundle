@@ -159,7 +159,6 @@ class OpencastImportService
                 $multimediaObject->setTitle($title, $locale);
             }
 
-        // -- If it exists, but already has tracks, clone the mmobj, but clear tracks/attachments NOTE: What about tags?
         } elseif (count($multimediaObject->getTracks()) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
