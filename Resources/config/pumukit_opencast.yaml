@@ -5,6 +5,9 @@ services:
     public:        true
     bind:
       $host: '%pumukit_opencast.host%'
+      $username: '%pumukit_opencast.username%'
+      $password: '%pumukit_opencast.password%'
+      $adminUrl: '%pumukit_opencast.admin_host%'
       $opencastShowImporterTab: '%pumukit_opencast.show_importer_tab%'
       $opencastBatchImportInverted: '%pumukit_opencast.batchimport_inverted%'
       $secondsToSleep: '%pumukit_opencast.seconds_to_sleep_on_commands%'
