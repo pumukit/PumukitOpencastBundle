@@ -27,6 +27,7 @@ services:
       $urlMapping: '%pumukit_opencast.url_mapping%'
       $defaultVars: '%pumukit_opencast.default_vars%'
       $errorIfFileNotExist: '%pumukit_opencast.error_if_file_not_exist%'
+      $notificationConfig: '%pumukit_opencast.notifications%'
       $locale: '%locale%'
 
   Pumukit\OpencastBundle\Controller\:
