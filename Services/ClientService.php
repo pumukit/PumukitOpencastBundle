@@ -286,7 +286,7 @@ class ClientService
                 'mediaPackageIds' => $mediaPackageIdsParameter,
                 'engage' => 'Matterhorn+Engage+Player',
             ];
-        // SUPPORT FOR OPENCAST < 6.0
+            // SUPPORT FOR OPENCAST < 6.0
         } elseif ($opencastVersion < '6.0.0') {
             $parameters = [
                 'metadata' => json_encode(
@@ -297,7 +297,7 @@ class ClientService
                     ]
                 ),
             ];
-        // DEFAULT
+            // DEFAULT
         } else {
             $configurationsById = [];
             foreach ($mediaPackagesIds as $mediaPackageId) {

@@ -30,6 +30,7 @@ class PumukitOpencastExtension extends Extension
         $container->setParameter('pumukit_opencast.sbs.flavour', $config['sbs']['use_flavour'] ? $config['sbs']['flavour'] : null);
 
         $container->setParameter('pumukit_opencast.use_redirect', $config['use_redirect']);
+        $container->setParameter('pumukit_opencast.error_if_file_not_exist', $config['error_if_file_not_exist']);
         $container->setParameter('pumukit_opencast.batchimport_inverted', $config['batchimport_inverted']);
         $container->setParameter('pumukit_opencast.delete_archive_mediapackage', $config['delete_archive_mediapackage']);
         $container->setParameter('pumukit_opencast.deletion_workflow_name', $config['deletion_workflow_name']);
@@ -38,12 +39,18 @@ class PumukitOpencastExtension extends Extension
         $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
 
         $container->setParameter('pumukit_opencast.scheduler_on_menu', $config['scheduler_on_menu']);
+        $container->setParameter('pumukit_opencast.scheduler', $config['scheduler']);
         $container->setParameter('pumukit_opencast.host', $config['host']);
         $container->setParameter('pumukit_opencast.admin_host', $config['admin_host']);
         $container->setParameter('pumukit_opencast.username', $config['username']);
         $container->setParameter('pumukit_opencast.password', $config['password']);
+        $container->setParameter('pumukit_opencast.player', $config['player']);
         $container->setParameter('pumukit_opencast.dashboard_on_menu', $config['dashboard_on_menu']);
+        $container->setParameter('pumukit_opencast.dashboard', $config['dashboard']);
         $container->setParameter('pumukit_opencast.default_tag_imported', $config['default_tag_imported']);
+        $container->setParameter('pumukit_opencast.notifications', $config['notifications']);
+        $container->setParameter('pumukit_opencast.default_vars', []);
+        $container->setParameter('pumukit_opencast.insecure', false);
 
         $permissions = [['role' => 'ROLE_ACCESS_IMPORTER', 'description' => 'Access Importer']];
         $newPermissions = array_merge($container->getParameter('pumukitschema.external_permissions'), $permissions);

@@ -19,26 +19,21 @@ class NotificationService
     protected $senderService;
     protected $router;
     protected $logger;
-    protected $template;
-    protected $subject;
-    protected $accessUrl;
+
+    protected $notificationConfig;
 
     public function __construct(
         DocumentManager $documentManager,
         SenderService $senderService,
         RouterInterface $router,
         LoggerInterface $logger,
-        string $template,
-        string $accessUrl,
-        string $subject
+        array $notificationConfig
     ) {
         $this->dm = $documentManager;
         $this->senderService = $senderService;
         $this->router = $router;
         $this->logger = $logger;
-        $this->template = $template;
-        $this->accessUrl = $accessUrl;
-        $this->subject = $subject;
+        $this->notificationConfig = $notificationConfig;
     }
 
     public function onImportSuccess(ImportEvent $event): void
@@ -61,10 +56,14 @@ class NotificationService
         }
         $emailsList = array_unique($emailsList);
 
-        $backofficeUrl = preg_replace('/{{ *id *}}/', $multimediaObject->getId(), $this->accessUrl);
+        $backofficeUrl = preg_replace('/{{ *id *}}/', $multimediaObject->getId(), $this->notificationConfig['url']);
 
         try {
-            $backofficeUrl = $this->router->generate($this->accessUrl, ['id' => $multimediaObject->getId()], UrlGeneratorInterface::ABSOLUTE_URL);
+            $backofficeUrl = $this->router->generate(
+                $this->notificationConfig['url'],
+                ['id' => $multimediaObject->getId()],
+                UrlGeneratorInterface::ABSOLUTE_URL
+            );
         } catch (RouteNotFoundException $e) {
             $this->logger->info(__CLASS__.'['.__FUNCTION__.'] Route name "'.$backofficeUrl.'" not found. Using as route literally.');
         }
@@ -74,7 +73,12 @@ class NotificationService
         ];
         foreach ($emailsList as $email => $name) {
             $parameters['username'] = $name;
-            $this->senderService->sendEmails($email, $this->subject, $this->template, $parameters);
+            $this->senderService->sendEmails(
+                $email,
+                $this->notificationConfig['subject'],
+                $this->notificationConfig['template'],
+                $parameters
+            );
         }
     }
 }
