@@ -28,7 +28,7 @@ services:
       $defaultVars: '%pumukit_opencast.default_vars%'
       $errorIfFileNotExist: '%pumukit_opencast.error_if_file_not_exist%'
       $notificationConfig: '%pumukit_opencast.notifications%'
-      $locale: '%locale%'
+      $locale: '%kernel.default_locale%'
 
   Pumukit\OpencastBundle\Controller\:
     resource: '../../Controller/'
