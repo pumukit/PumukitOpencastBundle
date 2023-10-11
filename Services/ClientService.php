@@ -25,7 +25,7 @@ class ClientService
     private $deleteArchiveMediaPackage;
     private $deletionWorkflowName;
     private $manageOpencastUsers;
-    private $insecure = false;
+    private $insecure;
     private $logger;
     private $roleHierarchy;
 
