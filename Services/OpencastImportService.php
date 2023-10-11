@@ -356,7 +356,7 @@ class OpencastImportService
 
         $framerate = $this->getMediaPackageField($video, 'framerate');
         if ($framerate) {
-            $track->setFramerate($framerate);
+            $track->setFramerate((string) $framerate);
         }
 
         if (!$track->getVcodec() && $track->getAcodec()) {
