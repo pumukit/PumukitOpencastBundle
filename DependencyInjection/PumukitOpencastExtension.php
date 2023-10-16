@@ -50,7 +50,7 @@ class PumukitOpencastExtension extends Extension
         $container->setParameter('pumukit_opencast.default_tag_imported', $config['default_tag_imported']);
         $container->setParameter('pumukit_opencast.notifications', $config['notifications']);
         $container->setParameter('pumukit_opencast.default_vars', []);
-        $container->setParameter('pumukit_opencast.insecure',  $config['insecure']);
+        $container->setParameter('pumukit_opencast.insecure', $config['insecure']);
 
         $permissions = [['role' => 'ROLE_ACCESS_IMPORTER', 'description' => 'Access Importer']];
         $newPermissions = array_merge($container->getParameter('pumukitschema.external_permissions'), $permissions);
