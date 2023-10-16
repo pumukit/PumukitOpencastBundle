@@ -31,7 +31,7 @@ class ImportController extends AbstractController
      */
     public function eventAction(Request $request): Response
     {
-        $mediaPackage = json_decode($request->request->get('mediapackage'), true);
+        $mediaPackage = json_decode($request->request->get('mediapackage'), true, 512, JSON_THROW_ON_ERROR);
         if (!isset($mediaPackage['mediapackage']['id'])) {
             $this->get('logger')->warning('No mediapackage ID, ERROR 400 returned');
 

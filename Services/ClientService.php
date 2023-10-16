@@ -47,7 +47,7 @@ class ClientService
         $this->logger = $logger;
 
         if (!function_exists('curl_init')) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
+            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__
                                     .') The function "curl_init" does not exist. '
                                     .'Curl is required to execute remote commands.');
 
@@ -294,7 +294,8 @@ class ClientService
                         'workflow' => $workflowName,
                         'configuration' => $configurationParameters,
                         'eventIds' => $mediaPackagesIds,
-                    ]
+                    ],
+                    JSON_THROW_ON_ERROR
                 ),
             ];
             // DEFAULT
@@ -308,7 +309,8 @@ class ClientService
                     [
                         'workflow' => $workflowName,
                         'configuration' => $configurationsById,
-                    ]
+                    ],
+                    JSON_THROW_ON_ERROR
                 ),
             ];
         }
@@ -319,7 +321,7 @@ class ClientService
             Response::HTTP_CREATED,
             Response::HTTP_NO_CONTENT,
         ], true)) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status'].' - params:'.json_encode($parameters));
+            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status'].' - params:'.json_encode($parameters, JSON_THROW_ON_ERROR));
 
             return false;
         }
@@ -577,7 +579,7 @@ class ClientService
                 Response::HTTP_ACCEPTED,
                 Response::HTTP_NO_CONTENT,
             ], true)) {
-                $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status']);
+                $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status']);
 
                 throw new \Exception("Can't access to api/events");
             }
@@ -638,13 +640,13 @@ class ClientService
         $header = ['X-Requested-Auth: Digest',
             'X-Opencast-Matterhorn-Authorization: true', ];
 
-        $this->logger->debug(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
+        $this->logger->debug(self::class.'['.__FUNCTION__.'](line '.__LINE__
                                 .') Requested URL "'.$requestUrl.'" '
                                 .'with method "'.$method.'" '
                                 .'and params: '.$fields);
 
         if (false === $request = curl_init($requestUrl)) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__
+            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__
                                     .') Unable to create a new curl handle with URL: '.$requestUrl.'.');
 
             throw new \RuntimeException('Unable to create a new curl handle with URL: '.$requestUrl.'.');
@@ -701,7 +703,7 @@ class ClientService
         curl_close($request);
 
         if (('GET' === $method) && Response::HTTP_OK !== (int) $output['status']) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'](line '.__LINE__.') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
+            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__.') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
 
             throw new \Exception(sprintf('Error "%s", Status %s, Processing Request "%s"', $output['error'], $output['status'], $requestUrl), 1);
         }
@@ -711,7 +713,7 @@ class ClientService
 
     private function decodeJson(string $jsonString = ''): array
     {
-        $decode = json_decode($jsonString, true);
+        $decode = json_decode($jsonString, true, 512, JSON_THROW_ON_ERROR);
         if (!is_array($decode)) {
             throw new \Exception('Opencast communication error');
         }
@@ -724,8 +726,8 @@ class ClientService
         $decode = null;
         if (is_array($xmlString)) {
             $xml = simplexml_load_string($xmlString['var'], 'SimpleXMLElement', LIBXML_NOCDATA);
-            $json = json_encode($xml);
-            $decode = json_decode($json, true);
+            $json = json_encode($xml, JSON_THROW_ON_ERROR);
+            $decode = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
         }
 
         if (!is_array($decode)) {

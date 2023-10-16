@@ -93,7 +93,7 @@ class OpencastSingleImportCommand extends Command
         $tracks = $this->opencastImportService->getMediaPackageField($media, 'track');
         if (isset($tracks[0])) {
             // NOTE: Multiple tracks
-            $limit = count($tracks);
+            $limit = is_countable($tracks) ? count($tracks) : 0;
             for ($i = 0; $i < $limit; ++$i) {
                 $this->opencastImportService->createTrackFromMediaPackage($mediaPackage, $multimediaObject, $i, ['display'], $language);
             }

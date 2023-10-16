@@ -43,7 +43,7 @@ class NotificationService
         foreach ($multimediaObject->getPeopleByRoleCod('owner', true) as $person) {
             $owner = $this->dm->getRepository(User::class)->findOneBy(['person' => $person->getId()]);
             if (!$owner) {
-                $this->logger->error(__CLASS__.'['.__FUNCTION__.'] Person ('.$person->getId().') assigned as owner of multimediaObject ('.$multimediaObject->getId().') does NOT have an associated USER!');
+                $this->logger->error(self::class.'['.__FUNCTION__.'] Person ('.$person->getId().') assigned as owner of multimediaObject ('.$multimediaObject->getId().') does NOT have an associated USER!');
 
                 continue;
             }
@@ -65,7 +65,7 @@ class NotificationService
                 UrlGeneratorInterface::ABSOLUTE_URL
             );
         } catch (RouteNotFoundException $e) {
-            $this->logger->info(__CLASS__.'['.__FUNCTION__.'] Route name "'.$backofficeUrl.'" not found. Using as route literally.');
+            $this->logger->info(self::class.'['.__FUNCTION__.'] Route name "'.$backofficeUrl.'" not found. Using as route literally.');
         }
         $parameters = [
             'url' => $backofficeUrl,

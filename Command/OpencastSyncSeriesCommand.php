@@ -144,6 +144,7 @@ EOT
 
     private function getSeries()
     {
+        $criteria = [];
         $criteria['properties.opencast'] = ['$exists' => true];
 
         if ($this->id) {
@@ -160,7 +161,7 @@ EOT
                 '',
                 '<info> **** Sync Series **** </info>',
                 '',
-                '<comment> ----- Total: </comment>'.count($series),
+                '<comment> ----- Total: </comment>'.(is_countable($series) ? count($series) : 0),
             ]
         );
 
@@ -180,7 +181,7 @@ EOT
                 '',
                 '<info> **** Finding Series **** </info>',
                 '',
-                '<comment> ----- Total: </comment>'.count($series),
+                '<comment> ----- Total: </comment>'.(is_countable($series) ? count($series) : 0),
             ]
         );
 

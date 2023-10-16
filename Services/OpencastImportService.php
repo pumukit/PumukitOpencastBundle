@@ -158,7 +158,7 @@ class OpencastImportService
             foreach ($this->otherLocales as $locale) {
                 $multimediaObject->setTitle($title, $locale);
             }
-        } elseif (count($multimediaObject->getTracks()) > 0) {
+        } elseif ((is_countable($multimediaObject->getTracks()) ? count($multimediaObject->getTracks()) : 0) > 0) {
             $newMultimediaObject = $this->factoryService->cloneMultimediaObject($multimediaObject, $multimediaObject->getSeries(), false);
 
             $newMultimediaObject->setStatus($multimediaObject->getStatus());
@@ -261,7 +261,7 @@ class OpencastImportService
             $tracks = $this->getMediaPackageField($media, 'track');
             if (!isset($tracks['id'])) {
                 // NOTE: Multiple tracks
-                $limit = count($tracks);
+                $limit = is_countable($tracks) ? count($tracks) : 0;
                 for ($i = 0; $i < $limit; ++$i) {
                     $track = $tracks[$i];
                     $opencastUrls = $this->addOpencastUrl($opencastUrls, $track);
@@ -482,7 +482,7 @@ class OpencastImportService
         $type = $this->getMediaPackageField($attachment, 'type');
         $url = $this->getMediaPackageField($attachment, 'url');
         if (!$url) {
-            $this->logger->error(__CLASS__.'['.__FUNCTION__.'] No url on pic attachment '.json_encode($attachment));
+            $this->logger->error(self::class.'['.__FUNCTION__.'] No url on pic attachment '.json_encode($attachment, JSON_THROW_ON_ERROR));
 
             return $multimediaObject;
         }

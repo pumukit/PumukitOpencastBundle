@@ -277,7 +277,7 @@ EOT
         $tracks = $this->opencastImportService->getMediaPackageField($media, 'track');
         $tracksCount = 1;
         if (isset($tracks[0])) {
-            $tracksCount = count($tracks);
+            $tracksCount = is_countable($tracks) ? count($tracks) : 0;
         }
 
         $output->writeln(' Multimedia Object: '.$multimediaObject->getId().' - URL: '.$multimediaObject->getProperty('opencasturl').' - Tracks: '.$tracksCount);

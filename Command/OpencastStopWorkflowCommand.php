@@ -59,15 +59,15 @@ EOT
                 $result = $this->opencastWorkflowService->stopSucceededWorkflows($mediaPackageId);
                 if (!$result) {
                     $output->writeln('<error>Error on stopping workflows</error>');
-                    $this->logger->error('['.__CLASS__.']('.__FUNCTION__.') Error on stopping workflows');
+                    $this->logger->error('['.self::class.']('.__FUNCTION__.') Error on stopping workflows');
 
                     return -1;
                 }
                 $output->writeln('<info>Successfully stopped workflows</info>');
-                $this->logger->info('['.__CLASS__.']('.__FUNCTION__.') Successfully stopped workflows');
+                $this->logger->info('['.self::class.']('.__FUNCTION__.') Successfully stopped workflows');
             } else {
                 $output->writeln('<info>Not allowed to stop workflows</info>');
-                $this->logger->warning('['.__CLASS__.']('.__FUNCTION__.') Not allowed to stop workflows');
+                $this->logger->warning('['.self::class.']('.__FUNCTION__.') Not allowed to stop workflows');
             }
 
             return 1;
@@ -89,7 +89,7 @@ EOT
         $decode = $this->opencastClientService->getCountedWorkflowInstances('', $total, $workflowName);
         if (!isset($decode['workflows']['workflow'])) {
             $output->writeln('<error>Error on getCountedWorkflowInstances</error>');
-            $this->logger->error('['.__CLASS__.']('.__FUNCTION__.') Error on getCountedWorkflowInstances');
+            $this->logger->error('['.self::class.']('.__FUNCTION__.') Error on getCountedWorkflowInstances');
 
             return 0;
         }

@@ -37,7 +37,7 @@ class SeriesSyncService
             return;
         }
 
-        $seriesOpencastId = json_decode($output['var'], true)['identifier'];
+        $seriesOpencastId = json_decode($output['var'], true, 512, JSON_THROW_ON_ERROR)['identifier'];
         $series->setProperty('opencast', $seriesOpencastId);
         $this->dm->persist($series);
         $this->dm->flush();
