@@ -232,7 +232,7 @@ class OpencastImportService
         }
 
         $tagRepo = $this->dm->getRepository(Tag::class);
-        $opencastTag = $tagRepo->findOneByCod($this->defaultTagImported);
+        $opencastTag = $tagRepo->findOneBy(['cod' => $this->defaultTagImported]);
         if ($opencastTag) {
             $tagService = $this->tagService;
             $tagAdded = $tagService->addTagToMultimediaObject($multimediaObject, $opencastTag->getId());
