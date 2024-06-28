@@ -101,10 +101,13 @@ EOT
 
         if ($this->checkOpencastStatus()) {
             $series = $this->getSeries();
+            $newSeries = $this->getNewSeries();
             if ($this->force) {
                 $this->deleteSeries($series);
+                $this->deleteSeries($newSeries);
             } else {
                 $this->showSeries($series);
+                $this->showSeries($newSeries);
             }
         }
     }
@@ -151,6 +154,22 @@ EOT
 
         $criteria["title.{$this->locale}"] = [
             '$regex' => 'Videos of ',
+            '$options' => 'i',
+        ];
+
+        return $this->dm->getRepository('PumukitSchemaBundle:Series')->findBy($criteria);
+    }
+
+    private function getNewSeries()
+    {
+        $criteria['properties.opencast'] = ['$exists' => true];
+
+        if ($this->id) {
+            $criteria['_id'] = new \MongoId($this->id);
+        }
+
+        $criteria["title.{$this->locale}"] = [
+            '$regex' => 'Nuevo',
             '$options' => 'i',
         ];
 
