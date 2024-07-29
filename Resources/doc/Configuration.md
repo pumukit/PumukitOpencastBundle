@@ -43,7 +43,7 @@ Mandatory:
    - `host` is the Opencast server URL (Engage node in cluster).
    - `username` is the name of the account used to operate the Opencast REST endpoints (org.opencastproject.security.digest.user). If empty, the connection is as an anonymous user.
    - `password` is the password for the account used to operate the Opencast REST endpoints (org.opencastproject.security.digest.pass).
-   - `player` is the Opencast player URL or path (default `/engage/ui/watch.html`). Use `/engage/theodul/ui/core.html` for Opencast 2.x and `/paella/ui/watch.html` if [paella player](http://paellaplayer.upv.es/) is being used.
+   - `player` is the Opencast player URL or path (default `/engage/ui/watch.html`). Use `/engage/theodul/ui/core.html` for Opencast 2.x and `/paella7/ui/watch.html` if [paella player](http://paellaplayer.upv.es/) is being used.
 
 Optional:
    - `default_tag_imported` set code of tag that you want to set when imports an mmo to PuMuKIT from Opencast.

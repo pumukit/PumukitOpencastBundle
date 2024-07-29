@@ -121,7 +121,7 @@ class MediaPackageController extends AbstractController
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
         }
 
-        $this->opencastImportService->importRecording($id, $request->get('invert'), $this->getUser());
+        $this->opencastImportService->importRecording($id, filter_var($request->get('invert'), FILTER_VALIDATE_BOOLEAN), $this->getUser());
 
         if ($request->headers->get('referer')) {
             return $this->redirect($request->headers->get('referer'));
