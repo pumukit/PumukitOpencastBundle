@@ -70,7 +70,7 @@ class MediaPackageController extends AbstractController
 
         try {
             [$total, $mediaPackages] = $this->opencastClientService->getMediaPackages(
-                isset($criteria['name']) ? $criteria['name']->regex : '',
+                isset($criteria['name']) ? $criteria['name']->getPattern() : '',
                 $limit,
                 ($page - 1) * $limit
             );
