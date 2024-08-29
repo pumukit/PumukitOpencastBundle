@@ -95,7 +95,7 @@ class MediaPackageController extends AbstractController
             $pics[$mediaPackage['id']] = $this->opencastService->getMediaPackageThumbnail($mediaPackage);
         }
 
-        $pager = $this->paginationService->createFixedAdapter($total, $mediaPackages, $page, $limit);
+        $pager = $this->paginationService->createFixedAdapter($total, $mediaPackages, (int) $page, $limit);
 
         $repo = $repository_multimediaObjects->createQueryBuilder()
             ->field('properties.opencast')->exists(true)
