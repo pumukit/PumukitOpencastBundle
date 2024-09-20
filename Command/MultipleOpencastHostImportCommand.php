@@ -264,12 +264,17 @@ EOT
         );
 
         foreach ($multimediaObjects as $multimediaObject) {
-            if ($master) {
-                $mediaPackage = $clientService->getMasterMediaPackage($multimediaObject->getProperty('opencast'));
-                $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
-            } else {
-                $mediaPackage = $clientService->getMediaPackage($multimediaObject->getProperty('opencast'));
-                $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
+            try {
+                if ($master) {
+                    $mediaPackage = $clientService->getMasterMediaPackage($multimediaObject->getProperty('opencast'));
+                    $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
+
+                } else {
+                    $mediaPackage = $clientService->getMediaPackage($multimediaObject->getProperty('opencast'));
+                    $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
+                }
+            } catch (\Exception $exception) {
+                $output->writeln('<error>Error - MMobj: '.$multimediaObject->getId().' and mediaPackage: '.$multimediaObject->getProperty('opencast').' with this error: '.$exception->getMessage().'</error>');
             }
         }
     }
