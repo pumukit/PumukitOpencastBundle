@@ -142,8 +142,9 @@ EOT
 
     private function getMultimediaObjects()
     {
+        $host = preg_replace("(^https?://)", "", $this->host);
         $criteria = [
-            'properties.opencasturl' => new \MongoRegex("/{$this->host}/i"),
+            'properties.opencasturl' => new \MongoRegex("/{$host}/i"),
         ];
 
         if ($this->force) {

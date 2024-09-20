@@ -153,8 +153,11 @@ EOT
     private function getMultimediaObjects(): array
     {
         $dm = $this->getContainer()->get('doctrine_mongodb.odm.document_manager');
+
+        $host = preg_replace("(^https?://)", "", $this->host);
+
         $criteria = [
-            'properties.opencasturl' => new \MongoRegex("/{$this->host}/i"),
+            'properties.opencasturl' => new \MongoRegex("/{$host}/i"),
         ];
 
         if ($this->id) {
@@ -240,7 +243,7 @@ EOT
         try {
             $opencastImportService->importTracksFromMediaPackage($mediaPackage, $multimediaObject, $trackTags);
             $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
-        } catch (\Exception $exception) {
+        } catch (\Throwable | \Exception $exception) {
             $output->writeln('<error>Error - MMobj: '.$multimediaObject->getId().' and mediaPackage: '.$multimediaObject->getProperty('opencast').' with this error: '.$exception->getMessage().'</error>');
         }
     }
@@ -273,7 +276,7 @@ EOT
                     $mediaPackage = $clientService->getMediaPackage($multimediaObject->getProperty('opencast'));
                     $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
                 }
-            } catch (\Exception $exception) {
+            } catch (\Throwable | \Exception $exception) {
                 $output->writeln('<error>Error - MMobj: '.$multimediaObject->getId().' and mediaPackage: '.$multimediaObject->getProperty('opencast').' with this error: '.$exception->getMessage().'</error>');
             }
         }
