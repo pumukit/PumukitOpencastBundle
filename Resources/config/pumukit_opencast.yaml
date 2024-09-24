@@ -52,9 +52,15 @@ services:
 
   Pumukit\OpencastBundle\EventListener\RemoveListener:
     class: Pumukit\OpencastBundle\EventListener\RemoveListener
+    tags:
+      - { name: "kernel.event_listener", event: "multimediaobject.delete", method: "onMultimediaObjectDelete"}
 
   Pumukit\OpencastBundle\EventListener\UserListener:
     class: Pumukit\OpencastBundle\EventListener\UserListener
+    tags:
+      - { name: "kernel.event_listener", event: "user.create", method: "onUserCreate"}
+      - { name: "kernel.event_listener", event: "user.update", method: "onUserUpdate"}
+      - { name: "kernel.event_listener", event: "user.delete", method: "onUserDelete"}
 
   Pumukit\OpencastBundle\Services\NotificationService:
     class: Pumukit\OpencastBundle\Services\NotificationService
