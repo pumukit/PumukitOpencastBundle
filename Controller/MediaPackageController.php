@@ -70,7 +70,7 @@ class MediaPackageController extends AbstractController
 
         try {
             [$total, $mediaPackages] = $this->opencastClientService->getMediaPackages(
-                isset($criteria['name']) ? $criteria['name']->regex : '',
+                isset($criteria['name']) ? $criteria['name']->getPattern() : '',
                 $limit,
                 ($page - 1) * $limit
             );
@@ -95,7 +95,7 @@ class MediaPackageController extends AbstractController
             $pics[$mediaPackage['id']] = $this->opencastService->getMediaPackageThumbnail($mediaPackage);
         }
 
-        $pager = $this->paginationService->createFixedAdapter($total, $mediaPackages, $page, $limit);
+        $pager = $this->paginationService->createFixedAdapter($total, $mediaPackages, (int) $page, $limit);
 
         $repo = $repository_multimediaObjects->createQueryBuilder()
             ->field('properties.opencast')->exists(true)
@@ -121,7 +121,7 @@ class MediaPackageController extends AbstractController
             throw new AccessDeniedException('Not allowed. Configure your OpencastBundle to show the Importer Tab.');
         }
 
-        $this->opencastImportService->importRecording($id, $request->get('invert'), $this->getUser());
+        $this->opencastImportService->importRecording($id, filter_var($request->get('invert'), FILTER_VALIDATE_BOOLEAN), $this->getUser());
 
         if ($request->headers->get('referer')) {
             return $this->redirect($request->headers->get('referer'));
