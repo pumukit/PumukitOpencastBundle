@@ -271,7 +271,6 @@ EOT
                 if ($master) {
                     $mediaPackage = $clientService->getMasterMediaPackage($multimediaObject->getProperty('opencast'));
                     $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
-
                 } else {
                     $mediaPackage = $clientService->getMediaPackage($multimediaObject->getProperty('opencast'));
                     $this->showMessage($output, $opencastImportService, $multimediaObject, $mediaPackage);
