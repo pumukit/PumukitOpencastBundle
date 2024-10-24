@@ -875,17 +875,12 @@ class ClientService
 
     private function cleanText(string $text): string
     {
-        //Remove HTML tags
         $cleantext = strip_tags($text);
 
-        //Allow only alphanumeric characters, spaces, periods, commas, question marks, and exclamation points
         $text = preg_replace('/[^a-zA-Z0-9\s.,!?¿¡]/u', '', $cleantext);
 
-        // Remove extra whitespaces
         $text = preg_replace('/\s+/', ' ', $text);
 
-        $text = trim($text);
-
-        return $text;
+        return trim($text);
     }
 }
