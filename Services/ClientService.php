@@ -563,11 +563,11 @@ class ClientService
                 'fields' => [
                     [
                         'id' => 'title',
-                        'value' => $series->getTitle(),
+                        'value' => $this->cleanText($series->getTitle()),
                     ],
                     [
                         'id' => 'description',
-                        'value' => $series->getDescription(),
+                        'value' => $this->cleanText($series->getDescription()),
                     ],
                 ],
             ],
@@ -871,5 +871,21 @@ class ClientService
         }
 
         return '["'.implode('","', $roles).'"]';
+    }
+
+    private function cleanText(string $text): string
+    {
+        //Remove HTML tags
+        $cleantext = strip_tags($text);
+
+        //Allow only alphanumeric characters, spaces, periods, commas, question marks, and exclamation points
+        $text = preg_replace('/[^a-zA-Z0-9\s.,!?¿¡]/u', '', $cleantext);
+
+        // Remove extra whitespaces
+        $text = preg_replace('/\s+/', ' ', $text);
+
+        $text = trim($text);
+
+        return $text;
     }
 }
