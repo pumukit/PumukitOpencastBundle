@@ -525,11 +525,11 @@ class ClientService
         $metadata = [
             [
                 'id' => 'title',
-                'value' => $series->getTitle(),
+                'value' => $this->cleanText($series->getTitle()),
             ],
             [
                 'id' => 'description',
-                'value' => $series->getDescription(),
+                'value' => $this->cleanText($series->getDescription()),
             ],
         ];
         //There is an Opencast API error. The 'type' parameter should be taken from the form,
