@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Pumukit\OpencastBundle\Services;
 
-use Pumukit\EncoderBundle\Services\JobService;
+use Pumukit\EncoderBundle\Services\DTO\JobOptions;
+use Pumukit\EncoderBundle\Services\JobCreator;
 use Pumukit\EncoderBundle\Services\ProfileService;
+use Pumukit\SchemaBundle\Document\MediaType\Track;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Pumukit\SchemaBundle\Document\Track;
+use Pumukit\SchemaBundle\Document\ValueObject\Path;
 use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 
 class OpencastService
@@ -18,14 +20,14 @@ class OpencastService
     private $useFlavour = false;
     private $sbsFlavour;
     private $urlPathMapping;
-    private $jobService;
+    private $jobCreator;
     private $profileService;
     private $multimediaObjectService;
     private $defaultVars;
     private $errorIfFileNotExist;
 
     public function __construct(
-        JobService $jobService,
+        JobCreator $jobCreator,
         ProfileService $profileService,
         MultimediaObjectService $multimediaObjectService,
         array $sbsConfiguration = [],
@@ -33,7 +35,7 @@ class OpencastService
         array $defaultVars = [],
         bool $errorIfFileNotExist = true
     ) {
-        $this->jobService = $jobService;
+        $this->jobCreator = $jobCreator;
         $this->profileService = $profileService;
         $this->multimediaObjectService = $multimediaObjectService;
         $this->sbsConfiguration = $sbsConfiguration;
@@ -55,7 +57,7 @@ class OpencastService
 
         $flavourTrack = null;
         foreach ($multimediaObject->getTracksWithTag($this->sbsFlavour) as $track) {
-            if (!$track->isOnlyAudio()) {
+            if (!$track->metadata()->isOnlyAudio()) {
                 $flavourTrack = $track;
 
                 break;
@@ -106,7 +108,7 @@ class OpencastService
         }
 
         $track = $tracks[0];
-        $path = $this->getPath($track->getPath());
+        $path = $this->getPath($track->storage()->path()->path());
 
         $language = $multimediaObject->getProperty('opencastlanguage') ? strtolower($multimediaObject->getProperty('opencastlanguage')) : \Locale::getDefault();
 
@@ -115,7 +117,10 @@ class OpencastService
             $vars += ['ocurls' => $opencastUrls];
         }
 
-        return $this->jobService->addJob($path, $this->sbsProfileName, 2, $multimediaObject, $language, [], $vars);
+        $jobOptions = new JobOptions($this->sbsProfileName, 2, $language, [], $vars);
+        $path = Path::create($path);
+
+        return $this->jobCreator->fromPath($multimediaObject, $path, $jobOptions);
     }
 
     public function getMediaPackageThumbnail($mediaPackage): ?string
@@ -219,17 +224,17 @@ class OpencastService
 
         $sbsProfile = $this->profileService->getProfile($this->sbsProfileName);
 
-        $track->addTag('profile:'.$this->sbsProfileName);
+        $track->tags()->add('profile:'.$this->sbsProfileName);
 
         $tags = ['master', 'display'];
         foreach ($tags as $tag) {
-            if ($sbsProfile[$tag] && !$track->containsTag($tag)) {
-                $track->addTag($tag);
+            if ($sbsProfile[$tag] && !$track->tags()->contains($tag)) {
+                $track->tags()->add($tag);
             }
         }
 
         foreach (array_filter(preg_split('/[,\s]+/', $sbsProfile['tags'])) as $tag) {
-            $track->addTag(trim($tag));
+            $track->tags()->add(trim($tag));
         }
 
         $this->multimediaObjectService->updateMultimediaObject($multimediaObject);

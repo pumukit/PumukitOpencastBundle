@@ -35,7 +35,7 @@ class OpencastListCommand extends Command
             Show not imported mediaPackages on PuMuKIT
 
             Example:
-            php app/console pumukit:opencast:list
+            php bin/console pumukit:opencast:list
 EOT
             )
         ;

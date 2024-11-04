@@ -42,7 +42,7 @@ class OpencastSyncSeriesCommand extends Command
         parent::__construct();
     }
 
-    protected function configure()
+    protected function configure(): void
     {
         $this
             ->setName('pumukit:opencast:sync:series')
@@ -60,15 +60,15 @@ class OpencastSyncSeriesCommand extends Command
 
             <info> ** Example ( check and list ):</info>
 
-            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
-            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
+            <comment>php bin/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
+            <comment>php bin/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
 
             This example will be check the connection with these Opencast and list all multimedia objects from PuMuKIT find by regex host.
 
             <info> ** Example ( <error>execute</error> ):</info>
 
-            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
-            <comment>php app/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
+            <comment>php bin/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
+            <comment>php bin/console pumukit:opencast:sync:series --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
 
 EOT
             )

@@ -16,6 +16,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\Translation\TranslatorInterface;
 
 /**
  * @Route("/admin/opencast/mm")
@@ -28,6 +29,7 @@ class MultimediaObjectController extends AbstractController
     private $multimediaObjectService;
     private $opencastImportService;
     private $opencastService;
+    private $translator;
     private $opencastSBSGenerate;
     private $opencastSBSProfile;
 
@@ -36,6 +38,7 @@ class MultimediaObjectController extends AbstractController
         MultimediaObjectService $multimediaObjectService,
         OpencastImportService $opencastImportService,
         OpencastService $opencastService,
+        TranslatorInterface $translator,
         bool $opencastSBSGenerate = false,
         string $opencastSBSProfile = ''
     ) {
@@ -43,6 +46,7 @@ class MultimediaObjectController extends AbstractController
         $this->multimediaObjectService = $multimediaObjectService;
         $this->opencastImportService = $opencastImportService;
         $this->opencastService = $opencastService;
+        $this->translator = $translator;
         $this->opencastSBSGenerate = $opencastSBSGenerate;
         $this->opencastSBSProfile = $opencastSBSProfile;
     }
@@ -65,9 +69,8 @@ class MultimediaObjectController extends AbstractController
      */
     public function updateAction(Request $request, MultimediaObject $multimediaObject): Response
     {
-        $translator = $this->get('translator');
         $locale = $request->getLocale();
-        $form = $this->createForm(MultimediaObjectType::class, $multimediaObject, ['translator' => $translator, 'locale' => $locale]);
+        $form = $this->createForm(MultimediaObjectType::class, $multimediaObject, ['translator' => $this->translator, 'locale' => $locale]);
         if ($request->isMethod('PUT') || $request->isMethod('POST')) {
             $form->handleRequest($request);
             if ($form->isValid()) {
@@ -102,10 +105,10 @@ class MultimediaObjectController extends AbstractController
         $presenterDeliveryTrack = $multimediaObject->getTrackWithTag('presenter/delivery');
         $presentationDeliveryTrack = $multimediaObject->getTrackWithTag('presentation/delivery');
         if (null !== $presenterDeliveryTrack) {
-            $presenterDeliveryUrl = $presenterDeliveryTrack->getUrl();
+            $presenterDeliveryUrl = $presenterDeliveryTrack->storage()->url()->url();
         }
         if (null !== $presentationDeliveryTrack) {
-            $presentationDeliveryUrl = $presentationDeliveryTrack->getUrl();
+            $presentationDeliveryUrl = $presentationDeliveryTrack->storage()->url()->url();
         }
 
         return $this->render('@PumukitOpencast/MultimediaObject/info.html.twig', [
@@ -117,7 +120,7 @@ class MultimediaObjectController extends AbstractController
     /**
      * @Route("/generatesbs/{id}", name="pumukit_opencast_mm_generatesbs")
      */
-    public function generateSbsAction(Request $request, MultimediaObject $multimediaObject): RedirectResponse
+    public function generateSbsAction(MultimediaObject $multimediaObject): RedirectResponse
     {
         $opencastUrls = $this->opencastImportService->getOpencastUrls($multimediaObject->getProperty('opencast'));
         $this->opencastService->generateSbsTrack($multimediaObject, $opencastUrls);

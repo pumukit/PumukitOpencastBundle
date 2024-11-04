@@ -54,7 +54,7 @@ class ClientService
             throw new \RuntimeException('Curl is required to execute remote commands.');
         }
 
-        $this->host = ('/' === substr($host, -1)) ? substr($host, 0, -1) : $host;
+        $this->host = (str_ends_with($host, '/')) ? substr($host, 0, -1) : $host;
         $this->username = $username;
         $this->password = $password;
         $this->player = $player;
@@ -75,7 +75,7 @@ class ClientService
 
     public function getPlayerUrl(): string
     {
-        return (0 === strpos($this->player, '/')) ? $this->host.$this->player : $this->player;
+        return (str_starts_with($this->player, '/')) ? $this->host.$this->player : $this->player;
     }
 
     public function getAdminUrl(): ?string
@@ -97,12 +97,12 @@ class ClientService
 
     public function getSchedulerUrl(): string
     {
-        return (0 === strpos($this->scheduler, '/')) ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
+        return (str_starts_with($this->scheduler, '/')) ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
     }
 
     public function getDashboardUrl(): string
     {
-        return (0 === strpos($this->dashboard, '/')) ? $this->getAdminUrl().$this->dashboard : $this->dashboard;
+        return (str_starts_with($this->dashboard, '/')) ? $this->getAdminUrl().$this->dashboard : $this->dashboard;
     }
 
     public function getMediaPackages(string $query, int $limit, int $offset)

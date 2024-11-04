@@ -10,12 +10,18 @@ use Psr\Log\LoggerInterface;
 use Pumukit\InspectionBundle\Services\InspectionFfprobeService;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
+use Pumukit\SchemaBundle\Document\MediaType\Metadata\VideoAudio;
+use Pumukit\SchemaBundle\Document\MediaType\Storage;
+use Pumukit\SchemaBundle\Document\MediaType\Track;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\Pic;
 use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\Tag;
-use Pumukit\SchemaBundle\Document\Track;
 use Pumukit\SchemaBundle\Document\User;
+use Pumukit\SchemaBundle\Document\ValueObject\i18nText;
+use Pumukit\SchemaBundle\Document\ValueObject\Path;
+use Pumukit\SchemaBundle\Document\ValueObject\StorageUrl;
+use Pumukit\SchemaBundle\Document\ValueObject\Tags;
 use Pumukit\SchemaBundle\Services\FactoryService;
 use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 use Pumukit\SchemaBundle\Services\TagService;
@@ -143,12 +149,8 @@ class OpencastImportService
         // - If the id does not exist, create a new mmobj
         if (null === $multimediaObject) {
             $series = $this->seriesImportService->importSeries($mediaPackage, $loggedInUser);
-
             $loggedInUser = $this->selectOwnerForMultimediaObject($series, $loggedInUser);
-
             $multimediaObject = $this->factoryService->createMultimediaObject($series, true, $loggedInUser);
-            // $multimediaObject->setSeries($series);
-
             $title = $this->getMediaPackageField($mediaPackage, 'title');
 
             if ($title) {
@@ -301,7 +303,6 @@ class OpencastImportService
         $language = $this->getMediaPackageLanguage($mediaPackage, $defaultLanguage);
 
         $track = $this->createTrackFromOpencastTrack($opencastTrack, $language, $trackTags);
-        $multimediaObject->setDuration($track->getDuration());
         $this->trackService->addTrackToMultimediaObject($multimediaObject, $track, false);
 
         return $track;
@@ -309,20 +310,36 @@ class OpencastImportService
 
     public function createTrackFromOpencastTrack($opencastTrack, $language, $trackTags = ['display']): Track
     {
-        $track = new Track();
-        $track->setLanguage($language);
+        $originalName = $track['originalName'] ?? '';
+        $description = i18nText::create($track['description']);
 
         $tagsArray = $this->getMediaPackageField($opencastTrack, 'tags');
         $tags = $this->getMediaPackageField($tagsArray, 'tag');
-        if (!is_array($tags)) {
-            // NOTE: Single tag
-            $tags = [$tags];
-        }
+        $tags = Tags::create(!is_array($tags) ? [$tags] : $tags);
 
-        $limit = count($tags);
-        for ($i = 0; $i < $limit; ++$i) {
-            $track = $this->addTagToTrack($tags, $track, $i);
-        }
+        $url = $this->getMediaPackageField($opencastTrack, 'url');
+        $url = StorageUrl::create($url);
+        $path = Path::create($this->opencastService->getPath($url));
+        $storage = Storage::create($url, $path);
+
+        $mediaMetadata = VideoAudio::create('{"format":{"duration":"0"}}');
+
+        $media = Track::create($originalName, $description, $language, $tags, false, false, 0, $storage, $mediaMetadata);
+
+        //        $track = new Track();
+        //        $track->setLanguage($language);
+        //
+        //        $tagsArray = $this->getMediaPackageField($opencastTrack, 'tags');
+        //        $tags = $this->getMediaPackageField($tagsArray, 'tag');
+        //        if (!is_array($tags)) {
+        //            // NOTE: Single tag
+        //            $tags = [$tags];
+        //        }
+
+        //        $limit = count($tags);
+        //        for ($i = 0; $i < $limit; ++$i) {
+        //            $track = $this->addTagToTrack($tags, $track, $i);
+        //        }
 
         $url = $this->getMediaPackageField($opencastTrack, 'url');
         if ($url) {

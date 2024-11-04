@@ -27,8 +27,6 @@ class OpencastImportSegmentsCommand extends Command
     private $host;
     private $id;
     private $force;
-
-    /** @var ClientService */
     private $clientService;
     private $secondsToSleep;
 
@@ -64,15 +62,15 @@ class OpencastImportSegmentsCommand extends Command
 
             <info> ** Example ( check and list ):</info>
 
-            <comment>php app/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
-            <comment>php app/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
+            <comment>php bin/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es"</comment>
+            <comment>php bin/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581"</comment>
 
             This example will be check the connection with these Opencast and list all multimedia objects from PuMuKIT find by regex host.
 
             <info> ** Example ( <error>execute</error> ):</info>
 
-            <comment>php app/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
-            <comment>php app/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
+            <comment>php bin/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --force</comment>
+            <comment>php bin/console pumukit:opencast:import:segments --user="myuser" --password="mypassword" --host="https://opencast-local.teltek.es" --id="5bcd806ebf435c25008b4581" --force</comment>
 
 EOT
             )

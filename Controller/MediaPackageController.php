@@ -62,8 +62,6 @@ class MediaPackageController extends AbstractController
             throw $this->createNotFoundException('PumukitOpencastBundle not configured.');
         }
 
-        $repository_multimediaObjects = $this->documentManager->getRepository(MultimediaObject::class);
-
         $limit = 10;
         $page = $request->get('page', 1);
         $criteria = $this->getCriteria($request);
@@ -97,7 +95,7 @@ class MediaPackageController extends AbstractController
 
         $pager = $this->paginationService->createFixedAdapter($total, $mediaPackages, (int) $page, $limit);
 
-        $repo = $repository_multimediaObjects->createQueryBuilder()
+        $repo = $this->documentManager->getRepository(MultimediaObject::class)->createQueryBuilder()
             ->field('properties.opencast')->exists(true)
             ->field('properties.opencast')->in($currentPageOpencastIds)
             ->getQuery()

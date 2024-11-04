@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pumukit\OpencastBundle\Controller;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -19,11 +20,16 @@ class ImportController extends AbstractController
 {
     private $opencastImportService;
     private $documentManager;
+    private $logger;
 
-    public function __construct(DocumentManager $documentManager, OpencastImportService $opencastImportService)
-    {
+    public function __construct(
+        DocumentManager $documentManager,
+        OpencastImportService $opencastImportService,
+        LoggerInterface $logger
+    ) {
         $this->documentManager = $documentManager;
         $this->opencastImportService = $opencastImportService;
+        $this->logger = $logger;
     }
 
     /**
@@ -33,7 +39,7 @@ class ImportController extends AbstractController
     {
         $mediaPackage = json_decode($request->request->get('mediapackage'), true, 512, JSON_THROW_ON_ERROR);
         if (!isset($mediaPackage['mediapackage']['id'])) {
-            $this->get('logger')->warning('No mediapackage ID, ERROR 400 returned');
+            $this->logger->warning('No mediapackage ID, ERROR 400 returned');
 
             return new Response('No mediapackage ID', Response::HTTP_BAD_REQUEST);
         }
@@ -49,8 +55,6 @@ class ImportController extends AbstractController
     public function syncTracksAction(MultimediaObject $multimediaObject): Response
     {
         $this->opencastImportService->syncTracks($multimediaObject);
-
-        $this->documentManager->persist($multimediaObject);
         $this->documentManager->flush();
 
         return new Response('Success '.$multimediaObject->getTitle(), Response::HTTP_OK);

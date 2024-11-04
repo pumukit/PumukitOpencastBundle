@@ -68,7 +68,7 @@ class PumukitOpencastExtension extends Extension
     private function validateOpencastConfiguration(string $host, array $urlMapping, string $env): void
     {
         // Note: %env(SECRET)% is env_SECRET_%rand% in the DependencyInjection Extension.
-        $isHostEnvVar = 0 === strpos($host, 'env_');
+        $isHostEnvVar = str_starts_with($host, 'env_');
 
         if (!$isHostEnvVar && !filter_var($host, FILTER_VALIDATE_URL)) {
             throw new InvalidConfigurationException(sprintf(
@@ -80,7 +80,7 @@ class PumukitOpencastExtension extends Extension
         if ('dev' !== $env) {
             foreach ($urlMapping as $m) {
                 $path = $m['path'];
-                $isPathEnvVar = 0 === strpos($path, 'env_');
+                $isPathEnvVar = str_starts_with($path, 'env_');
 
                 if (!$isPathEnvVar && !realpath($path)) {
                     throw new \RuntimeException(sprintf(
