@@ -324,7 +324,7 @@ class OpencastImportService
 
         $mediaMetadata = VideoAudio::create('{"format":{"duration":"0"}}');
 
-        $media = Track::create($originalName, $description, $language, $tags, false, false, 0, $storage, $mediaMetadata);
+        return Track::create($originalName, $description, $language, $tags, false, false, 0, $storage, $mediaMetadata);
 
         //        $track = new Track();
         //        $track->setLanguage($language);
@@ -396,7 +396,7 @@ class OpencastImportService
 //            $this->inspectionService->autocompleteTrack($track);
 //        }
 
-        return $media;
+//        return $track;
     }
 
     public function importTracksFromMediaPackage($mediaPackage, MultimediaObject $multimediaObject, $trackTags): void
