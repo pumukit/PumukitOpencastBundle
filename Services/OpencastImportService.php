@@ -310,8 +310,8 @@ class OpencastImportService
 
     public function createTrackFromOpencastTrack($opencastTrack, $language, $trackTags = ['display']): Track
     {
-        $originalName = $track['originalName'] ?? '';
-        $description = i18nText::create($track['description']);
+        $originalName = $opencastTrack['originalName'] ?? '';
+        $description = i18nText::create($opencastTrack['description']);
 
         $tagsArray = $this->getMediaPackageField($opencastTrack, 'tags');
         $tags = $this->getMediaPackageField($tagsArray, 'tag');
@@ -341,62 +341,62 @@ class OpencastImportService
         //            $track = $this->addTagToTrack($tags, $track, $i);
         //        }
 
-        $url = $this->getMediaPackageField($opencastTrack, 'url');
-        if ($url) {
-            $track->setUrl($url);
-            $track->setPath($this->opencastService->getPath($url));
-        }
+//        $url = $this->getMediaPackageField($opencastTrack, 'url');
+//        if ($url) {
+//            $track->setUrl($url);
+//            $track->setPath($this->opencastService->getPath($url));
+//        }
+//
+//        $mime = $this->getMediaPackageField($opencastTrack, 'mimetype');
+//        if ($mime) {
+//            $track->setMimeType($mime);
+//        }
+//
+//        $duration = $this->getMediaPackageField($opencastTrack, 'duration');
+//        if ($duration) {
+//            $track->setDuration($duration / 1000);
+//        }
+//
+//        $audio = $this->getMediaPackageField($opencastTrack, 'audio');
+//        $encoder = $this->getMediaPackageField($audio, 'encoder');
+//        $acodec = $this->getMediaPackageField($encoder, 'type');
+//        if ($acodec) {
+//            $track->setAcodec($acodec);
+//        }
+//
+//        $video = $this->getMediaPackageField($opencastTrack, 'video');
+//        $encoder = $this->getMediaPackageField($video, 'encoder');
+//        $vcodec = $this->getMediaPackageField($encoder, 'type');
+//        if ($vcodec) {
+//            $track->setVcodec($vcodec);
+//        }
+//
+//        $framerate = $this->getMediaPackageField($video, 'framerate');
+//        if ($framerate) {
+//            $track->setFramerate((string) $framerate);
+//        }
+//
+//        if (!$track->getVcodec() && $track->getAcodec()) {
+//            $track->setOnlyAudio(true);
+//        } else {
+//            $track->setOnlyAudio(false);
+//        }
+//
+//        $track->addTag('opencast');
+//        foreach ($trackTags as $trackTag) {
+//            $track->addTag($trackTag);
+//        }
+//
+//        $type = $this->getMediaPackageField($opencastTrack, 'type');
+//        if ($type) {
+//            $track->addTag($opencastTrack['type']);
+//        }
+//
+//        if ($track->getPath()) {
+//            $this->inspectionService->autocompleteTrack($track);
+//        }
 
-        $mime = $this->getMediaPackageField($opencastTrack, 'mimetype');
-        if ($mime) {
-            $track->setMimeType($mime);
-        }
-
-        $duration = $this->getMediaPackageField($opencastTrack, 'duration');
-        if ($duration) {
-            $track->setDuration($duration / 1000);
-        }
-
-        $audio = $this->getMediaPackageField($opencastTrack, 'audio');
-        $encoder = $this->getMediaPackageField($audio, 'encoder');
-        $acodec = $this->getMediaPackageField($encoder, 'type');
-        if ($acodec) {
-            $track->setAcodec($acodec);
-        }
-
-        $video = $this->getMediaPackageField($opencastTrack, 'video');
-        $encoder = $this->getMediaPackageField($video, 'encoder');
-        $vcodec = $this->getMediaPackageField($encoder, 'type');
-        if ($vcodec) {
-            $track->setVcodec($vcodec);
-        }
-
-        $framerate = $this->getMediaPackageField($video, 'framerate');
-        if ($framerate) {
-            $track->setFramerate((string) $framerate);
-        }
-
-        if (!$track->getVcodec() && $track->getAcodec()) {
-            $track->setOnlyAudio(true);
-        } else {
-            $track->setOnlyAudio(false);
-        }
-
-        $track->addTag('opencast');
-        foreach ($trackTags as $trackTag) {
-            $track->addTag($trackTag);
-        }
-
-        $type = $this->getMediaPackageField($opencastTrack, 'type');
-        if ($type) {
-            $track->addTag($opencastTrack['type']);
-        }
-
-        if ($track->getPath()) {
-            $this->inspectionService->autocompleteTrack($track);
-        }
-
-        return $track;
+        return $media;
     }
 
     public function importTracksFromMediaPackage($mediaPackage, MultimediaObject $multimediaObject, $trackTags): void
