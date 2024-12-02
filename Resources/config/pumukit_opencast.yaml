@@ -15,7 +15,6 @@ services:
       $otherLocales: '%pumukit.locales%'
       $defaultTagImported: '%pumukit_opencast.default_tag_imported%'
       $customLanguages: '%pumukit.customlanguages%'
-      $template: '%pumukit_notification.template%'
       $player: '%pumukit_opencast.player%'
       $scheduler: '%pumukit_opencast.scheduler%'
       $dashboard: '%pumukit_opencast.dashboard%'
