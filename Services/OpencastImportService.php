@@ -311,15 +311,26 @@ class OpencastImportService
     public function createTrackFromOpencastTrack($opencastTrack, $language, $trackTags = ['display']): Track
     {
         $originalName = $opencastTrack['originalName'] ?? '';
-        $description = i18nText::create($opencastTrack['description']);
+        if (isset($opencastTrack['description']) && is_array($opencastTrack['description'])) {
+            $description = i18nText::create($opencastTrack['description']);
+        } else {
+            $description = i18nText::create(['en' => $opencastTrack['description'] ?? '']);
+        }
 
         $tagsArray = $this->getMediaPackageField($opencastTrack, 'tags');
         $tags = $this->getMediaPackageField($tagsArray, 'tag');
         $tags = Tags::create(!is_array($tags) ? [$tags] : $tags);
 
+        $tags->add('opencast');
+        $tags->add('display');
+        $type = $this->getMediaPackageField($opencastTrack, 'type');
+        if ($type) {
+            $tags->add($opencastTrack['type']);
+        }
+
         $url = $this->getMediaPackageField($opencastTrack, 'url');
-        $url = StorageUrl::create($url);
         $path = Path::create($this->opencastService->getPath($url));
+        $url = StorageUrl::create($url);
         $storage = Storage::create($url, $path);
 
         $mediaMetadata = VideoAudio::create('{"format":{"duration":"0"}}');
