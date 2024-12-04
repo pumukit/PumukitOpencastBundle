@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Pumukit\InspectionBundle\Services\InspectionFfprobeService;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
+use Pumukit\SchemaBundle\Document\MediaType\Metadata\MediaMetadata;
 use Pumukit\SchemaBundle\Document\MediaType\Metadata\VideoAudio;
 use Pumukit\SchemaBundle\Document\MediaType\Storage;
 use Pumukit\SchemaBundle\Document\MediaType\Track;
@@ -333,10 +334,7 @@ class OpencastImportService
         $url = StorageUrl::create($url);
         $storage = Storage::create($url, $path);
 
-        $mediaMetadataArray['format']['duration'] = $opencastTrack['duration'] / 1000;
-        $mediaMetadataArray['format']['size'] = $opencastTrack['size'];
-        $jsonMetadata = json_encode($mediaMetadataArray);
-        $mediaMetadata = VideoAudio::create($jsonMetadata);
+        $mediaMetadata = $this->createTrackMediaMetadata($path);
 
         return Track::create($originalName, $description, $language, $tags, false, false, 0, $storage, $mediaMetadata);
     }
@@ -429,6 +427,11 @@ class OpencastImportService
                 $this->syncPic($multimediaObject, $type, $url);
             }
         }
+    }
+
+    private function createTrackMediaMetadata(Path $path): MediaMetadata
+    {
+        return VideoAudio::create($this->inspectionService->getFileMetadataAsString($path));
     }
 
     private function addPicFromAttachment(MultimediaObject $multimediaObject, $attachment): MultimediaObject
