@@ -10,6 +10,7 @@ use Psr\Log\LoggerInterface;
 use Pumukit\InspectionBundle\Services\InspectionFfprobeService;
 use Pumukit\OpencastBundle\Event\ImportEvent;
 use Pumukit\OpencastBundle\Event\OpencastEvents;
+use Pumukit\SchemaBundle\Document\MediaType\Metadata\MediaMetadata;
 use Pumukit\SchemaBundle\Document\MediaType\Metadata\VideoAudio;
 use Pumukit\SchemaBundle\Document\MediaType\Storage;
 use Pumukit\SchemaBundle\Document\MediaType\Track;
@@ -311,18 +312,29 @@ class OpencastImportService
     public function createTrackFromOpencastTrack($opencastTrack, $language, $trackTags = ['display']): Track
     {
         $originalName = $opencastTrack['originalName'] ?? '';
-        $description = i18nText::create($opencastTrack['description']);
+        if (isset($opencastTrack['description']) && is_array($opencastTrack['description'])) {
+            $description = i18nText::create($opencastTrack['description']);
+        } else {
+            $description = i18nText::create(['en' => $opencastTrack['description'] ?? '']);
+        }
 
         $tagsArray = $this->getMediaPackageField($opencastTrack, 'tags');
         $tags = $this->getMediaPackageField($tagsArray, 'tag');
         $tags = Tags::create(!is_array($tags) ? [$tags] : $tags);
 
+        $tags->add('opencast');
+        $tags->add('display');
+        $type = $this->getMediaPackageField($opencastTrack, 'type');
+        if ($type) {
+            $tags->add($opencastTrack['type']);
+        }
+
         $url = $this->getMediaPackageField($opencastTrack, 'url');
-        $url = StorageUrl::create($url);
         $path = Path::create($this->opencastService->getPath($url));
+        $url = StorageUrl::create($url);
         $storage = Storage::create($url, $path);
 
-        $mediaMetadata = VideoAudio::create('{"format":{"duration":"0"}}');
+        $mediaMetadata = $this->createTrackMediaMetadata($path);
 
         return Track::create($originalName, $description, $language, $tags, false, false, 0, $storage, $mediaMetadata);
     }
@@ -415,6 +427,11 @@ class OpencastImportService
                 $this->syncPic($multimediaObject, $type, $url);
             }
         }
+    }
+
+    private function createTrackMediaMetadata(Path $path): MediaMetadata
+    {
+        return VideoAudio::create($this->inspectionService->getFileMetadataAsString($path));
     }
 
     private function addPicFromAttachment(MultimediaObject $multimediaObject, $attachment): MultimediaObject
