@@ -333,7 +333,10 @@ class OpencastImportService
         $url = StorageUrl::create($url);
         $storage = Storage::create($url, $path);
 
-        $mediaMetadata = VideoAudio::create('{"format":{"duration":"0"}}');
+        $mediaMetadataArray['format']['duration'] = $opencastTrack['duration'] / 1000;
+        $mediaMetadataArray['format']['size'] = $opencastTrack['size'];
+        $jsonMetadata = json_encode($mediaMetadataArray);
+        $mediaMetadata = VideoAudio::create($jsonMetadata);
 
         return Track::create($originalName, $description, $language, $tags, false, false, 0, $storage, $mediaMetadata);
     }
