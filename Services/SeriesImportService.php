@@ -32,7 +32,7 @@ class SeriesImportService
         $this->otherLocales = $otherLocales;
     }
 
-    public function importSeries($mediaPackage, User $loggedInUser = null)
+    public function importSeries($mediaPackage, ?User $loggedInUser = null)
     {
         $seriesRepo = $this->dm->getRepository(Series::class);
         $seriesOpencastId = $this->getMediaPackageField($mediaPackage, 'series');
@@ -57,7 +57,7 @@ class SeriesImportService
         return $series;
     }
 
-    private function createSeries(string $title, $properties, User $loggedInUser = null, $spatial = false): Series
+    private function createSeries(string $title, $properties, ?User $loggedInUser = null, $spatial = false): Series
     {
         $publicDate = new \DateTime('now');
 
