@@ -76,19 +76,19 @@ class PumukitOpencastExtension extends Extension
                 $host
             ));
         }
-        # Having commented on the validations, we only validate that it is an accessible path but we do not validate that it is the correct one.
-//        if ('dev' !== $env) {
-//            foreach ($urlMapping as $m) {
-//                $path = $m['path'];
-//                $isPathEnvVar = str_starts_with($path, 'env_');
-//
-//                if (!$isPathEnvVar && !realpath($path)) {
-//                    throw new \RuntimeException(sprintf(
-//                        'The "%s" directory does not exist. Check "pumukit_opencast.url_mapping".',
-//                        $path
-//                    ));
-//                }
-//            }
-//        }
+        // Having commented on the validations, we only validate that it is an accessible path but we do not validate that it is the correct one.
+        //        if ('dev' !== $env) {
+        //            foreach ($urlMapping as $m) {
+        //                $path = $m['path'];
+        //                $isPathEnvVar = str_starts_with($path, 'env_');
+        //
+        //                if (!$isPathEnvVar && !realpath($path)) {
+        //                    throw new \RuntimeException(sprintf(
+        //                        'The "%s" directory does not exist. Check "pumukit_opencast.url_mapping".',
+        //                        $path
+        //                    ));
+        //                }
+        //            }
+        //        }
     }
 }
