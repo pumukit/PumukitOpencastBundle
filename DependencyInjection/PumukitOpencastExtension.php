@@ -4,11 +4,16 @@ declare(strict_types=1);
 
 namespace Pumukit\OpencastBundle\DependencyInjection;
 
+use Pumukit\OpencastBundle\Shared\Config\NotificationConfig;
+use Pumukit\OpencastBundle\Shared\Config\OpencastConfig;
+use Pumukit\OpencastBundle\Shared\Config\SbsConfig;
+use Pumukit\OpencastBundle\Shared\Config\UrlMappingConfig;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\DependencyInjection\Definition;
 
 class PumukitOpencastExtension extends Extension
 {
@@ -19,6 +24,8 @@ class PumukitOpencastExtension extends Extension
 
         $env = $container->getParameter('kernel.environment');
         $this->validateOpencastConfiguration($config['host'], $config['url_mapping'], $env);
+
+        $this->generateServiceConfiguration($config, $container);
 
         $container->setParameter('pumukit_opencast.show_importer_tab', $config['show_importer_tab']);
         $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
@@ -76,19 +83,51 @@ class PumukitOpencastExtension extends Extension
                 $host
             ));
         }
-        // Having commented on the validations, we only validate that it is an accessible path but we do not validate that it is the correct one.
-        //        if ('dev' !== $env) {
-        //            foreach ($urlMapping as $m) {
-        //                $path = $m['path'];
-        //                $isPathEnvVar = str_starts_with($path, 'env_');
-        //
-        //                if (!$isPathEnvVar && !realpath($path)) {
-        //                    throw new \RuntimeException(sprintf(
-        //                        'The "%s" directory does not exist. Check "pumukit_opencast.url_mapping".',
-        //                        $path
-        //                    ));
-        //                }
-        //            }
-        //        }
+    }
+
+    private function generateServiceConfiguration(array $config, ContainerBuilder $container): void
+    {
+        $sbsConfig = new Definition(SbsConfig::class, [
+            $config['sbs']['generate_sbs'],
+            $config['sbs']['profile'],
+            $config['sbs']['use_flavour'],
+            $config['sbs']['flavour'],
+        ]);
+
+        $notificationConfig = new Definition(NotificationConfig::class, [
+            $config['notifications']['enabled'] ?? false,
+            $config['notifications']['template'] ?? null,
+            $config['notifications']['url'] ?? null,
+            $config['notifications']['subject'] ?? null,
+        ]);
+
+        $urlMappings = array_map(
+            fn (array $m) => new Definition(UrlMappingConfig::class, [$m['url'], $m['path']]),
+            $config['url_mapping'] ?? []
+        );
+
+        $container->register(OpencastConfig::class, OpencastConfig::class)
+            ->setArguments([
+                $config['host'],
+                $config['admin_host'],
+                $config['username'],
+                $config['password'],
+                $config['player'],
+                $config['use_redirect'],
+                $config['batchimport_inverted'],
+                $config['show_importer_tab'],
+                $config['delete_archive_mediapackage'],
+                $config['deletion_workflow_name'],
+                $config['scheduler_on_menu'],
+                $config['scheduler'],
+                $config['manage_opencast_users'],
+                $config['sync_series_with_opencast'],
+                $config['insecure'],
+                $notificationConfig,
+                $sbsConfig,
+                $config['error_if_file_not_exist'],
+                $urlMappings,
+            ])
+            ->setPublic(true);
     }
 }

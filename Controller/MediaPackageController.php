@@ -7,6 +7,7 @@ namespace Pumukit\OpencastBundle\Controller;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use MongoDB\BSON\Regex;
 use Pumukit\CoreBundle\Services\PaginationService;
+use Pumukit\OpencastBundle\Application\Opencast\EnsureVersionIsSupported\EnsureVersionIsSupported;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\OpencastBundle\Services\OpencastService;
@@ -26,28 +27,15 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
  */
 class MediaPackageController extends AbstractController
 {
-    private $opencastShowImporterTab;
-    private $opencastClientService;
-    private $documentManager;
-    private $opencastService;
-    private $opencastImportService;
-    private $paginationService;
-
     public function __construct(
-        $opencastShowImporterTab,
-        ?ClientService $opencastClientService,
-        DocumentManager $documentManager,
-        OpencastService $opencastService,
-        OpencastImportService $opencastImportService,
-        PaginationService $paginationService
-    ) {
-        $this->opencastShowImporterTab = $opencastShowImporterTab;
-        $this->opencastClientService = $opencastClientService;
-        $this->documentManager = $documentManager;
-        $this->opencastService = $opencastService;
-        $this->opencastImportService = $opencastImportService;
-        $this->paginationService = $paginationService;
-    }
+        private $opencastShowImporterTab,
+        private ?ClientService $opencastClientService,
+        private DocumentManager $documentManager,
+        private OpencastService $opencastService,
+        private OpencastImportService $opencastImportService,
+        private PaginationService $paginationService,
+        private EnsureVersionIsSupported $ensureVersionIsSupported,
+    ) {}
 
     /**
      * @Route("/opencast/mediapackage", name="pumukitopencast")
@@ -60,6 +48,11 @@ class MediaPackageController extends AbstractController
 
         if (!$this->opencastClientService) {
             throw $this->createNotFoundException('PumukitOpencastBundle not configured.');
+        }
+
+        $ensureVersionIsSupportedResponse = $this->ensureVersionIsSupported->__invoke();
+        if(!$ensureVersionIsSupportedResponse->isSupported) {
+            return $this->render('@PumukitOpencast/Version/unsupported.html.twig', ['ensureVersionIsSupportedResponse' => $ensureVersionIsSupportedResponse]);
         }
 
         $limit = 10;

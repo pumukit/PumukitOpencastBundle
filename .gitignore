@@ -3,3 +3,4 @@
 *.py[co]
 \#*\#
 .php-cs-fixer.cache
+.idea/
