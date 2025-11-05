@@ -75,13 +75,13 @@ services:
 
   # =========================================================================
   Pumukit\OpencastBundle\Application\Opencast\:
-    resource: '../../Application/Opencast/*/'
+    resource: '../../Application/Opencast/*'
 
-  Pumukit\OpencastBundle\Infrastructure\Api:
-    resource: '../../Infrastructure/Api/*/'
+  Pumukit\OpencastBundle\Infrastructure\Api\:
+    resource: '../../Infrastructure/Api/*'
 
-  Pumukit\OpencastBundle\Infrastructure\Http:
-    resource: '../../Infrastructure/Http/*/'
+  Pumukit\OpencastBundle\Infrastructure\Http\:
+    resource: '../../Infrastructure/Http/*'
 
   Pumukit\OpencastBundle\Domain\Repository\OpencastVersionRepositoryInterface:
     alias: Pumukit\OpencastBundle\Infrastructure\Api\OpencastVersionAPIRepository
