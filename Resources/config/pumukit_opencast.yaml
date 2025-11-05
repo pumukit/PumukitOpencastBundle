@@ -74,6 +74,9 @@ services:
     class: Pumukit\OpencastBundle\Command\OpencastDeleteEmptyPersonalSeriesCommand
 
   # =========================================================================
+  Pumukit\OpencastBundle\Application\Opencast\:
+    resource: '../../Application/Opencast/*'
+
   Pumukit\OpencastBundle\Infrastructure\Api:
     resource: '../../Infrastructure/Api/*'
 
