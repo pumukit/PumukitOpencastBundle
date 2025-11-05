@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Application\Opencast\EnsureVersionIsSupported;
 
 use Pumukit\OpencastBundle\Domain\Repository\OpencastVersionRepositoryInterface;
 
-class EnsureVersionIsSupported
+final class EnsureVersionIsSupported
 {
     private OpencastVersionRepositoryInterface $versionRepository;
 

@@ -7,6 +7,7 @@ namespace Pumukit\OpencastBundle\Controller;
 use Doctrine\ODM\MongoDB\DocumentManager;
 use MongoDB\BSON\Regex;
 use Pumukit\CoreBundle\Services\PaginationService;
+use Pumukit\OpencastBundle\Application\Opencast\CheckOpencastConnection\CheckOpencastConnection;
 use Pumukit\OpencastBundle\Application\Opencast\EnsureVersionIsSupported\EnsureVersionIsSupported;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
@@ -35,6 +36,7 @@ class MediaPackageController extends AbstractController
         private OpencastImportService $opencastImportService,
         private PaginationService $paginationService,
         private EnsureVersionIsSupported $ensureVersionIsSupported,
+        private CheckOpencastConnection $checkOpencastConnection,
     ) {}
 
     /**
@@ -48,6 +50,11 @@ class MediaPackageController extends AbstractController
 
         if (!$this->opencastClientService) {
             throw $this->createNotFoundException('PumukitOpencastBundle not configured.');
+        }
+
+        $checkOpencastConnectionResponse = $this->checkOpencastConnection->__invoke();
+        if(!$checkOpencastConnectionResponse->status) {
+            return $this->render('@PumukitOpencast/Connection/down.html.twig', ['checkOpencastConnectionResponse' => $checkOpencastConnectionResponse]);
         }
 
         $ensureVersionIsSupportedResponse = $this->ensureVersionIsSupported->__invoke();

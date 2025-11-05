@@ -76,3 +76,6 @@ services:
   # =========================================================================
   Pumukit\OpencastBundle\Domain\Repository\OpencastVersionRepositoryInterface:
     alias: Pumukit\OpencastBundle\Infrastructure\Api\OpencastVersionAPIRepository
+
+  Pumukit\OpencastBundle\Domain\Repository\OpencastConnectionRepositoryInterface:
+    alias: Pumukit\OpencastBundle\Infrastructure\Api\OpencastConnectionAPIRepository

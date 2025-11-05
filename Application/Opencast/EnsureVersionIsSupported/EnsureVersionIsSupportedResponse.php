@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Pumukit\OpencastBundle\Application\Opencast\EnsureVersionIsSupported;
 
-final class EnsureVersionIsSupportedResponse
+final readonly class EnsureVersionIsSupportedResponse
 {
     public function __construct(
-        public readonly bool $isSupported,
-        public readonly string $currentVersion,
-        public readonly ?string $message = null
+        public bool    $isSupported,
+        public string  $currentVersion,
+        public ?string $message = null
     ) {}
 }
