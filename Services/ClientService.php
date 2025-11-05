@@ -116,17 +116,17 @@ class ClientService
 
         $return = [0, []];
 
-        if (0 === (int) $decode['search-results']['total']) {
+        if (0 === (int) $decode['total']) {
             return $return;
         }
 
-        $return[0] = $decode['search-results']['total'];
-        if (isset($decode['search-results']['result'][0])) {
-            foreach ($decode['search-results']['result'] as $media) {
+        $return[0] = $decode['total'];
+        if (isset($decode['result'][0])) {
+            foreach ($decode['result'] as $media) {
                 $return[1][] = $media['mediapackage'];
             }
         } else {
-            $return[1][] = $decode['search-results']['result']['mediapackage'];
+            $return[1][] = $decode['result']['mediapackage'];
         }
 
         return $return;
@@ -141,14 +141,14 @@ class ClientService
         }
         $decode = $this->decodeJson($output['var']);
 
-        if (0 === (int) $decode['search-results']['total']) {
+        if (0 === (int) $decode['total']) {
             return null;
         }
-        if (isset($decode['search-results']['result'][0])) {
-            return $decode['search-results']['result'][0]['mediapackage'];
+        if (isset($decode['result'][0])) {
+            return $decode['result'][0]['mediapackage'];
         }
 
-        return $decode['search-results']['result']['mediapackage'];
+        return $decode['result']['mediapackage'];
     }
 
     public function getFullMediapackage(string $id)
@@ -160,14 +160,14 @@ class ClientService
         }
         $decode = $this->decodeJson($output['var']);
 
-        if (0 === (int) $decode['search-results']['total']) {
+        if (0 === (int) $decode['total']) {
             return false;
         }
-        if (isset($decode['search-results']['result'][0])) {
-            return $decode['search-results']['result'][0];
+        if (isset($decode['result'][0])) {
+            return $decode['result'][0];
         }
 
-        return $decode['search-results']['result'];
+        return $decode['result'];
     }
 
     public function getMasterMediaPackage(string $id): ?array
@@ -237,14 +237,14 @@ class ClientService
 
         $decode = $this->decodeJson($output['var']);
 
-        if (0 === (int) $decode['search-results']['total']) {
+        if (0 === (int) $decode['total']) {
             return false;
         }
-        if ($decode['search-results']['limit'] > 1) {
-            return $decode['search-results']['result'][0]['mediapackage'];
+        if ($decode['limit'] > 1) {
+            return $decode['result'][0]['mediapackage'];
         }
 
-        return $decode['search-results']['result']['mediapackage'];
+        return $decode['result']['mediapackage'];
     }
 
     public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], string $workflowName = ''): bool
