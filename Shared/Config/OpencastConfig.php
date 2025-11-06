@@ -41,6 +41,11 @@ final readonly class OpencastConfig
         return $this->adminHost;
     }
 
+    public function getAdminUrl(): string
+    {
+        return $this->adminHost ?? $this->host;
+    }
+
     public function getUsername(): string
     {
         return $this->username;
