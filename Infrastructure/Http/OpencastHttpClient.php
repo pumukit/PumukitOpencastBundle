@@ -101,16 +101,19 @@ final class OpencastHttpClient
             case 'POST':
                 curl_setopt($curlHandle, CURLOPT_POST, 1);
                 curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $fields);
+
                 break;
 
             case 'PUT':
                 $header[] = 'Content-Length: '.strlen($fields);
                 curl_setopt($curlHandle, CURLOPT_CUSTOMREQUEST, 'PUT');
                 curl_setopt($curlHandle, CURLOPT_POSTFIELDS, $fields);
+
                 break;
 
             case 'DELETE':
                 curl_setopt($curlHandle, CURLOPT_CUSTOMREQUEST, 'DELETE');
+
                 break;
 
             default:
