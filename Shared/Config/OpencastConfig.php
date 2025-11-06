@@ -31,24 +31,95 @@ final readonly class OpencastConfig
         private array $urlMapping,
     ) {}
 
-    public function getHost(): string { return $this->host; }
-    public function getAdminHost(): ?string { return $this->adminHost; }
-    public function getUsername(): string { return $this->username; }
-    public function getPassword(): string { return $this->password; }
-    public function getPlayer(): string { return $this->player; }
-    public function useRedirect(): bool { return $this->useRedirect; }
-    public function batchImportInverted(): bool { return $this->batchImportInverted; }
-    public function showImporterTab(): bool { return $this->showImporterTab; }
-    public function deleteArchiveMediaPackage(): bool { return $this->deleteArchiveMediaPackage; }
-    public function getDeletionWorkflowName(): string { return $this->deletionWorkflowName; }
-    public function schedulerOnMenu(): bool { return $this->schedulerOnMenu; }
-    public function getScheduler(): string { return $this->scheduler; }
-    public function manageOpencastUsers(): bool { return $this->manageOpencastUsers; }
-    public function syncSeriesWithOpencast(): bool { return $this->syncSeriesWithOpencast; }
-    public function insecure(): bool { return $this->insecure; }
-    public function getNotifications(): NotificationConfig { return $this->notifications; }
-    public function getSbs(): SbsConfig { return $this->sbs; }
-    public function errorIfFileNotExist(): bool { return $this->errorIfFileNotExist; }
+    public function getHost(): string
+    {
+        return $this->host;
+    }
+
+    public function getAdminHost(): ?string
+    {
+        return $this->adminHost;
+    }
+
+    public function getUsername(): string
+    {
+        return $this->username;
+    }
+
+    public function getPassword(): string
+    {
+        return $this->password;
+    }
+
+    public function getPlayer(): string
+    {
+        return $this->player;
+    }
+
+    public function useRedirect(): bool
+    {
+        return $this->useRedirect;
+    }
+
+    public function batchImportInverted(): bool
+    {
+        return $this->batchImportInverted;
+    }
+
+    public function showImporterTab(): bool
+    {
+        return $this->showImporterTab;
+    }
+
+    public function deleteArchiveMediaPackage(): bool
+    {
+        return $this->deleteArchiveMediaPackage;
+    }
+
+    public function getDeletionWorkflowName(): string
+    {
+        return $this->deletionWorkflowName;
+    }
+
+    public function schedulerOnMenu(): bool
+    {
+        return $this->schedulerOnMenu;
+    }
+
+    public function getScheduler(): string
+    {
+        return $this->scheduler;
+    }
+
+    public function manageOpencastUsers(): bool
+    {
+        return $this->manageOpencastUsers;
+    }
+
+    public function syncSeriesWithOpencast(): bool
+    {
+        return $this->syncSeriesWithOpencast;
+    }
+
+    public function insecure(): bool
+    {
+        return $this->insecure;
+    }
+
+    public function getNotifications(): NotificationConfig
+    {
+        return $this->notifications;
+    }
+
+    public function getSbs(): SbsConfig
+    {
+        return $this->sbs;
+    }
+
+    public function errorIfFileNotExist(): bool
+    {
+        return $this->errorIfFileNotExist;
+    }
 
     /**
      * @return UrlMappingConfig[]

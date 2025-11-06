@@ -2,11 +2,11 @@
 
 namespace Pumukit\OpencastBundle\Infrastructure\Http;
 
+use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Domain\Exception\OpencastHttpException;
 use Pumukit\OpencastBundle\Shared\Config\OpencastConfig;
-use Symfony\Contracts\HttpClient\HttpClientInterface;
-use Psr\Log\LoggerInterface;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 final class OpencastHttpClient
 {
@@ -20,7 +20,7 @@ final class OpencastHttpClient
 
     public function request(string $method, string $path, array $options = []): array
     {
-        $url = rtrim($this->config->getHost(), '/') . $path;
+        $url = rtrim($this->config->getHost(), '/').$path;
 
         $defaultOptions = [
             'headers' => [
@@ -50,7 +50,7 @@ final class OpencastHttpClient
             $statusCode = $response->getStatusCode();
             $content = $response->getContent(false);
 
-            if ($method === 'GET' && $statusCode !== Response::HTTP_OK) {
+            if ('GET' === $method && Response::HTTP_OK !== $statusCode) {
                 $this->logger?->error(sprintf(
                     '%s::request() - Error %s, Status %d, URL: %s',
                     self::class,

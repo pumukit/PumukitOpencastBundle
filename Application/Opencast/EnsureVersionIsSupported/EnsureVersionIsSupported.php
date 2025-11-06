@@ -8,9 +8,8 @@ use Pumukit\OpencastBundle\Domain\Repository\OpencastVersionRepositoryInterface;
 
 final class EnsureVersionIsSupported
 {
-    private OpencastVersionRepositoryInterface $versionRepository;
-
     private const SUPPORTED_VERSION = 16;
+    private OpencastVersionRepositoryInterface $versionRepository;
 
     public function __construct(OpencastVersionRepositoryInterface $versionRepository)
     {
@@ -30,7 +29,6 @@ final class EnsureVersionIsSupported
             );
 
             return new EnsureVersionIsSupportedResponse($isSupported, $currentVersion, $message);
-
         } catch (\Throwable $e) {
             return new EnsureVersionIsSupportedResponse(false, 'unknown', $e->getMessage());
         }
@@ -40,6 +38,6 @@ final class EnsureVersionIsSupported
     {
         $majorVersion = (int) explode('.', $currentVersion)[0];
 
-        return $majorVersion === self::SUPPORTED_VERSION;
+        return self::SUPPORTED_VERSION === $majorVersion;
     }
 }

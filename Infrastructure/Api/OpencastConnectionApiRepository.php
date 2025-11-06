@@ -18,10 +18,8 @@ final class OpencastConnectionApiRepository implements OpencastConnectionReposit
             $this->httpClient->request('GET', '/info/health');
 
             return true;
-
         } catch (\Throwable $e) {
             throw OpencastConnectionException::unreachable('/info/health', $e);
         }
     }
-
 }

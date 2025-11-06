@@ -16,6 +16,7 @@ final class OpencastVersionApiRepository implements OpencastVersionRepositoryInt
     public function getCurrentVersion(): string
     {
         $path = '/info/health';
+
         try {
             $response = $this->httpClient->request('GET', $path);
         } catch (\Throwable $e) {

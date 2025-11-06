@@ -11,7 +11,7 @@ class OpencastHttpException extends \RuntimeException
                 'HTTP error %d when accessing %s%s',
                 $statusCode,
                 $url,
-                $error ? ': ' . $error : ''
+                $error ? ': '.$error : ''
             ),
             $statusCode
         );
