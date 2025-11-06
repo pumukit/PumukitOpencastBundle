@@ -76,6 +76,10 @@ services:
   # =========================================================================
   Pumukit\OpencastBundle\Application\Opencast\:
     resource: '../../Application/Opencast/*'
+    exclude: '../../Application/Opencast/**/*Response.php'
+    autowire: true
+    autoconfigure: true
+    public: false
 
   Pumukit\OpencastBundle\Infrastructure\Api\:
     resource: '../../Infrastructure/Api/*'
