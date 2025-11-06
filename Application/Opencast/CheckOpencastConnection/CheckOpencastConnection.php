@@ -22,7 +22,7 @@ final readonly class CheckOpencastConnection
             return new CheckOpencastConnectionResponse($check, 'Opencast connection is up');
 
         } catch (\Throwable $e) {
-            return new CheckOpencastConnectionResponse(false, 'Cannot connect to Opencast: ' . $e->getMessage());
+            return new CheckOpencastConnectionResponse(false, $e->getMessage());
         }
     }
 }

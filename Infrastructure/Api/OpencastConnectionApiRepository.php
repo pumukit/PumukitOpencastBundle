@@ -19,7 +19,7 @@ final class OpencastConnectionApiRepository implements OpencastConnectionReposit
             return true;
 
         } catch (\Throwable $e) {
-            throw new \RuntimeException('Cannot connect to Opencast endpoint: ' . $e->getMessage(), 0, $e);
+            throw new \RuntimeException($e->getMessage(), 0, $e);
         }
     }
 

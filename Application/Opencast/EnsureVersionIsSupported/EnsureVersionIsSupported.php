@@ -32,7 +32,7 @@ final class EnsureVersionIsSupported
             return new EnsureVersionIsSupportedResponse($isSupported, $currentVersion, $message);
 
         } catch (\Throwable $e) {
-            return new EnsureVersionIsSupportedResponse(false, 'unknown', 'Cannot connect to Opencast: ' . $e->getMessage());
+            return new EnsureVersionIsSupportedResponse(false, 'unknown', $e->getMessage());
         }
     }
 
