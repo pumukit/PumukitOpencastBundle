@@ -2,6 +2,7 @@
 
 namespace Pumukit\OpencastBundle\Infrastructure\Api;
 
+use Pumukit\OpencastBundle\Domain\Exception\OpencastConnectionException;
 use Pumukit\OpencastBundle\Domain\Repository\OpencastConnectionRepositoryInterface;
 use Pumukit\OpencastBundle\Infrastructure\Http\OpencastHttpClient;
 
@@ -19,7 +20,7 @@ final class OpencastConnectionApiRepository implements OpencastConnectionReposit
             return true;
 
         } catch (\Throwable $e) {
-            throw new \RuntimeException($e->getMessage(), 0, $e);
+            throw OpencastConnectionException::unreachable('/info/health', $e);
         }
     }
 

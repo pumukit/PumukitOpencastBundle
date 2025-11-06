@@ -2,6 +2,7 @@
 
 namespace Pumukit\OpencastBundle\Infrastructure\Http;
 
+use Pumukit\OpencastBundle\Domain\Exception\OpencastHttpException;
 use Pumukit\OpencastBundle\Shared\Config\OpencastConfig;
 use Symfony\Contracts\HttpClient\HttpClientInterface;
 use Psr\Log\LoggerInterface;
@@ -58,12 +59,11 @@ final class OpencastHttpClient
                     $url
                 ));
 
-                throw new \RuntimeException(sprintf(
-                    'Error "%s", Status %d, Processing Request "%s"',
-                    $response->getInfo('error') ?? 'Unknown',
+                throw OpencastHttpException::fromResponse(
+                    $url,
                     $statusCode,
-                    $url
-                ));
+                    $response->getInfo('error')
+                );
             }
 
             return [
@@ -71,6 +71,8 @@ final class OpencastHttpClient
                 'error' => null,
                 'status' => $statusCode,
             ];
+        } catch (OpencastHttpException $e) {
+            throw $e;
         } catch (\Throwable $e) {
             $this->logger?->error(sprintf(
                 '%s::request() - Exception connecting to %s: %s',
@@ -79,11 +81,7 @@ final class OpencastHttpClient
                 $e->getMessage()
             ));
 
-            throw new \RuntimeException(
-                'Cannot connect to Opencast endpoint: ' . $e->getMessage(),
-                0,
-                $e
-            );
+            throw OpencastHttpException::requestFailed($url, $e);
         }
     }
 }
