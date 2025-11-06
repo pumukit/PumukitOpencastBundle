@@ -92,3 +92,5 @@ services:
 
   Pumukit\OpencastBundle\Domain\Repository\OpencastConnectionRepositoryInterface:
     alias: Pumukit\OpencastBundle\Infrastructure\Api\OpencastConnectionApiRepository
+
+  Pumukit\OpencastBundle\Shared\Config\OpencastEndpoints: ~
