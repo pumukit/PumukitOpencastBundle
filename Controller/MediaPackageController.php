@@ -53,12 +53,12 @@ class MediaPackageController extends AbstractController
         }
 
         $checkOpencastConnectionResponse = $this->checkOpencastConnection->__invoke();
-        if(!$checkOpencastConnectionResponse->status) {
+        if (!$checkOpencastConnectionResponse->status) {
             return $this->render('@PumukitOpencast/Connection/down.html.twig', ['checkOpencastConnectionResponse' => $checkOpencastConnectionResponse]);
         }
 
         $ensureVersionIsSupportedResponse = $this->ensureVersionIsSupported->__invoke();
-        if(!$ensureVersionIsSupportedResponse->isSupported) {
+        if (!$ensureVersionIsSupportedResponse->isSupported) {
             return $this->render('@PumukitOpencast/Version/unsupported.html.twig', ['ensureVersionIsSupportedResponse' => $ensureVersionIsSupportedResponse]);
         }
 

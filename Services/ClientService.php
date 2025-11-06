@@ -151,25 +151,6 @@ class ClientService
         return $decode['result']['mediapackage'];
     }
 
-    public function getFullMediapackage(string $id)
-    {
-        $output = $this->request('/search/episode.json?id='.$id);
-
-        if (200 !== $output['status']) {
-            return false;
-        }
-        $decode = $this->decodeJson($output['var']);
-
-        if (0 === (int) $decode['total']) {
-            return false;
-        }
-        if (isset($decode['result'][0])) {
-            return $decode['result'][0];
-        }
-
-        return $decode['result'];
-    }
-
     public function getMasterMediaPackage(string $id): ?array
     {
         $version = $this->getOpencastVersion();

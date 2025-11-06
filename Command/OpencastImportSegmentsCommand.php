@@ -174,7 +174,7 @@ EOT
 
         foreach ($multimediaObjects as $multimediaObject) {
             sleep($this->secondsToSleep);
-            $mediaPackage = $this->clientService->getFullMediaPackage($multimediaObject->getProperty('opencast'));
+            $mediaPackage = $this->clientService->getMediaPackage($multimediaObject->getProperty('opencast'));
 
             $segments = 0;
             if (isset($mediaPackage['segments']['segment'])) {
@@ -210,7 +210,7 @@ EOT
         );
 
         foreach ($multimediaObjects as $multimediaObject) {
-            $mediaPackage = $this->clientService->getFullMediaPackage($multimediaObject->getProperty('opencast'));
+            $mediaPackage = $this->clientService->getMediaPackage($multimediaObject->getProperty('opencast'));
             $numSegments = 0;
             if (isset($mediaPackage['segments'])) {
                 if (!isset($mediaPackage['segments']['segment'][0])) {

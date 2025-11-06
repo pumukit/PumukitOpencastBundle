@@ -11,9 +11,9 @@ use Pumukit\OpencastBundle\Shared\Config\UrlMappingConfig;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
-use Symfony\Component\DependencyInjection\Definition;
 
 class PumukitOpencastExtension extends Extension
 {
@@ -128,6 +128,7 @@ class PumukitOpencastExtension extends Extension
                 $config['error_if_file_not_exist'],
                 $urlMappings,
             ])
-            ->setPublic(true);
+            ->setPublic(true)
+        ;
     }
 }
