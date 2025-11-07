@@ -82,7 +82,7 @@
                     {{ (((mediaPackage.duration)//1000)-3600)|date('H:i:s') }}
                 </td>
                 <td headers="th-date">
-                    {{ mediaPackage.start|date('Y/m/d') }}
+                    {{ mediaPackage.modified|date('Y/m/d') }}
                 </td>
             </tr>
         {% endfor %}

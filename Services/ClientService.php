@@ -107,7 +107,7 @@ class ClientService
 
     public function getMediaPackages(string $query, int $limit, int $offset)
     {
-        $output = $this->request('/search/episode.json?'.($query ? 'q='.urlencode($query).'&' : '').'limit='.$limit.'&offset='.$offset);
+        $output = $this->request('/search/episode.json?'.($query ? 'q='.urlencode($query).'&' : '').'limit='.$limit.'&offset='.$offset.'&sort=modified%20desc');
 
         if (200 !== $output['status']) {
             return false;
@@ -122,9 +122,12 @@ class ClientService
 
         $return[0] = $decode['total'];
         if (isset($decode['result'][0])) {
+            $mediaPackages = [];
             foreach ($decode['result'] as $media) {
-                $return[1][] = $media['mediapackage'];
+                $mediaPackages[] = $media['mediapackage'];
             }
+
+            $return[1] = $mediaPackages;
         } else {
             $return[1][] = $decode['result']['mediapackage'];
         }
