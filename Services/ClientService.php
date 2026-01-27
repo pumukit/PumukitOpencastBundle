@@ -124,11 +124,13 @@ class ClientService
         if (isset($decode['result'][0])) {
             $mediaPackages = [];
             foreach ($decode['result'] as $media) {
+                $media['mediapackage']['modified'] = $media['modified'];
                 $mediaPackages[] = $media['mediapackage'];
             }
 
             $return[1] = $mediaPackages;
         } else {
+            $decode['result']['mediapackage']['modified'] = $decode['result']['modified'];
             $return[1][] = $decode['result']['mediapackage'];
         }
 
