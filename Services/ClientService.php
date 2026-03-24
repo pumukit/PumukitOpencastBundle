@@ -542,7 +542,7 @@ class ClientService
             }
         }
 
-        if (is_string($response['var'])) {
+        if (!is_string($response['var'])) {
             return null;
         }
 
