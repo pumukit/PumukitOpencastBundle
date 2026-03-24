@@ -519,8 +519,12 @@ class ClientService
         return $output;
     }
 
-    public function getSpatialField(string $url)
+    public function getSpatialField(?string $url)
     {
+        if (empty($url)) {
+            return null;
+        }
+
         if (0 === strpos($url, $this->host)) {
             $path = parse_url($url, PHP_URL_PATH);
             if (!$path) {
@@ -536,6 +540,10 @@ class ClientService
             } else {
                 $response = ['var' => file_get_contents($url)];
             }
+        }
+
+        if (is_string($response['var'])) {
+            return null;
         }
 
         $start = strrpos($response['var'], '<dcterms:spatial>');
