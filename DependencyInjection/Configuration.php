@@ -128,6 +128,7 @@ class Configuration implements ConfigurationInterface
             ->info('Set default tag when imported from opencast to PMK2')
             ->end()
             ->arrayNode('notifications')
+            ->addDefaultsIfNotSet()
             ->info('subject fail of email in multiple languages')
             ->children()
             ->booleanNode('enabled')->defaultValue(false)->end()

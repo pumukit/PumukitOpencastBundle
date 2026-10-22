@@ -13,19 +13,16 @@ use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 
-/**
- * @Route("/admin")
- *
- * @Security("is_granted('ROLE_ACCESS_IMPORTER')")
- */
+#[Route('/admin')]
+#[IsGranted('ROLE_ACCESS_IMPORTER')]
 class MediaPackageController extends AbstractController
 {
     public function __construct(
@@ -39,9 +36,7 @@ class MediaPackageController extends AbstractController
         private CheckOpencastConnection $checkOpencastConnection,
     ) {}
 
-    /**
-     * @Route("/opencast/mediapackage", name="pumukitopencast")
-     */
+    #[Route('/opencast/mediapackage', name: 'pumukitopencast')]
     public function indexAction(Request $request): Response
     {
         if (!$this->opencastShowImporterTab) {
@@ -110,9 +105,7 @@ class MediaPackageController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/opencast/mediapackage/{id}", name="pumukitopencast_import")
-     */
+    #[Route('/opencast/mediapackage/{id}', name: 'pumukitopencast_import')]
     public function importAction(Request $request, string $id): RedirectResponse
     {
         if (!$this->opencastShowImporterTab) {
@@ -131,13 +124,14 @@ class MediaPackageController extends AbstractController
     public function getCriteria(Request $request): array
     {
         $criteria = $request->get('criteria', []);
+        $session = $request->getSession();
 
         if (array_key_exists('reset', $criteria)) {
-            $this->get('session')->remove('admin/opencast/criteria');
+            $session->remove('admin/opencast/criteria');
         } elseif ($criteria) {
-            $this->get('session')->set('admin/opencast/criteria', $criteria);
+            $session->set('admin/opencast/criteria', $criteria);
         }
-        $criteria = $this->get('session')->get('admin/opencast/criteria', []);
+        $criteria = $session->get('admin/opencast/criteria', []);
 
         $new_criteria = [];
 

@@ -61,7 +61,7 @@ EOT
                     $output->writeln('<error>Error on stopping workflows</error>');
                     $this->logger->error('['.self::class.']('.__FUNCTION__.') Error on stopping workflows');
 
-                    return -1;
+                    return Command::FAILURE;
                 }
                 $output->writeln('<info>Successfully stopped workflows</info>');
                 $this->logger->info('['.self::class.']('.__FUNCTION__.') Successfully stopped workflows');

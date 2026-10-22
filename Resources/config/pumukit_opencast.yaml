@@ -40,6 +40,10 @@ services:
   Pumukit\OpencastBundle\Services\ClientService:
     class: Pumukit\OpencastBundle\Services\ClientService
 
+  pumukit_opencast.client:
+    alias: Pumukit\OpencastBundle\Services\ClientService
+    public: true
+
   Pumukit\OpencastBundle\Services\OpencastService:
     class: Pumukit\OpencastBundle\Services\OpencastService
 

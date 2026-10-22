@@ -11,11 +11,9 @@ use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
 
-/**
- * @Route("/api/opencast")
- */
+#[Route('/api/opencast')]
 class ImportController extends AbstractController
 {
     private $opencastImportService;
@@ -32,9 +30,7 @@ class ImportController extends AbstractController
         $this->logger = $logger;
     }
 
-    /**
-     * @Route("/import_event", name="pumukit_opencast_import_event")
-     */
+    #[Route('/import_event', name: 'pumukit_opencast_import_event')]
     public function eventAction(Request $request): Response
     {
         $mediaPackage = json_decode($request->request->get('mediapackage'), true, 512, JSON_THROW_ON_ERROR);
@@ -49,9 +45,7 @@ class ImportController extends AbstractController
         return new Response('Success', Response::HTTP_OK);
     }
 
-    /**
-     * @Route("/sync_tracks/{id}", name="pumukit_opencast_import_sync_tracks")
-     */
+    #[Route('/sync_tracks/{id}', name: 'pumukit_opencast_import_sync_tracks')]
     public function syncTracksAction(MultimediaObject $multimediaObject): Response
     {
         $this->opencastImportService->syncTracks($multimediaObject);

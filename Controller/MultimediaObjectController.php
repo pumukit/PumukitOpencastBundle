@@ -10,19 +10,16 @@ use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\OpencastBundle\Services\OpencastService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Services\MultimediaObjectService;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Contracts\Translation\TranslatorInterface;
 
-/**
- * @Route("/admin/opencast/mm")
- *
- * @Security("is_granted('ROLE_ACCESS_IMPORTER')")
- */
+#[Route('/admin/opencast/mm')]
+#[IsGranted('ROLE_ACCESS_IMPORTER')]
 class MultimediaObjectController extends AbstractController
 {
     private $opencastClientService;
@@ -51,9 +48,7 @@ class MultimediaObjectController extends AbstractController
         $this->opencastSBSProfile = $opencastSBSProfile;
     }
 
-    /**
-     * @Route("/index/{id}", name="pumukit_opencast_mm_index")
-     */
+    #[Route('/index/{id}', name: 'pumukit_opencast_mm_index')]
     public function indexAction(MultimediaObject $multimediaObject): Response
     {
         return $this->render('@PumukitOpencast/MultimediaObject/index.html.twig', [
@@ -64,9 +59,7 @@ class MultimediaObjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/update/{id}", name="pumukit_opencast_mm_update")
-     */
+    #[Route('/update/{id}', name: 'pumukit_opencast_mm_update')]
     public function updateAction(Request $request, MultimediaObject $multimediaObject): Response
     {
         $locale = $request->getLocale();
@@ -95,9 +88,7 @@ class MultimediaObjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/info/{id}", name="pumukit_opencast_mm_info")
-     */
+    #[Route('/info/{id}', name: 'pumukit_opencast_mm_info')]
     public function infoAction(MultimediaObject $multimediaObject): Response
     {
         $presenterDeliveryUrl = '';
@@ -117,9 +108,7 @@ class MultimediaObjectController extends AbstractController
         ]);
     }
 
-    /**
-     * @Route("/generatesbs/{id}", name="pumukit_opencast_mm_generatesbs")
-     */
+    #[Route('/generatesbs/{id}', name: 'pumukit_opencast_mm_generatesbs')]
     public function generateSbsAction(MultimediaObject $multimediaObject): RedirectResponse
     {
         $opencastUrls = $this->opencastImportService->getOpencastUrls($multimediaObject->getProperty('opencast'));

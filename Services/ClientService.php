@@ -41,8 +41,8 @@ class ClientService
         bool $manageOpencastUsers = false,
         bool $insecure = false,
         ?string $adminUrl = null,
-        LoggerInterface $logger = null,
-        RoleHierarchy $roleHierarchy = null
+        ?LoggerInterface $logger = null,
+        ?RoleHierarchy $roleHierarchy = null
     ) {
         $this->logger = $logger;
 
