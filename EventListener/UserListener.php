@@ -4,74 +4,51 @@ declare(strict_types=1);
 
 namespace Pumukit\OpencastBundle\EventListener;
 
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Pumukit\OpencastBundle\Exception\OpencastException;
+use Pumukit\OpencastBundle\Exception\OpencastNotFoundException;
 use Pumukit\OpencastBundle\Services\ClientService;
+use Pumukit\SchemaBundle\Document\User;
+use Pumukit\SchemaBundle\Event\SchemaEvents;
 use Pumukit\SchemaBundle\Event\UserEvent;
 
+#[WithMonologChannel('opencast')]
 class UserListener
 {
-    private $clientService;
-    private $logger;
-    private $manageOpencastUsers;
+    public function __construct(
+        private readonly ClientService $clientService,
+        private readonly LoggerInterface $logger,
+        private readonly bool $manageOpencastUsers = false,
+    ) {}
 
-    public function __construct(ClientService $clientService, LoggerInterface $logger, bool $manageOpencastUsers = false)
+    public function onUserEvent(UserEvent $event, string $eventName): void
     {
-        $this->clientService = $clientService;
-        $this->logger = $logger;
-        $this->manageOpencastUsers = $manageOpencastUsers;
-    }
-
-    public function onUserCreate(UserEvent $event): void
-    {
-        if (!$this->manageOpencastUsers) {
+        if (!$this->manageOpencastUsers || !$this->clientService->isEnabled()) {
             return;
         }
 
+        $user = $event->getUser();
+
         try {
-            $user = $event->getUser();
-            $output = $this->clientService->createUser($user);
-            if (!$output) {
-                throw new \Exception('Error on creating an User on the Opencast Server');
-            }
-            $this->logger->debug('Created User "'.$user->getUsername().'" on the Opencast Server');
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage(), $e->getTrace());
+            match ($eventName) {
+                SchemaEvents::USER_CREATE => $this->clientService->createUser($user),
+                SchemaEvents::USER_UPDATE => $this->update($user),
+                SchemaEvents::USER_DELETE => $this->clientService->deleteUser($user),
+                default => null,
+            };
+            $this->logger->info('Opencast user synchronized', ['user' => $user->getUsername(), 'event' => $eventName]);
+        } catch (OpencastException $exception) {
+            $this->logger->error('Opencast user not synchronized', ['user' => $user->getUsername(), 'event' => $eventName, 'error' => $exception->getMessage()]);
         }
     }
 
-    public function onUserUpdate(UserEvent $event): void
+    private function update(User $user): void
     {
-        if (!$this->manageOpencastUsers) {
-            return;
-        }
-
         try {
-            $user = $event->getUser();
-            $output = $this->clientService->updateUser($user);
-            if (!$output) {
-                throw new \Exception('Error on updating an User on the Opencast Server');
-            }
-            $this->logger->debug('Updated User "'.$user->getUsername().'" on the Opencast Server');
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage(), $e->getTrace());
-        }
-    }
-
-    public function onUserDelete(UserEvent $event): void
-    {
-        if (!$this->manageOpencastUsers) {
-            return;
-        }
-
-        try {
-            $user = $event->getUser();
-            $output = $this->clientService->deleteUser($user);
-            if (!$output) {
-                throw new \Exception('Error on deleting an User on the Opencast Server');
-            }
-            $this->logger->debug('Deleted User "'.$user->getUsername().'" on the Opencast Server');
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage(), $e->getTrace());
+            $this->clientService->updateUser($user);
+        } catch (OpencastNotFoundException) {
+            $this->clientService->createUser($user);
         }
     }
 }

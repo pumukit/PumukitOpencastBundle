@@ -93,10 +93,6 @@
         <source>{0} users|{1} mediaPackages|]1,Inf] Media Packages</source>
         <target state="needs-translation">{0} users|{1} mediaPackages|]1,Inf] Media Packages</target>
       </trans-unit>
-      <trans-unit id="uQjDk6r" resname="Cancel current search">
-        <source>Cancel current search</source>
-        <target state="needs-translation">Cancel·lar aquesta cerca</target>
-      </trans-unit>
       <trans-unit id="tUVjur1" resname="Cancel search">
         <source>Cancel search</source>
         <target state="needs-translation">Cancel·lar cerca</target>
@@ -125,10 +121,6 @@
         <source>opencast track info</source>
         <target state="needs-translation">opencast informació de pista</target>
       </trans-unit>
-      <trans-unit id="0yYyluM" resname="URLs for images">
-        <source>URLs for images</source>
-        <target state="needs-translation">URLs per a imatges</target>
-      </trans-unit>
       <trans-unit id="nvB3oSM" resname="Presenter">
         <source>Presenter</source>
         <target state="needs-translation">Presentador</target>
@@ -156,6 +148,14 @@
       <trans-unit id="CscPjL9" resname="i18n.one.Series">
         <source>i18n.one.Series</source>
         <target state="needs-translation">i18n.one.Series</target>
+      </trans-unit>
+      <trans-unit id="USxTSOY" resname="This version of Opencast is not supported.">
+        <source>This version of Opencast is not supported.</source>
+        <target state="translated">Aquesta versió d'Opencast no és compatible.</target>
+      </trans-unit>
+      <trans-unit id="s2UNBjr" resname="Opencast recording imported">
+        <source>Opencast recording imported</source>
+        <target state="translated">Enregistrament d'Opencast importat</target>
       </trans-unit>
     </body>
   </file>

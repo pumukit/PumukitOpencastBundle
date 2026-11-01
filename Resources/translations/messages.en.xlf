@@ -89,10 +89,6 @@
         <source>Cancel</source>
         <target>Cancel</target>
       </trans-unit>
-      <trans-unit id="uQjDk6r" resname="Cancel current search">
-        <source>Cancel current search</source>
-        <target>Cancel current search</target>
-      </trans-unit>
       <trans-unit id="tUVjur1" resname="Cancel search">
         <source>Cancel search</source>
         <target>Cancel search</target>
@@ -120,10 +116,6 @@
       <trans-unit id="OhTMa7h" resname="opencast track info">
         <source>opencast track info</source>
         <target>opencast track info</target>
-      </trans-unit>
-      <trans-unit id="0yYyluM" resname="URLs for images">
-        <source>URLs for images</source>
-        <target>URLs for images</target>
       </trans-unit>
       <trans-unit id="nvB3oSM" resname="Presenter">
         <source>Presenter</source>
@@ -156,6 +148,14 @@
       <trans-unit id="aSCTz9l" resname='From Opencast. Used "%title%" (%id%) as template.'>
         <source>From Opencast. Used "%title%" (%id%) as template.</source>
         <target>From Opencast. Used "%title%" (%id%) as template.</target>
+      </trans-unit>
+      <trans-unit id="USxTSOY" resname="This version of Opencast is not supported.">
+        <source>This version of Opencast is not supported.</source>
+        <target state="translated">This version of Opencast is not supported.</target>
+      </trans-unit>
+      <trans-unit id="s2UNBjr" resname="Opencast recording imported">
+        <source>Opencast recording imported</source>
+        <target state="translated">Opencast recording imported</target>
       </trans-unit>
     </body>
   </file>

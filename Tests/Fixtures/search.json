@@ -1,0 +1,113 @@
+{
+  "limit": 20,
+  "result": [
+    {
+      "mediapackage": {
+        "duration": 8010.0,
+        "id": "f50344d2-b74d-445a-9144-e1cc6352fef0",
+        "start": "2026-11-01T08:57:00Z",
+        "title": "Clase de prueba",
+        "series": "67da045a-d612-4b80-9b24-7517154b2d32",
+        "seriestitle": "Matemáticas Álgebra",
+        "creators": {
+          "creator": "Test Presenter"
+        },
+        "language": "es",
+        "media": {
+          "track": {
+            "id": "219e59c9-334a-4c0d-8db2-ed8a0c1965b5",
+            "type": "presenter/preview",
+            "ref": "track:c4754685-76c9-4406-888a-38a2e1c69b3a",
+            "mimetype": "video/mp4",
+            "tags": {
+              "tag": [
+                "atom",
+                "default",
+                "engage-download",
+                "engage-streaming",
+                "rss"
+              ]
+            },
+            "url": "http://opencast:8080/static/mh_default_org/engage-player/f50344d2-b74d-445a-9144-e1cc6352fef0/94f06e91-00f1-4743-9017-498893579bd3/oc-test.mp4",
+            "size": 162761.0,
+            "checksum": {
+              "type": "md5",
+              "$": "f72bc1e3b788a2adcf8e53be733df34b"
+            },
+            "duration": 8010.0,
+            "audio": {
+              "id": "audio-1",
+              "device": "",
+              "encoder": {
+                "type": "AAC (Advanced Audio Coding)"
+              },
+              "framecount": 346.0,
+              "channels": 1.0,
+              "samplingrate": 44100.0,
+              "bitrate": 69271.0
+            },
+            "video": {
+              "id": "video-1",
+              "device": "",
+              "encoder": {
+                "type": "H.264 / AVC / MPEG-4 AVC / MPEG-4 part 10"
+              },
+              "framecount": 200.0,
+              "bitrate": 85091.0,
+              "framerate": 25.0,
+              "resolution": "640x360"
+            },
+            "live": false,
+            "master": false
+          }
+        },
+        "metadata": {
+          "catalog": {
+            "id": "055e2d96-dbb4-4499-b218-c46d0b0da2a2",
+            "type": "dublincore/episode",
+            "mimetype": "text/xml",
+            "tags": "",
+            "url": "http://opencast:8080/static/mh_default_org/engage-player/f50344d2-b74d-445a-9144-e1cc6352fef0/32fb26cb-04c0-4403-9a5f-0d09403d4f2b/dublincore.xml"
+          }
+        },
+        "attachments": {
+          "attachment": [
+            {
+              "id": "ac878453-1b99-48db-89a9-f8398ec7d898",
+              "type": "security/xacml+series",
+              "mimetype": "text/xml",
+              "tags": "",
+              "url": "http://opencast:8080/static/mh_default_org/engage-player/f50344d2-b74d-445a-9144-e1cc6352fef0/security-policy-series/xacml.xml"
+            },
+            {
+              "id": "f384824a-c6da-42bc-b9d7-759a55b25e82",
+              "type": "presenter/search+preview",
+              "ref": "track:c4754685-76c9-4406-888a-38a2e1c69b3a",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": "engage-download"
+              },
+              "url": "http://opencast:8080/static/mh_default_org/engage-player/f50344d2-b74d-445a-9144-e1cc6352fef0/ba62d366-3f95-443c-888e-fa68dabb42c3/oc-test_1.000s-search.jpg",
+              "size": 3263.0
+            },
+            {
+              "id": "6e47ff29-c2b1-4f6c-92c2-1d0e2760fa2c",
+              "type": "presenter/player+preview",
+              "ref": "track:c4754685-76c9-4406-888a-38a2e1c69b3a",
+              "mimetype": "image/jpeg",
+              "tags": {
+                "tag": "engage-download"
+              },
+              "url": "http://opencast:8080/static/mh_default_org/engage-player/f50344d2-b74d-445a-9144-e1cc6352fef0/0a196f45-b103-43e8-b627-b24ff393814d/oc-test_1.000s-player.jpg",
+              "size": 29262.0
+            }
+          ]
+        }
+      },
+      "modified": "2026-11-01T08:57:55.709312891Z",
+      "type": "Episode"
+    }
+  ],
+  "total": 1,
+  "offset": 0
+}

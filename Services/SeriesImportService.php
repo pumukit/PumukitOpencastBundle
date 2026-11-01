@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pumukit\OpencastBundle\Services;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Pumukit\OpencastBundle\MediaPackage\MediaPackage;
 use Pumukit\SchemaBundle\Document\Series;
 use Pumukit\SchemaBundle\Document\User;
 use Pumukit\SchemaBundle\Services\FactoryService;
@@ -12,95 +13,50 @@ use Pumukit\SchemaBundle\Services\SeriesEventDispatcherService;
 
 class SeriesImportService
 {
-    private $dm;
-    private $factoryService;
-    private $opencastClient;
-    private $seriesDispatcher;
-    private $otherLocales;
+    public const DEFAULT_SERIES = 'default';
+    public const DEFAULT_SERIES_TITLE = 'MediaPackages without series';
 
     public function __construct(
-        DocumentManager $documentManager,
-        FactoryService $factoryService,
-        ClientService $opencastClient,
-        SeriesEventDispatcherService $seriesDispatcher,
-        array $otherLocales = []
-    ) {
-        $this->dm = $documentManager;
-        $this->factoryService = $factoryService;
-        $this->opencastClient = $opencastClient;
-        $this->seriesDispatcher = $seriesDispatcher;
-        $this->otherLocales = $otherLocales;
-    }
+        private readonly DocumentManager $documentManager,
+        private readonly FactoryService $factoryService,
+        private readonly ClientService $clientService,
+        private readonly SeriesEventDispatcherService $seriesDispatcher,
+        private readonly array $otherLocales = [],
+    ) {}
 
-    public function importSeries($mediaPackage, ?User $loggedInUser = null)
+    public function importSeries(MediaPackage $mediaPackage, ?User $loggedInUser = null): Series
     {
-        $seriesRepo = $this->dm->getRepository(Series::class);
-        $seriesOpencastId = $this->getMediaPackageField($mediaPackage, 'series');
-        if (isset($seriesOpencastId)) {
-            $series = $seriesRepo->findOneBy(['properties.opencast' => $seriesOpencastId]);
-            if (!isset($series)) {
-                $seriesTitle = $this->getMediaPackageField($mediaPackage, 'seriestitle');
-                $series = $this->createSeries($seriesTitle, $seriesOpencastId, $loggedInUser);
-            }
-        } elseif (null !== ($seriesOpencastSpatial = $this->getSpatialField($mediaPackage))) {
-            $series = $seriesRepo->findOneBy(['properties.opencastspatial' => $seriesOpencastSpatial]);
-            if (!isset($series)) {
-                $series = $this->createSeries($seriesOpencastSpatial, $seriesOpencastSpatial, $loggedInUser, true);
-            }
-        } else {
-            $series = $seriesRepo->findOneBy(['properties.opencast' => 'default']);
-            if (!isset($series)) {
-                $series = $this->createSeries('MediaPackages without series', 'default', $loggedInUser);
-            }
+        $repository = $this->documentManager->getRepository(Series::class);
+
+        $seriesId = $mediaPackage->seriesId();
+        if (null !== $seriesId) {
+            return $repository->findOneBy(['properties.opencast' => $seriesId])
+                ?? $this->createSeries($mediaPackage->seriesTitle() ?? $seriesId, 'opencast', $seriesId, $loggedInUser);
         }
 
-        return $series;
+        $spatial = $this->clientService->getSpatialField($mediaPackage);
+        if (null !== $spatial) {
+            return $repository->findOneBy(['properties.opencastspatial' => $spatial])
+                ?? $this->createSeries($spatial, 'opencastspatial', $spatial, $loggedInUser);
+        }
+
+        return $repository->findOneBy(['properties.opencast' => self::DEFAULT_SERIES])
+            ?? $this->createSeries(self::DEFAULT_SERIES_TITLE, 'opencast', self::DEFAULT_SERIES, $loggedInUser);
     }
 
-    private function createSeries(string $title, $properties, ?User $loggedInUser = null, $spatial = false): Series
+    private function createSeries(string $title, string $property, string $value, ?User $loggedInUser): Series
     {
-        $publicDate = new \DateTime('now');
-
         $series = $this->factoryService->doCreateCollection(Series::TYPE_SERIES, $loggedInUser);
-        $series->setPublicDate($publicDate);
+        $series->setPublicDate(new \DateTime());
         $series->setTitle($title);
         foreach ($this->otherLocales as $locale) {
             $series->setTitle($title, $locale);
         }
+        $series->setProperty($property, $value);
 
-        $series->setProperty($spatial ? 'opencastspatial' : 'opencast', $properties);
-
-        $this->dm->persist($series);
-        $this->dm->flush();
+        $this->documentManager->flush();
         $this->seriesDispatcher->dispatchCreate($series);
 
         return $series;
-    }
-
-    private function getMediaPackageField(array $mediaFields = [], string $field = '')
-    {
-        if ($mediaFields && $field && isset($mediaFields[$field])) {
-            return $mediaFields[$field];
-        }
-
-        return null;
-    }
-
-    private function getSpatialField(array $mp)
-    {
-        $metadata = $this->getMediaPackageField($mp, 'metadata');
-        if (!isset($metadata['catalog'])) {
-            return null;
-        }
-        if (isset($metadata['catalog']['type']) && 'dublincore/episode' === $metadata['catalog']['type']) {
-            return $this->opencastClient->getSpatialField($metadata['catalog']['url']);
-        }
-        foreach ($metadata['catalog'] as $catalog) {
-            if (isset($catalog['type']) && 'dublincore/episode' === $catalog['type']) {
-                return $this->opencastClient->getSpatialField($catalog['url']);
-            }
-        }
-
-        return null;
     }
 }

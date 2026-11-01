@@ -89,10 +89,6 @@
         <source>Cancel</source>
         <target state="translated">Annuler</target>
       </trans-unit>
-      <trans-unit id="uQjDk6r" resname="Cancel current search">
-        <source>Cancel current search</source>
-        <target state="translated">Annuler la recherche en cours</target>
-      </trans-unit>
       <trans-unit id="tUVjur1" resname="Cancel search">
         <source>Cancel search</source>
         <target state="needs-translation">Cancel search</target>
@@ -120,10 +116,6 @@
       <trans-unit id="OhTMa7h" resname="opencast track info">
         <source>opencast track info</source>
         <target state="needs-translation">opencast track info</target>
-      </trans-unit>
-      <trans-unit id="0yYyluM" resname="URLs for images">
-        <source>URLs for images</source>
-        <target state="needs-translation">URLs for images</target>
       </trans-unit>
       <trans-unit id="nvB3oSM" resname="Presenter">
         <source>Presenter</source>

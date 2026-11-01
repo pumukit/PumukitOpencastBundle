@@ -18,10 +18,11 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "pumukit/pumukit": "^6.0",
+        "php": "^8.5",
+        "ext-curl": "*",
         "ext-simplexml": "*",
-        "ext-libxml": "*"
+        "ext-libxml": "*",
+        "pumukit/pumukit": "^6.0"
     },
     "autoload": {
         "psr-4": {

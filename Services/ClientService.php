@@ -5,751 +5,203 @@ declare(strict_types=1);
 namespace Pumukit\OpencastBundle\Services;
 
 use Psr\Log\LoggerInterface;
-use Pumukit\SchemaBundle\Document\Series;
+use Psr\Log\NullLogger;
+use Pumukit\OpencastBundle\Api\OpencastApiInterface;
+use Pumukit\OpencastBundle\Api\OpencastApiResolver;
+use Pumukit\OpencastBundle\Api\OpencastUser;
+use Pumukit\OpencastBundle\Api\SearchResult;
+use Pumukit\OpencastBundle\Client\OpencastHttpClient;
+use Pumukit\OpencastBundle\Exception\OpencastException;
+use Pumukit\OpencastBundle\MediaPackage\MediaPackage;
 use Pumukit\SchemaBundle\Document\User;
-use Pumukit\SchemaBundle\Security\RoleHierarchy;
-use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Security\Core\Role\RoleHierarchyInterface;
 
 class ClientService
 {
-    public const HTTP_CONNECT_TIMEOUT = 1;
-    public const HTTP_TIMEOUT = 10;
-
-    private $host;
-    private $username;
-    private $password;
-    private $player;
-    private $scheduler;
-    private $dashboard;
-    private $adminUrl;
-    private $deleteArchiveMediaPackage;
-    private $deletionWorkflowName;
-    private $manageOpencastUsers;
-    private $insecure;
-    private $logger;
-    private $roleHierarchy;
-
     public function __construct(
-        string $host = '',
-        string $username = '',
-        string $password = '',
-        string $player = '/engage/ui/watch.html',
-        string $scheduler = '/admin/index.html#/recordings',
-        string $dashboard = '/dashboard/index.html',
-        bool $deleteArchiveMediaPackage = false,
-        string $deletionWorkflowName = 'delete-archive',
-        bool $manageOpencastUsers = false,
-        bool $insecure = false,
-        ?string $adminUrl = null,
-        ?LoggerInterface $logger = null,
-        ?RoleHierarchy $roleHierarchy = null
-    ) {
-        $this->logger = $logger;
+        private readonly OpencastHttpClient $http,
+        private readonly OpencastApiResolver $resolver,
+        private readonly ?RoleHierarchyInterface $roleHierarchy = null,
+        private readonly LoggerInterface $logger = new NullLogger(),
+        private readonly string $player = '/paella7/ui/watch.html',
+        private readonly string $scheduler = '/admin-ui/index.html#/events/events',
+        private readonly bool $enabled = true,
+        private readonly bool $manageOpencastUsers = false,
+    ) {}
 
-        if (!function_exists('curl_init')) {
-            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__
-                                    .') The function "curl_init" does not exist. '
-                                    .'Curl is required to execute remote commands.');
-
-            throw new \RuntimeException('Curl is required to execute remote commands.');
-        }
-
-        $this->host = (str_ends_with($host, '/')) ? substr($host, 0, -1) : $host;
-        $this->username = $username;
-        $this->password = $password;
-        $this->player = $player;
-        $this->scheduler = $scheduler;
-        $this->dashboard = $dashboard;
-        $this->deleteArchiveMediaPackage = $deleteArchiveMediaPackage;
-        $this->deletionWorkflowName = $deletionWorkflowName;
-        $this->manageOpencastUsers = $manageOpencastUsers;
-        $this->insecure = $insecure;
-        $this->adminUrl = $adminUrl;
-        $this->roleHierarchy = $roleHierarchy;
+    public function isEnabled(): bool
+    {
+        return $this->enabled;
     }
 
     public function getUrl(): string
     {
-        return $this->host;
+        return $this->http->getHost();
+    }
+
+    public function getAdminUrl(): string
+    {
+        $this->checkEnabled();
+
+        return $this->http->getAdminUrl();
     }
 
     public function getPlayerUrl(): string
     {
-        return (str_starts_with($this->player, '/')) ? $this->host.$this->player : $this->player;
-    }
-
-    public function getAdminUrl(): ?string
-    {
-        if (null !== $this->adminUrl) {
-            return $this->adminUrl;
-        }
-
-        $output = $this->request('/info/components.json');
-        $decode = $this->decodeJson($output['var']);
-
-        if (isset($decode['admin'])
-            && filter_var($decode['admin'], FILTER_VALIDATE_URL)) {
-            $this->adminUrl = $decode['admin'];
-        }
-
-        return $this->adminUrl;
+        return str_starts_with($this->player, '/') ? $this->http->getHost().$this->player : $this->player;
     }
 
     public function getSchedulerUrl(): string
     {
-        return (str_starts_with($this->scheduler, '/')) ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
+        return str_starts_with($this->scheduler, '/') ? $this->getAdminUrl().$this->scheduler : $this->scheduler;
     }
 
-    public function getDashboardUrl(): string
+    public function getVersion(): string
     {
-        return (str_starts_with($this->dashboard, '/')) ? $this->getAdminUrl().$this->dashboard : $this->dashboard;
+        $this->checkEnabled();
+
+        return $this->resolver->getVersion($this->http);
     }
 
-    public function getMediaPackages(string $query, int $limit, int $offset)
+    public function checkSupported(): string
     {
-        $output = $this->request('/search/episode.json?'.($query ? 'q='.urlencode($query).'&' : '').'limit='.$limit.'&offset='.$offset.'&sort=modified%20desc');
+        $this->api();
 
-        if (200 !== $output['status']) {
-            return false;
-        }
-        $decode = $this->decodeJson($output['var']);
-
-        $return = [0, []];
-
-        if (0 === (int) $decode['total']) {
-            return $return;
-        }
-
-        $return[0] = $decode['total'];
-        if (isset($decode['result'][0])) {
-            $mediaPackages = [];
-            foreach ($decode['result'] as $media) {
-                $media['mediapackage']['modified'] = $media['modified'];
-                $mediaPackages[] = $media['mediapackage'];
-            }
-
-            $return[1] = $mediaPackages;
-        } else {
-            $decode['result']['mediapackage']['modified'] = $decode['result']['modified'];
-            $return[1][] = $decode['result']['mediapackage'];
-        }
-
-        return $return;
+        return $this->getVersion();
     }
 
-    public function getMediaPackage(string $id)
+    public function getMediaPackages(string $query, int $limit, int $offset): SearchResult
     {
-        $output = $this->request('/search/episode.json?id='.$id);
-
-        if (200 !== $output['status']) {
-            return null;
-        }
-        $decode = $this->decodeJson($output['var']);
-
-        if (0 === (int) $decode['total']) {
-            return null;
-        }
-        if (isset($decode['result'][0])) {
-            return $decode['result'][0]['mediapackage'];
-        }
-
-        return $decode['result']['mediapackage'];
+        return $this->api()->searchMediaPackages($this->http, $query, $limit, $offset);
     }
 
-    public function getMasterMediaPackage(string $id): ?array
+    public function getMediaPackage(string $id): ?MediaPackage
     {
-        $version = $this->getOpencastVersion();
-
-        if ($version >= '3.0.0') {
-            return $this->getMediaPackageFromAssets($id);
-        }
-
-        if ($version >= '2.0.0') {
-            return $this->getMediaPackageFromArchive($id);
-        }
-
-        if ($version >= '1.4.0' && $version < '1.7.0') {
-            return $this->getMediaPackageFromArchive($id);
-        }
-
-        if (0 === strpos($version, '1.2')) {
-            return $this->getMediaPackageFromWorkflow($id);
-        }
-
-        throw new \Exception('There is no case for this version of Opencast ('.$version.')');
+        return $this->api()->getMediaPackage($this->http, $id);
     }
 
-    public function getMediaPackageFromWorkflow(string $id): ?array
+    public function getMasterMediaPackage(string $id): ?MediaPackage
     {
-        $output = $this->request('/workflow/instances.json?state=SUCCEEDED&mp='.$id, [], 'GET', true);
-        if (Response::HTTP_OK === (int) $output['status']) {
-            $decode = $this->decodeJson($output['var']);
-
-            if (isset($decode['workflows']['workflow']['mediapackage'])) {
-                return $decode['workflows']['workflow']['mediapackage'];
-            }
-
-            if (isset($decode['workflows']['workflow'][0]['mediapackage'])) {
-                return $decode['workflows']['workflow'][0]['mediapackage'];
-            }
-        }
-
-        return null;
-    }
-
-    public function getMediaPackageFromAssets(string $id): ?array
-    {
-        $output = $this->request('/assets/episode/'.$id, [], 'GET', true);
-        if (Response::HTTP_OK === (int) $output['status']) {
-            return $this->decodeXML($output);
-        }
-
-        return null;
-    }
-
-    public function getMediaPackageFromArchive(string $id)
-    {
-        // NOTE: BC for OC 1.4 to 1.6
-        $output = $this->request('/episode/episode.json?id='.$id, [], 'GET', true);
-        // NOTE: When the above url returns 404, THIS ALWAYS FAILS!! Since it's a GET request, the request() function throws an exception, and the lines below are never executed
-        // In other words, we gotta do a try {} catch if we wanted to support OC 2.x
-        if (Response::HTTP_OK !== $output['status']) {
-            // NOTE: BC for OC 2.x
-            $output = $this->request('/archive/episode.json?id='.$id, [], 'GET', true);
-            if (Response::HTTP_OK !== $output['status']) {
-                return false;
-            }
-        }
-
-        $decode = $this->decodeJson($output['var']);
-
-        if (0 === (int) $decode['total']) {
-            return false;
-        }
-        if ($decode['limit'] > 1) {
-            return $decode['result'][0]['mediapackage'];
-        }
-
-        return $decode['result']['mediapackage'];
-    }
-
-    public function applyWorkflowToMediaPackages(array $mediaPackagesIds = [], string $workflowName = ''): bool
-    {
-        if (!$workflowName || ($workflowName === $this->deletionWorkflowName)) {
-            $workflowName = $this->deletionWorkflowName;
-            if (!$this->deleteArchiveMediaPackage) {
-                throw new \Exception('Not allowed to delete media packages from archive');
-            }
-        }
-
-        if (!$mediaPackagesIds) {
-            throw new \Exception('No media packages given.');
-        }
-
-        $request = '/admin-ng/tasks/new';
-        $opencastVersion = $this->getOpencastVersion();
-        $configurationParameters = [
-            'retractFromEngage' => 'true',
-            'retractFromAws' => 'false',
-            'retractFromApi' => 'true',
-            'retractPreview' => 'true',
-            'retractFromOaiPmh' => 'true',
-            'retractFromYouTube' => 'false',
-        ];
-
-        // SUPPORT FOR OPENCAST < 2.0
-        if ($opencastVersion < '2.0.0') {
-            $request = '/episode/apply/'.$workflowName;
-
-            $mediaPackageIdsParameter = '';
-            foreach ($mediaPackagesIds as $index => $id) {
-                $mediaPackageIdsParameter .= $id;
-                if ($index < (count($mediaPackagesIds) - 1)) {
-                    $mediaPackageIdsParameter .= ',+';
-                }
-            }
-            $parameters = [
-                'mediaPackageIds' => $mediaPackageIdsParameter,
-                'engage' => 'Matterhorn+Engage+Player',
-            ];
-        // SUPPORT FOR OPENCAST < 6.0
-        } elseif ($opencastVersion < '6.0.0') {
-            $parameters = [
-                'metadata' => json_encode(
-                    [
-                        'workflow' => $workflowName,
-                        'configuration' => $configurationParameters,
-                        'eventIds' => $mediaPackagesIds,
-                    ],
-                    JSON_THROW_ON_ERROR
-                ),
-            ];
-        // DEFAULT
-        } else {
-            $configurationsById = [];
-            foreach ($mediaPackagesIds as $mediaPackageId) {
-                $configurationsById[$mediaPackageId] = $configurationParameters;
-            }
-            $parameters = [
-                'metadata' => json_encode(
-                    [
-                        'workflow' => $workflowName,
-                        'configuration' => $configurationsById,
-                    ],
-                    JSON_THROW_ON_ERROR
-                ),
-            ];
-        }
-
-        $output = $this->request($request, $parameters, 'POST', true);
-
-        if (!in_array((int) $output['status'], [
-            Response::HTTP_CREATED,
-            Response::HTTP_NO_CONTENT,
-        ], true)) {
-            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status'].' - params:'.json_encode($parameters, JSON_THROW_ON_ERROR));
-
-            return false;
-        }
-
-        return true;
-    }
-
-    public function getWorkflowStatistics()
-    {
-        $request = '/workflow/statistics.json';
-
-        $output = $this->request($request, [], 'GET', true);
-
-        if (Response::HTTP_OK !== $output['status']) {
-            return false;
-        }
-
-        return $this->decodeJson($output['var']);
-    }
-
-    public function getCountedWorkflowInstances(string $id = '', string $count = '', string $workflowName = '')
-    {
-        $request = '/workflow/instances.json?state=SUCCEEDED'.($workflowName ? '&workflowdefinition='.$workflowName : '').($id ? '&mp='.$id : '').($count ? '&count='.$count : '');
-
-        $output = $this->request($request, [], 'GET', true);
-
-        if (Response::HTTP_OK !== $output['status']) {
-            return false;
-        }
-
-        return $this->decodeJson($output['var']);
-    }
-
-    public function stopWorkflow(array $workflow = []): bool
-    {
-        if ($this->deleteArchiveMediaPackage && isset($workflow['id'])) {
-            $request = '/workflow/stop';
-            $params = ['id' => $workflow['id']];
-            $output = $this->request($request, $params, 'POST', true);
-
-            return !(Response::HTTP_OK !== $output['status']);
-        }
-
-        return false;
-    }
-
-    public function createUser(User $user): bool
-    {
-        if ($this->manageOpencastUsers) {
-            $request = '/user-utils/';
-            $roles = $this->getUserRoles($user);
-            $params = [
-                'username' => $user->getUsername(),
-                'password' => 'pumukit',
-                'roles' => $roles,
-            ];
-            $output = $this->request($request, $params, 'POST', true);
-            if (Response::HTTP_CREATED !== (int) $output['status']) {
-                if (Response::HTTP_CONFLICT === (int) $output['status']) {
-                    throw new \Exception('Conflict '.$output['status'].'. An user with this username "'.$user->getUsername().'" already exist.', 1);
-                }
-
-                throw new \Exception('Error '.$output['status'].' Processing Request on Creating User "'.$user->getUsername().'"', 1);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function updateUser(User $user): bool
-    {
-        if ($this->manageOpencastUsers) {
-            $request = '/user-utils/'.$user->getUsername().'.json';
-            $roles = $this->getUserRoles($user);
-            $params = [
-                'username' => $user->getUsername(),
-                'password' => 'pumukit',
-                'roles' => $roles,
-            ];
-            $output = $this->request($request, $params, 'PUT', true);
-            if (Response::HTTP_OK !== (int) $output['status']) {
-                if (Response::HTTP_NOT_FOUND === (int) $output['status']) {
-                    throw new \Exception('Error '.$output['status'].'. User with this username "'.$user->getUsername().'" not found.', 1);
-                }
-
-                throw new \Exception('Error '.$output['status'].' Processing Request on Updating User "'.$user->getUsername().'"', 1);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function deleteUser(User $user): bool
-    {
-        if ($this->manageOpencastUsers) {
-            $request = '/user-utils/'.$user->getUsername().'.json';
-            $output = $this->request($request, '', 'DELETE', true);
-            if (Response::HTTP_OK !== (int) $output['status']) {
-                if (Response::HTTP_NOT_FOUND === (int) $output['status']) {
-                    throw new \Exception('Error '.$output['status'].'. User with this username "'.$user->getUsername().'" not found.', 1);
-                }
-
-                throw new \Exception('Error '.$output['status'].' Processing Request on Deleting User "'.$user->getUsername().'"', 1);
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    public function updateOpencastSeries(Series $series): array
-    {
-        $seriesOpencastId = $series->getProperty('opencast');
-        if (null === $seriesOpencastId) {
-            throw new \Exception('Error trying to update an Opencast series. Error: No opencast ID', 404);
-        }
-        $metadata = [
-            [
-                'id' => 'title',
-                'value' => $this->cleanText($series->getTitle()),
-            ],
-            [
-                'id' => 'description',
-                'value' => $this->cleanText($series->getDescription()),
-            ],
-        ];
-        // There is an Opencast API error. The 'type' parameter should be taken from the form,
-        //  but it is taken from the query. Added 'type' in both ways for good measure.
-        $type = 'dublincore/series';
-        $params = [
-            'metadata' => json_encode($metadata),
-            'type' => $type,
-        ];
-        $requestUrl = "/api/series/{$seriesOpencastId}/metadata";
-        $requestUrl .= "?type={$type}";
-        $output = $this->request($requestUrl, $params, 'PUT', true);
-        if (Response::HTTP_OK !== (int) $output['status']) {
-            throw new \Exception('Error trying to update an Opencast series metadata. Error '.$output['status'].':  '.$output['error'].' : '.$output['var'], $output['status']);
-        }
-
-        return $output;
-    }
-
-    public function createOpencastSeries(Series $series): array
-    {
-        $metadata = [
-            [
-                'flavor' => 'dublincore/series',
-                'fields' => [
-                    [
-                        'id' => 'title',
-                        'value' => $this->cleanText($series->getTitle()),
-                    ],
-                    [
-                        'id' => 'description',
-                        'value' => $this->cleanText($series->getDescription()),
-                    ],
-                ],
-            ],
-        ];
-        $acl = [];
-        $params = [
-            'metadata' => json_encode($metadata),
-            'acl' => json_encode($acl),
-        ];
-        $requestUrl = '/api/series';
-        $output = $this->request($requestUrl, $params, 'POST', true);
-        if (Response::HTTP_CREATED !== (int) $output['status']) {
-            throw new \Exception('Error trying to create an Opencast series. Error '.$output['status'].':  "'.$output['error'].' : '.$output['var'], $output['status']);
-        }
-
-        return $output;
-    }
-
-    public function deleteOpencastSeries(Series $series): ?array
-    {
-        $seriesOpencastId = $series->getProperty('opencast');
-        if (null === $seriesOpencastId) {
-            return null;
-        }
-        $requestUrl = "/api/series/{$seriesOpencastId}";
-        $output = $this->request($requestUrl, [], 'DELETE', true);
-        if (Response::HTTP_NO_CONTENT !== (int) $output['status']) {
-            throw new \Exception('Error trying to delete an Opencast series. Error '.$output['status'].':  "'.$output['error'].' : '.$output['var'], $output['status']);
-        }
-
-        return $output;
-    }
-
-    public function getOpencastSeries($series)
-    {
-        $seriesOpencastId = $series->getProperty('opencast');
-        if (null === $seriesOpencastId) {
-            return null;
-        }
-        $requestUrl = "/api/series/{$seriesOpencastId}";
-
-        try {
-            $output = $this->request($requestUrl, [], 'GET', true);
-        } catch (\Exception $e) {
-            return null;
-        }
-
-        return $output;
-    }
-
-    public function getSpatialField(?string $url)
-    {
-        if (empty($url)) {
-            return null;
-        }
-
-        if (0 === strpos($url, $this->host)) {
-            $path = parse_url($url, PHP_URL_PATH);
-            if (!$path) {
-                return null;
-            }
-            $response = $this->request($path);
-        } else {
-            if ($this->insecure) {
-                $dargs = [
-                    'ssl' => ['verify_peer' => false, 'verify_peer_name' => false],
-                ];
-                $response = ['var' => file_get_contents($url, false, stream_context_create($dargs))];
-            } else {
-                $response = ['var' => file_get_contents($url)];
-            }
-        }
-
-        if (!is_string($response['var'])) {
-            return null;
-        }
-
-        $start = strrpos($response['var'], '<dcterms:spatial>');
-        $end = strrpos($response['var'], '</dcterms:spatial>');
-
-        if ((false !== $start) && (false !== $end)) {
-            $start += strlen('<dcterms:spatial>');
-
-            return substr($response['var'], $start, $end - $start);
-        }
-
-        return null;
+        return $this->api()->getArchivedMediaPackage($this->http, $id);
     }
 
     public function removeEvent(string $id): void
     {
-        $opencastVersion = $this->getOpencastVersion();
-        if (version_compare($opencastVersion, '9.0.0', '<')) {
-            $output = $this->request('/admin-ng/event/'.$id, [], 'DELETE', true);
-            if (!$output) {
-                throw new \Exception("Can't access to admin-ng/event");
-            }
-        } else {
-            $output = $this->request('/api/events/'.$id, [], 'DELETE', true);
-
-            if (!in_array((int) $output['status'], [
-                Response::HTTP_ACCEPTED,
-                Response::HTTP_NO_CONTENT,
-            ], true)) {
-                $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__.') Opencast error. Status != 204. - error: '.$output['error'].' - var: '.$output['var'].' - status: '.$output['status']);
-
-                throw new \Exception("Can't access to api/events");
-            }
-        }
+        $this->api()->deleteEvent($this->http, $id);
     }
 
-    public function getOpencastVersion()
+    public function getSucceededWorkflowMediaPackageIds(string $workflowDefinition): array
     {
-        $output = $this->request('/info/components.json');
-        if (!$output) {
-            throw new \Exception("Can't access to /info/components.json");
-        }
-        $decode = $this->decodeJson($output['var']);
-        if (isset($decode['rest'][0]['version'])) {
-            return $decode['rest'][0]['version'];
-        }
-
-        throw new \Exception("Cant't recognize ['rest'][0]['version'] from /info/components.json");
+        return $this->api()->getSucceededWorkflowMediaPackageIds($this->http, $workflowDefinition);
     }
 
-    public function getGalicasterProperties(string $id, int $mpVersion = 1): array
+    public function getSeries(string $id): ?array
     {
-        $url = sprintf('/assets/assets/%s/galicaster-properties/%d/galicaster.json', $id, $mpVersion);
-
-        return $this->getGalicasterPropertiesFromUrl($url);
+        return $this->api()->getSeries($this->http, $id);
     }
 
-    public function getGalicasterPropertiesFromUrl(string $url): array
+    public function createSeries(string $title, string $description): string
     {
-        $url = parse_url($url, PHP_URL_PATH);
+        return $this->api()->createSeries($this->http, $title, $description);
+    }
+
+    public function updateSeries(string $id, string $title, string $description): void
+    {
+        $this->api()->updateSeries($this->http, $id, $title, $description);
+    }
+
+    public function deleteSeries(string $id): void
+    {
+        $this->api()->deleteSeries($this->http, $id);
+    }
+
+    public function createUser(User $user): bool
+    {
+        if (!$this->manageOpencastUsers) {
+            return false;
+        }
+        $this->api()->createUser($this->http, $this->opencastUser($user));
+
+        return true;
+    }
+
+    public function updateUser(User $user): bool
+    {
+        if (!$this->manageOpencastUsers) {
+            return false;
+        }
+        $this->api()->updateUser($this->http, $this->opencastUser($user));
+
+        return true;
+    }
+
+    public function deleteUser(User $user): bool
+    {
+        if (!$this->manageOpencastUsers) {
+            return false;
+        }
+        $this->api()->deleteUser($this->http, $user->getUsername());
+
+        return true;
+    }
+
+    public function getGalicasterProperties(MediaPackage $mediaPackage): array
+    {
+        $url = $mediaPackage->galicasterPropertiesUrl();
+        if (null === $url) {
+            return [];
+        }
 
         try {
-            $output = $this->request($url, [], 'GET', true);
-        } catch (\Exception $e) {
-            $this->logger->warning(sprintf('Error processing request to get galicaster-properties: %s | Not setting Galicaster properties.', $e->getMessage()));
+            return $this->http->getUrl($url)->expect(200)->json();
+        } catch (OpencastException $exception) {
+            $this->logger->warning('Galicaster properties not read', ['mediapackage' => $mediaPackage->id(), 'url' => $url, 'error' => $exception->getMessage()]);
 
             return [];
         }
-        if (!$output) {
-            $this->logger->warning(sprintf('Url for galicaster properties returned an empty response: %s', $url));
-
-            return [];
-        }
-
-        return $this->decodeJson($output['var']);
     }
 
-    private function request(string $path, $params = [], string $method = 'GET', bool $useAdminUrl = false): array
+    public function getSpatialField(MediaPackage $mediaPackage): ?string
     {
-        if ($useAdminUrl) {
-            $requestUrl = $this->getAdminUrl().$path;
-        } else {
-            $requestUrl = $this->host.$path;
+        $url = $mediaPackage->episodeCatalogUrl();
+        if (null === $url) {
+            return null;
         }
 
-        $fields = is_array($params) ? http_build_query($params) : $params;
+        try {
+            $body = $this->http->getUrl($url)->expect(200)->body;
+        } catch (OpencastException $exception) {
+            $this->logger->warning('Episode catalog not read', ['mediapackage' => $mediaPackage->id(), 'url' => $url, 'error' => $exception->getMessage()]);
 
-        $header = ['X-Requested-Auth: Digest',
-            'X-Opencast-Matterhorn-Authorization: true', ];
-
-        $this->logger->debug(self::class.'['.__FUNCTION__.'](line '.__LINE__
-                                .') Requested URL "'.$requestUrl.'" '
-                                .'with method "'.$method.'" '
-                                .'and params: '.$fields);
-
-        if (false === $request = curl_init($requestUrl)) {
-            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__
-                                    .') Unable to create a new curl handle with URL: '.$requestUrl.'.');
-
-            throw new \RuntimeException('Unable to create a new curl handle with URL: '.$requestUrl.'.');
+            return null;
         }
 
-        switch ($method) {
-            case 'GET':
-                break;
-
-            case 'POST':
-                curl_setopt($request, CURLOPT_POST, 1);
-                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
-
-                break;
-
-            case 'PUT':
-                $header[] = 'Content-Length: '.strlen($fields);
-                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'PUT');
-                curl_setopt($request, CURLOPT_POSTFIELDS, $fields);
-
-                break;
-
-            case 'DELETE':
-                curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'DELETE');
-
-                break;
-
-            default:
-                throw new \Exception('Method "'.$method.'" not allowed.');
+        if (!preg_match('#<dcterms:spatial[^>]*>(.*?)</dcterms:spatial>#s', $body, $matches)) {
+            return null;
         }
+        $spatial = trim(html_entity_decode($matches[1], ENT_QUOTES | ENT_XML1));
 
-        // NOTE: use - curl_setopt($request, CURLOPT_VERBOSE, true); to debug
-
-        curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($request, CURLOPT_FOLLOWLOCATION, false);
-        curl_setopt($request, CURLOPT_CONNECTTIMEOUT, self::HTTP_CONNECT_TIMEOUT);
-        curl_setopt($request, CURLOPT_TIMEOUT, self::HTTP_TIMEOUT);
-
-        if ($this->insecure) {
-            curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
-        }
-
-        if ('' !== $this->username) {
-            curl_setopt($request, CURLOPT_HTTPAUTH, CURLAUTH_DIGEST);
-            curl_setopt($request, CURLOPT_USERPWD, $this->username.':'.$this->password);
-            curl_setopt($request, CURLOPT_HTTPHEADER, $header);
-        }
-
-        $output = [];
-        $output['var'] = curl_exec($request);
-        $output['error'] = curl_error($request);
-        $output['status'] = curl_getinfo($request, CURLINFO_HTTP_CODE);
-
-        curl_close($request);
-
-        if (('GET' === $method) && Response::HTTP_OK !== (int) $output['status']) {
-            $this->logger->error(self::class.'['.__FUNCTION__.'](line '.__LINE__.') Error '.$output['error'].' Status '.$output['status'].' Processing Request : '.$requestUrl.'.');
-
-            throw new \Exception(sprintf('Error "%s", Status %s, Processing Request "%s"', $output['error'], $output['status'], $requestUrl), 1);
-        }
-
-        return $output;
+        return '' === $spatial ? null : $spatial;
     }
 
-    private function decodeJson(string $jsonString = ''): array
+    private function api(): OpencastApiInterface
     {
-        $decode = json_decode($jsonString, true, 512, JSON_THROW_ON_ERROR);
-        if (!is_array($decode)) {
-            throw new \Exception('Opencast communication error');
-        }
+        $this->checkEnabled();
 
-        return $decode;
+        return $this->resolver->getApi($this->http);
     }
 
-    private function decodeXML(array $xmlString = []): array
+    private function checkEnabled(): void
     {
-        $decode = null;
-        if (is_array($xmlString)) {
-            $xml = simplexml_load_string($xmlString['var'], 'SimpleXMLElement', LIBXML_NOCDATA);
-            $json = json_encode($xml, JSON_THROW_ON_ERROR);
-            $decode = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+        if (!$this->enabled) {
+            throw new OpencastException('Opencast is not enabled');
         }
-
-        if (!is_array($decode)) {
-            throw new \Exception('Opencast communication error');
-        }
-
-        return $decode;
     }
 
-    private function getUserRoles(User $user): string
+    private function opencastUser(User $user): OpencastUser
     {
-        if ($this->roleHierarchy) {
-            $roles = $this->roleHierarchy->getReachableRoleNames($user->getRoles());
-        } else {
-            $roles = $user->getRoles();
-        }
+        $roles = $this->roleHierarchy ? $this->roleHierarchy->getReachableRoleNames($user->getRoles()) : $user->getRoles();
 
-        return '["'.implode('","', $roles).'"]';
-    }
-
-    private function cleanText(string $text): string
-    {
-        $cleantext = strip_tags($text);
-
-        $text = preg_replace('/[^a-zA-Z0-9\s.,!?¿¡]/u', '', $cleantext);
-
-        $text = preg_replace('/\s+/', ' ', $text);
-
-        return trim($text);
+        return new OpencastUser($user->getUsername(), (string) $user->getFullname(), (string) $user->getEmail(), array_values(array_unique($roles)));
     }
 }

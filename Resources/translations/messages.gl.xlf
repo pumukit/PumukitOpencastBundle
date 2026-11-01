@@ -89,10 +89,6 @@
         <source>Cancel</source>
         <target state="translated">Cancelar</target>
       </trans-unit>
-      <trans-unit id="uQjDk6r" resname="Cancel current search">
-        <source>Cancel current search</source>
-        <target state="translated">Cancelar a busca actual</target>
-      </trans-unit>
       <trans-unit id="tUVjur1" resname="Cancel search">
         <source>Cancel search</source>
         <target state="translated">Cancelar busca</target>
@@ -121,10 +117,6 @@
         <source>opencast track info</source>
         <target state="translated">información da pista de opencast</target>
       </trans-unit>
-      <trans-unit id="0yYyluM" resname="URLs for images">
-        <source>URLs for images</source>
-        <target state="translated">URLs para imaxes</target>
-      </trans-unit>
       <trans-unit id="nvB3oSM" resname="Presenter">
         <source>Presenter</source>
         <target state="translated">Relator</target>
@@ -152,6 +144,14 @@
       <trans-unit id="CscPjL9" resname="i18n.one.Series">
         <source>i18n.one.Series</source>
         <target>serie</target>
+      </trans-unit>
+      <trans-unit id="USxTSOY" resname="This version of Opencast is not supported.">
+        <source>This version of Opencast is not supported.</source>
+        <target state="translated">Esta versión de Opencast non está soportada.</target>
+      </trans-unit>
+      <trans-unit id="s2UNBjr" resname="Opencast recording imported">
+        <source>Opencast recording imported</source>
+        <target state="translated">Gravación de Opencast importada</target>
       </trans-unit>
     </body>
   </file>

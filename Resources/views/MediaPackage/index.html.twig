@@ -1,24 +1,120 @@
 {% extends '@PumukitNewAdmin/layout.html.twig' %}
 
 {% block body %}
-
     <h3 class="cab_body_div">
-        <ul class="breadcrumb" style="margin-bottom: 5px;">
-            <li class="active">{% trans %}Opencast Importer{% endtrans %}</li>
+        <ul class="breadcrumb pmk-margin-bottom-5">
+            <li class="active breadcrumb-item">{% trans %}Opencast Importer{% endtrans %}</li>
         </ul>
     </h3>
 
+    {% for type, messages in app.flashes(['success', 'error']) %}
+        {% for message in messages %}
+            <div class="alert alert-{{ type == 'error' ? 'danger' : 'success' }} alert-dismissible" role="alert">
+                {{ message|trans }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="{% trans %}Close{% endtrans %}"></button>
+            </div>
+        {% endfor %}
+    {% endfor %}
+
     <div class="row">
         <div class="col-md-10">
-            <div class="well">
-                <div id="list_users">
-                    {% include '@PumukitOpencast/MediaPackage/list.html.twig' %}
+            <div class="pmk-well">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead>
+                        <tr>
+                            <th id="th-actions"></th>
+                            <th id="th-img">{% trans %}Img{% endtrans %}</th>
+                            <th id="th-name">{% trans %}Name{% endtrans %}</th>
+                            <th id="th-series">{% trans %}i18n.one.Series{% endtrans %}</th>
+                            <th id="th-duration">{% trans %}Duration{% endtrans %}</th>
+                            <th id="th-date">{% trans %}Date{% endtrans %}</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for mediaPackage in mediaPackages %}
+                            <tr>
+                                <td headers="th-actions" class="text-nowrap">
+                                    <a title="{% trans %}play in opencast{% endtrans %}" target="_blank" rel="noopener" href="{{ player }}?id={{ mediaPackage.id }}">{% trans %}Play{% endtrans %}</a>
+                                    &nbsp;|&nbsp;
+                                    {% if imported[mediaPackage.id] is defined %}
+                                        <a title="{% trans %}View on Pumukit{% endtrans %}" href="{{ path('pumukitnewadmin_mms_shortener', {id: imported[mediaPackage.id]}) }}">{% trans %}Imported{% endtrans %}</a>
+                                    {% else %}
+                                        <span class="dropdown">
+                                            <a href="#" id="import_{{ mediaPackage.id }}" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">{% trans %}Import{% endtrans %}</a>
+                                            <ul class="dropdown-menu" aria-labelledby="import_{{ mediaPackage.id }}">
+                                                {% for invert in [false, true] %}
+                                                    <li>
+                                                        <form method="post" action="{{ path('pumukitopencast_import', {id: mediaPackage.id}) }}">
+                                                            <input type="hidden" name="_token" value="{{ csrf_token('opencast_import') }}">
+                                                            <input type="hidden" name="page" value="{{ mediaPackages.currentPage }}">
+                                                            <input type="hidden" name="invert" value="{{ invert ? 1 : 0 }}">
+                                                            <button type="submit" class="dropdown-item">
+                                                                {% if invert %}
+                                                                    <i class="fa-solid fa-align-right"></i> {% trans %}Import inverted{% endtrans %} (CAMERA-SCREEN)
+                                                                {% else %}
+                                                                    <i class="fa-solid fa-align-left"></i> {% trans %}Import{% endtrans %}
+                                                                {% endif %}
+                                                            </button>
+                                                        </form>
+                                                    </li>
+                                                {% endfor %}
+                                            </ul>
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td headers="th-img">
+                                    <img alt="" class="mini" src="{{ mediaPackage.thumbnail|default(asset('bundles/pumukitnewadmin/images/none.jpg')) }}" height="23" width="30">
+                                </td>
+                                <td headers="th-name">
+                                    {{ mediaPackage.title }}
+                                    <div class="text-body-secondary small">{{ mediaPackage.id }}</div>
+                                </td>
+                                <td headers="th-series">{{ mediaPackage.seriesTitle }}</td>
+                                <td headers="th-duration">{{ (mediaPackage.duration // 1000)|duration_string }}</td>
+                                <td headers="th-date">{{ mediaPackage.modified ? mediaPackage.modified|date('Y/m/d') : '' }}</td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td colspan="6">{% trans %}There are no mediapackages with those values.{% endtrans %}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                        <tfoot>
+                        <tr>
+                            <td colspan="6">
+                                <div class="row">
+                                    <div class="col-md-8">
+                                        {{ "{0} Media Packages |{1} Media Package|]1,Inf] Media Packages"|trans({'%count%': mediaPackages.nbResults}) }}
+                                        <span class="text-body-secondary small">&middot; Opencast {{ version }}</span>
+                                        {% if query %}
+                                            <a href="{{ path('pumukitopencast', {reset: 1}) }}">{% trans %}Cancel search{% endtrans %}</a>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        {{ pagerfanta(mediaPackages, 'twitter_bootstrap5', {css_container_class: 'pagination pagination-sm justify-content-end', routeName: 'pumukitopencast'}) }}
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        </tfoot>
+                    </table>
                 </div>
             </div>
         </div>
         <div class="col-md-2">
-            {% include '@PumukitOpencast/MediaPackage/filters.html.twig' %}
+            <div class="pmk-well">
+                <form action="{{ path('pumukitopencast') }}" method="get">
+                    <div class="mb-3">
+                        <label for="opencast_query" class="form-label">{% trans %}Search{% endtrans %}:</label>
+                        <input type="search" class="form-control" name="q" id="opencast_query" value="{{ query }}">
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a class="btn btn-secondary" href="{{ path('pumukitopencast', {reset: 1}) }}">{% trans %}reset{% endtrans %}</a>
+                        <button class="btn btn-pumukit" type="submit">{% trans %}filter{% endtrans %}</button>
+                    </div>
+                </form>
+            </div>
         </div>
     </div>
-
 {% endblock %}

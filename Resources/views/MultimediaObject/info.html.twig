@@ -1,30 +1,23 @@
 <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
-    </button>
     <h4 class="modal-title" id="myModalLabel">{% trans %}opencast track info{% endtrans %}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans %}Close{% endtrans %}"></button>
 </div>
 <div class="modal-body">
-    <form>
-        <fieldset>
-            <legend hidden>{% trans %}URLs for images{% endtrans %}</legend>
-            <h2><strong>{% trans %}URLs for images{% endtrans %}:</strong></h2>
-            <div class="form-group">
-                <label for="embed" class="control-label">{% trans %}Presenter{% endtrans %}:</label>
-                <div class="content">
-                    <input type="text" onclick="this.select()" class="form-control" value="{{ presenter_delivery_url }}"
-                           disabled/>
-                </div>
-                <br/>
-                <label for="embed" class="control-label">{% trans %}Presentation{% endtrans %}:</label>
-                <div class="content">
-                    <input type="text" onclick="this.select()" class="form-control"
-                           value="{{ presentation_delivery_url }}" disabled/>
-                </div>
-            </div>
-        </fieldset>
-        <div class="modal-footer">
-            <button type="button" class="btn btn-pumukit btn-raised"
-                    data-dismiss="modal">{% trans %}OK{% endtrans %}</button>
-        </div>
-    </form>
+    <dl class="row">
+        <dt class="col-sm-3">Opencast</dt>
+        <dd class="col-sm-9">{{ mm.getProperty('opencast') }}</dd>
+        {% for label, track in {'Presenter': presenter, 'Presentation': presentation} %}
+            <dt class="col-sm-3">{{ label|trans }}</dt>
+            <dd class="col-sm-9">
+                {% if track %}
+                    <input type="text" class="form-control" readonly value="{{ track.storage().url().url() }}" aria-label="{{ label|trans }}">
+                {% else %}
+                    -
+                {% endif %}
+            </dd>
+        {% endfor %}
+    </dl>
+</div>
+<div class="modal-footer">
+    <button type="button" class="btn btn-pumukit" data-bs-dismiss="modal">{% trans %}OK{% endtrans %}</button>
 </div>

@@ -4,29 +4,22 @@ services:
     autoconfigure: true
     public:        true
     bind:
-      $host: '%pumukit_opencast.host%'
-      $username: '%pumukit_opencast.username%'
-      $password: '%pumukit_opencast.password%'
-      $adminUrl: '%pumukit_opencast.admin_host%'
-      $opencastShowImporterTab: '%pumukit_opencast.show_importer_tab%'
-      $opencastBatchImportInverted: '%pumukit_opencast.batchimport_inverted%'
-      $secondsToSleep: '%pumukit_opencast.seconds_to_sleep_on_commands%'
-      $opencastDeleteArchiveMediaPackage: '%pumukit_opencast.delete_archive_mediapackage%'
-      $otherLocales: '%pumukit.locales%'
-      $defaultTagImported: '%pumukit_opencast.default_tag_imported%'
-      $customLanguages: '%pumukit.customlanguages%'
+      $enabled: '%pumukit_opencast.enable%'
       $player: '%pumukit_opencast.player%'
       $scheduler: '%pumukit_opencast.scheduler%'
-      $dashboard: '%pumukit_opencast.dashboard%'
+      $opencastShowImporterTab: '%pumukit_opencast.show_importer_tab%'
+      $opencastBatchImportInverted: '%pumukit_opencast.batchimport_inverted%'
       $deleteArchiveMediaPackage: '%pumukit_opencast.delete_archive_mediapackage%'
-      $deletionWorkflowName: '%pumukit_opencast.deletion_workflow_name%'
       $manageOpencastUsers: '%pumukit_opencast.manage_opencast_users%'
-      $insecure: '%pumukit_opencast.insecure%'
-      $sbsConfiguration: '%pumukit_opencast.sbs%'
-      $urlMapping: '%pumukit_opencast.url_mapping%'
-      $defaultVars: '%pumukit_opencast.default_vars%'
+      $syncSeriesWithOpencast: '%pumukit_opencast.sync_series_with_opencast%'
       $errorIfFileNotExist: '%pumukit_opencast.error_if_file_not_exist%'
+      $urlMapping: '%pumukit_opencast.url_mapping%'
+      $sbsConfiguration: '%pumukit_opencast.sbs%'
+      $defaultTagImported: '%pumukit_opencast.default_tag_imported%'
+      $secondsToSleep: '%pumukit_opencast.seconds_to_sleep_on_commands%'
       $notificationConfig: '%pumukit_opencast.notifications%'
+      $otherLocales: '%pumukit.locales%'
+      $customLanguages: '%pumukit.customlanguages%'
       $locale: '%kernel.default_locale%'
 
   Pumukit\OpencastBundle\Controller\:
@@ -35,66 +28,59 @@ services:
 
   Pumukit\OpencastBundle\Command\:
     resource: '../../Command/'
-    tags: ['console.command']
+
+  Pumukit\OpencastBundle\Api\:
+    resource: '../../Api/'
+    exclude: '../../Api/{SearchResult,OpencastUser}.php'
+
+  Pumukit\OpencastBundle\Api\OpencastApiResolver:
+    arguments:
+      $apis: !tagged_iterator pumukit_opencast.api
+
+  Pumukit\OpencastBundle\Client\OpencastConnection:
+    arguments:
+      $host: '%pumukit_opencast.host%'
+      $adminHost: '%pumukit_opencast.admin_host%'
+      $username: '%pumukit_opencast.username%'
+      $password: '%pumukit_opencast.password%'
+      $insecure: '%pumukit_opencast.insecure%'
+
+  Pumukit\OpencastBundle\Client\OpencastHttpClient:
+    arguments:
+      $logger: '@monolog.logger.opencast'
 
   Pumukit\OpencastBundle\Services\ClientService:
-    class: Pumukit\OpencastBundle\Services\ClientService
+    arguments:
+      $logger: '@monolog.logger.opencast'
 
   pumukit_opencast.client:
     alias: Pumukit\OpencastBundle\Services\ClientService
     public: true
 
-  Pumukit\OpencastBundle\Services\OpencastService:
-    class: Pumukit\OpencastBundle\Services\OpencastService
+  Pumukit\OpencastBundle\Services\ClientServiceFactory: ~
+  Pumukit\OpencastBundle\Services\OpencastService: ~
+  Pumukit\OpencastBundle\Services\SeriesImportService: ~
+  Pumukit\OpencastBundle\Services\SeriesSyncService: ~
+  Pumukit\OpencastBundle\Services\OpencastImportService: ~
 
-  Pumukit\OpencastBundle\Services\SeriesImportService:
-    class: Pumukit\OpencastBundle\Services\SeriesImportService
+  Pumukit\OpencastBundle\MessageHandler\ImportNotificationHandler: ~
 
-  Pumukit\OpencastBundle\Services\OpencastImportService:
-    class: Pumukit\OpencastBundle\Services\OpencastImportService
+  Pumukit\OpencastBundle\EventListener\ImportNotificationListener:
+    tags:
+      - { name: kernel.event_listener, event: Pumukit\OpencastBundle\Event\ImportEvent, method: onImport }
 
   Pumukit\OpencastBundle\EventListener\RemoveListener:
-    class: Pumukit\OpencastBundle\EventListener\RemoveListener
     tags:
-      - { name: "kernel.event_listener", event: "multimediaobject.delete", method: "onMultimediaObjectDelete"}
+      - { name: kernel.event_listener, event: multimediaobject.delete, method: onMultimediaObjectDelete }
 
   Pumukit\OpencastBundle\EventListener\UserListener:
-    class: Pumukit\OpencastBundle\EventListener\UserListener
     tags:
-      - { name: "kernel.event_listener", event: "user.create", method: "onUserCreate"}
-      - { name: "kernel.event_listener", event: "user.update", method: "onUserUpdate"}
-      - { name: "kernel.event_listener", event: "user.delete", method: "onUserDelete"}
+      - { name: kernel.event_listener, event: user.create, method: onUserEvent }
+      - { name: kernel.event_listener, event: user.update, method: onUserEvent }
+      - { name: kernel.event_listener, event: user.delete, method: onUserEvent }
 
-  Pumukit\OpencastBundle\Services\NotificationService:
-    class: Pumukit\OpencastBundle\Services\NotificationService
-
-  Pumukit\OpencastBundle\Services\SeriesSyncService:
-    class: Pumukit\OpencastBundle\Services\SeriesSyncService
-
-  Pumukit\OpencastBundle\Services\WorkflowService:
-    class: Pumukit\OpencastBundle\Services\WorkflowService
-
-  Pumukit\OpencastBundle\Command\OpencastDeleteEmptyPersonalSeriesCommand:
-    class: Pumukit\OpencastBundle\Command\OpencastDeleteEmptyPersonalSeriesCommand
-
-  # =========================================================================
-  Pumukit\OpencastBundle\Application\Opencast\:
-    resource: '../../Application/Opencast/*'
-    exclude: '../../Application/Opencast/**/*Response.php'
-    autowire: true
-    autoconfigure: true
-    public: false
-
-  Pumukit\OpencastBundle\Infrastructure\Api\:
-    resource: '../../Infrastructure/Api/*'
-
-  Pumukit\OpencastBundle\Infrastructure\Http\:
-    resource: '../../Infrastructure/Http/*'
-
-  Pumukit\OpencastBundle\Domain\Repository\OpencastVersionRepositoryInterface:
-    alias: Pumukit\OpencastBundle\Infrastructure\Api\OpencastVersionApiRepository
-
-  Pumukit\OpencastBundle\Domain\Repository\OpencastConnectionRepositoryInterface:
-    alias: Pumukit\OpencastBundle\Infrastructure\Api\OpencastConnectionApiRepository
-
-  Pumukit\OpencastBundle\Shared\Config\OpencastAPIEndpoints: ~
+  Pumukit\OpencastBundle\EventListener\SeriesListener:
+    tags:
+      - { name: kernel.event_listener, event: series.create, method: onSeriesSync }
+      - { name: kernel.event_listener, event: series.update, method: onSeriesSync }
+      - { name: kernel.event_listener, event: series.delete, method: onSeriesSync }

@@ -4,53 +4,74 @@ declare(strict_types=1);
 
 namespace Pumukit\OpencastBundle\Controller;
 
+use Doctrine\Bundle\MongoDBBundle\Attribute\MapDocument;
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Pumukit\OpencastBundle\Exception\OpencastException;
+use Pumukit\OpencastBundle\MediaPackage\MediaPackage;
+use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
+use Pumukit\SchemaBundle\Document\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 #[Route('/api/opencast')]
+#[WithMonologChannel('opencast')]
 class ImportController extends AbstractController
 {
-    private $opencastImportService;
-    private $documentManager;
-    private $logger;
-
     public function __construct(
-        DocumentManager $documentManager,
-        OpencastImportService $opencastImportService,
-        LoggerInterface $logger
-    ) {
-        $this->documentManager = $documentManager;
-        $this->opencastImportService = $opencastImportService;
-        $this->logger = $logger;
-    }
+        private readonly ClientService $clientService,
+        private readonly OpencastImportService $opencastImportService,
+        private readonly DocumentManager $documentManager,
+        private readonly LoggerInterface $logger,
+    ) {}
 
-    #[Route('/import_event', name: 'pumukit_opencast_import_event')]
+    #[Route('/import_event', name: 'pumukit_opencast_import_event', methods: ['POST'])]
     public function eventAction(Request $request): Response
     {
-        $mediaPackage = json_decode($request->request->get('mediapackage'), true, 512, JSON_THROW_ON_ERROR);
-        if (!isset($mediaPackage['mediapackage']['id'])) {
-            $this->logger->warning('No mediapackage ID, ERROR 400 returned');
+        $this->checkEnabled();
 
-            return new Response('No mediapackage ID', Response::HTTP_BAD_REQUEST);
+        try {
+            $data = json_decode((string) $request->request->get('mediapackage'), true, 512, JSON_THROW_ON_ERROR);
+            $mediaPackage = MediaPackage::fromArray(is_array($data['mediapackage'] ?? null) ? $data['mediapackage'] : []);
+        } catch (\JsonException|OpencastException $exception) {
+            $this->logger->warning('Opencast import event without a valid mediapackage', ['error' => $exception->getMessage()]);
+
+            return new Response('No valid mediapackage', Response::HTTP_BAD_REQUEST);
         }
 
-        $this->opencastImportService->importRecordingFromMediaPackage($mediaPackage['mediapackage'], false, $this->getUser());
+        $user = $this->getUser();
 
-        return new Response('Success', Response::HTTP_OK);
+        try {
+            $multimediaObject = $this->opencastImportService->importRecordingFromMediaPackage($mediaPackage, false, $user instanceof User ? $user : null);
+        } catch (\Exception $exception) {
+            $this->logger->error('Opencast import event failed', ['mediapackage' => $mediaPackage->id(), 'error' => $exception->getMessage()]);
+
+            return new Response('Import failed: '.$exception->getMessage(), Response::HTTP_INTERNAL_SERVER_ERROR);
+        }
+
+        return new Response('Success '.$multimediaObject->getId(), Response::HTTP_OK);
     }
 
-    #[Route('/sync_tracks/{id}', name: 'pumukit_opencast_import_sync_tracks')]
-    public function syncTracksAction(MultimediaObject $multimediaObject): Response
+    #[Route('/sync_tracks/{id}', name: 'pumukit_opencast_import_sync_tracks', methods: ['GET', 'POST'])]
+    public function syncTracksAction(#[MapDocument(id: 'id')] MultimediaObject $multimediaObject): Response
     {
+        $this->checkEnabled();
+
         $this->opencastImportService->syncTracks($multimediaObject);
         $this->documentManager->flush();
 
-        return new Response('Success '.$multimediaObject->getTitle(), Response::HTTP_OK);
+        return new Response('Success '.$multimediaObject->getId(), Response::HTTP_OK);
+    }
+
+    private function checkEnabled(): void
+    {
+        if (!$this->clientService->isEnabled()) {
+            throw $this->createNotFoundException('Opencast is not enabled');
+        }
     }
 }

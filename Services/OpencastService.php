@@ -14,226 +14,121 @@ use Pumukit\SchemaBundle\Services\MultimediaObjectService;
 
 class OpencastService
 {
-    private $sbsConfiguration;
-    private $sbsProfileName;
-    private $generateSbs = false;
-    private $useFlavour = false;
-    private $sbsFlavour;
-    private $urlPathMapping;
-    private $jobCreator;
-    private $profileService;
-    private $multimediaObjectService;
-    private $defaultVars;
-    private $errorIfFileNotExist;
+    private const ASSETS_PATH = 'assets/assets/';
 
     public function __construct(
-        JobCreator $jobCreator,
-        ProfileService $profileService,
-        MultimediaObjectService $multimediaObjectService,
-        array $sbsConfiguration = [],
-        array $urlMapping = [],
-        array $defaultVars = [],
-        bool $errorIfFileNotExist = true
-    ) {
-        $this->jobCreator = $jobCreator;
-        $this->profileService = $profileService;
-        $this->multimediaObjectService = $multimediaObjectService;
-        $this->sbsConfiguration = $sbsConfiguration;
-        $this->urlPathMapping = $urlMapping;
-        $this->defaultVars = $defaultVars;
-        $this->errorIfFileNotExist = $errorIfFileNotExist;
-        $this->initSbsConfiguration();
+        private readonly JobCreator $jobCreator,
+        private readonly ProfileService $profileService,
+        private readonly MultimediaObjectService $multimediaObjectService,
+        private readonly array $sbsConfiguration = [],
+        private readonly array $urlMapping = [],
+        private readonly bool $errorIfFileNotExist = true,
+        private readonly string $locale = 'en',
+    ) {}
+
+    public function isSbsEnabled(): bool
+    {
+        return (bool) ($this->sbsConfiguration['generate_sbs'] ?? false) && '' !== $this->getSbsProfile();
     }
 
-    public function genAutoSbs(MultimediaObject $multimediaObject, array $opencastUrls = [])
+    public function getSbsProfile(): string
     {
-        if (!$this->generateSbs) {
+        return (string) ($this->sbsConfiguration['profile'] ?? '');
+    }
+
+    public function genAutoSbs(MultimediaObject $multimediaObject, array $opencastUrls = []): bool
+    {
+        if (!$this->isSbsEnabled()) {
             return false;
         }
 
-        if (!$this->useFlavour) {
-            return $this->generateSbsTrack($multimediaObject, $opencastUrls);
-        }
-
-        $flavourTrack = null;
-        foreach ($multimediaObject->getTracksWithTag($this->sbsFlavour) as $track) {
-            if (!$track->metadata()->isOnlyAudio()) {
-                $flavourTrack = $track;
-
-                break;
+        if ($this->sbsConfiguration['use_flavour'] ?? false) {
+            foreach ($multimediaObject->getTracksWithTag((string) $this->sbsConfiguration['flavour']) as $track) {
+                if (!$track->metadata()->isOnlyAudio()) {
+                    return $this->useTrackAsSbs($multimediaObject, $track);
+                }
             }
-        }
-
-        if ($flavourTrack) {
-            return $this->useTrackAsSbs($multimediaObject, $flavourTrack);
         }
 
         return $this->generateSbsTrack($multimediaObject, $opencastUrls);
     }
 
-    public function getPath($url): ?string
+    public function generateSbsTrack(MultimediaObject $multimediaObject, array $opencastUrls = []): bool
     {
-        $url = $this->refactorUrl($url);
+        if (!$this->isSbsEnabled()) {
+            return false;
+        }
 
-        foreach ($this->urlPathMapping as $m) {
-            $path = str_replace($m['url'], $m['path'], $url);
-            if (realpath($path)) {
+        $track = $multimediaObject->getTracks()[0] ?? null;
+        if (!$track instanceof Track) {
+            return false;
+        }
+
+        $path = $track->storage()->path()->path();
+        if (!$path) {
+            return false;
+        }
+
+        $language = $multimediaObject->getProperty('opencastlanguage') ? strtolower((string) $multimediaObject->getProperty('opencastlanguage')) : $this->locale;
+        $vars = $opencastUrls ? ['ocurls' => $opencastUrls] : [];
+
+        $this->jobCreator->fromPath($multimediaObject, Path::create($path), new JobOptions($this->getSbsProfile(), 2, $language, [], $vars));
+
+        return true;
+    }
+
+    public function getPath(string $url): ?string
+    {
+        $url = $this->toStorageUrl($url);
+        foreach ($this->urlMapping as $mapping) {
+            $position = '' === $mapping['url'] ? false : strpos($url, $mapping['url']);
+            if (false === $position) {
+                continue;
+            }
+            $path = substr_replace($url, $mapping['path'], $position, strlen($mapping['url']));
+            if (false !== realpath($path)) {
                 return $path;
             }
         }
 
         if ($this->errorIfFileNotExist) {
-            throw new \RuntimeException(sprintf(
-                'Error accessing to the track path of "%s". Check "pumukit_opencast.url_mapping".',
-                $url
-            ));
+            throw new \RuntimeException(sprintf('The track file of "%s" is not accessible. Check "pumukit_opencast.url_mapping".', $url));
         }
 
         return null;
     }
 
-    public function generateSbsTrack(MultimediaObject $multimediaObject, array $opencastUrls = [])
+    private function toStorageUrl(string $url): string
     {
-        if (!$this->generateSbs) {
-            return false;
+        $position = stripos($url, self::ASSETS_PATH);
+        if (false === $position) {
+            return $url;
         }
 
-        if (!$this->sbsProfileName) {
-            return false;
+        $parts = explode('/', substr($url, $position + strlen(self::ASSETS_PATH)));
+        if (4 !== count($parts)) {
+            return $url;
         }
+        [$mediaPackageId, $elementId, $version, $file] = $parts;
+        $extension = pathinfo($file, PATHINFO_EXTENSION);
 
-        $tracks = $multimediaObject->getTracks();
-        if (!$tracks) {
-            return false;
-        }
-
-        $track = $tracks[0];
-        $path = $this->getPath($track->storage()->path()->path());
-
-        $language = $multimediaObject->getProperty('opencastlanguage') ? strtolower($multimediaObject->getProperty('opencastlanguage')) : \Locale::getDefault();
-
-        $vars = $this->defaultVars;
-        if ($opencastUrls) {
-            $vars += ['ocurls' => $opencastUrls];
-        }
-
-        $jobOptions = new JobOptions($this->sbsProfileName, 2, $language, [], $vars);
-        $path = Path::create($path);
-
-        return $this->jobCreator->fromPath($multimediaObject, $path, $jobOptions);
-    }
-
-    public function getMediaPackageThumbnail($mediaPackage): ?string
-    {
-        if (!isset($mediaPackage['attachments']['attachment'])) {
-            return null;
-        }
-
-        $attachments = $mediaPackage['attachments']['attachment'];
-        if (isset($attachments['id'])) {
-            $attachments = [$attachments];
-        }
-
-        foreach ($attachments as $attachment) {
-            if (!isset($attachment['type'])) {
-                continue;
-            }
-
-            if (!in_array(
-                $attachment['type'],
-                [
-                    'presenter/search+preview',
-                    'presentation/search+preview',
-                    'presenter/player+preview',
-                    'presentation/player+preview',
-                ]
-            )
-            ) {
-                continue;
-            }
-
-            if (!isset($attachment['url'])) {
-                continue;
-            }
-
-            return $attachment['url'];
-        }
-
-        return null;
-    }
-
-    private function initSbsConfiguration(): void
-    {
-        if ($this->sbsConfiguration) {
-            if (isset($this->sbsConfiguration['generate_sbs'])) {
-                $this->generateSbs = $this->sbsConfiguration['generate_sbs'];
-            }
-            if (isset($this->sbsConfiguration['profile'])) {
-                $this->sbsProfileName = $this->sbsConfiguration['profile'];
-            }
-            if (isset($this->sbsConfiguration['use_flavour'])) {
-                $this->useFlavour = $this->sbsConfiguration['use_flavour'];
-            }
-            if (isset($this->sbsConfiguration['flavour'])) {
-                $this->sbsFlavour = $this->sbsConfiguration['flavour'];
-            }
-        }
-    }
-
-    private function refactorUrl(string $url): string
-    {
-        // NOTE: Refactor for Opencast 3 or greather version
-        if (false !== stripos($url, 'assets/assets')) {
-            $data = explode('assets/assets/', $url);
-            $variables = explode('/', $data[1]);
-            $file = end($variables);
-            $version = prev($variables);
-            $track = prev($variables);
-            $mediaPackageID = prev($variables);
-            $url = $data[0].'assets/assets/'.$mediaPackageID.'/'.$version.'/'.$track.'.'.pathinfo($file, PATHINFO_EXTENSION);
-        }
-
-        // NOTE: Refactor for Opencast 1.4 or 1.6
-        $findPathMediaPackage = false !== stripos($url, '/episode/archive/mediapackage/');
-        $findPathEpisode = false !== stripos($url, '/episode/');
-        if ($findPathEpisode || $findPathMediaPackage) {
-            if ($findPathMediaPackage) {
-                $data = explode('/episode/archive/mediapackage/', $url);
-                $delimiterPath = '/episode/archive/mediapackage/';
-            } else {
-                $data = explode('/episode/', $url);
-                $delimiterPath = '/episode/';
-            }
-
-            $variables = explode('/', $data[1]);
-            $file = end($variables);
-            $version = prev($variables);
-            $element = prev($variables);
-            $mediaPackageID = prev($variables);
-            $url = $data[0].$delimiterPath.$mediaPackageID.'/'.$version.'/'.$element.'.'.pathinfo($file, PATHINFO_EXTENSION);
-        }
-
-        return $url;
+        return substr($url, 0, $position).self::ASSETS_PATH.$mediaPackageId.'/'.$version.'/'.$elementId.('' === $extension ? '' : '.'.$extension);
     }
 
     private function useTrackAsSbs(MultimediaObject $multimediaObject, Track $track): bool
     {
-        if (!$this->sbsProfileName) {
+        $profile = $this->profileService->getProfile($this->getSbsProfile());
+        if (!$profile) {
             return false;
         }
 
-        $sbsProfile = $this->profileService->getProfile($this->sbsProfileName);
-
-        $track->tags()->add('profile:'.$this->sbsProfileName);
-
-        $tags = ['master', 'display'];
-        foreach ($tags as $tag) {
-            if ($sbsProfile[$tag] && !$track->tags()->contains($tag)) {
+        $track->tags()->add('profile:'.$this->getSbsProfile());
+        foreach (['master', 'display'] as $tag) {
+            if (!empty($profile[$tag])) {
                 $track->tags()->add($tag);
             }
         }
-
-        foreach (array_filter(preg_split('/[,\s]+/', $sbsProfile['tags'])) as $tag) {
+        foreach (array_filter(preg_split('/[,\s]+/', (string) ($profile['tags'] ?? ''))) as $tag) {
             $track->tags()->add(trim($tag));
         }
 

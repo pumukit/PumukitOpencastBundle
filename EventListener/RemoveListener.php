@@ -5,66 +5,42 @@ declare(strict_types=1);
 namespace Pumukit\OpencastBundle\EventListener;
 
 use Doctrine\ODM\MongoDB\DocumentManager;
+use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
+use Pumukit\OpencastBundle\Exception\OpencastException;
+use Pumukit\OpencastBundle\Exception\OpencastNotFoundException;
 use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Event\MultimediaObjectEvent;
 
+#[WithMonologChannel('opencast')]
 class RemoveListener
 {
-    private $documentManager;
-    private $clientService;
-    private $deleteArchiveMediaPackage;
-    private $deletionWorkflowName;
-    private $logger;
-
     public function __construct(
-        DocumentManager $documentManager,
-        ClientService $clientService,
-        LoggerInterface $logger,
-        bool $deleteArchiveMediaPackage = false,
-        string $deletionWorkflowName = 'delete-archive'
-    ) {
-        $this->documentManager = $documentManager;
-        $this->clientService = $clientService;
-        $this->logger = $logger;
-        $this->deleteArchiveMediaPackage = $deleteArchiveMediaPackage;
-        $this->deletionWorkflowName = $deletionWorkflowName;
-    }
+        private readonly DocumentManager $documentManager,
+        private readonly ClientService $clientService,
+        private readonly LoggerInterface $logger,
+        private readonly bool $deleteArchiveMediaPackage = false,
+    ) {}
 
     public function onMultimediaObjectDelete(MultimediaObjectEvent $event): void
     {
-        if (!$this->deleteArchiveMediaPackage) {
+        $mediaPackageId = $event->getMultimediaObject()->getProperty('opencast');
+        if (!$this->deleteArchiveMediaPackage || !$this->clientService->isEnabled() || !$mediaPackageId) {
+            return;
+        }
+
+        if (null !== $this->documentManager->getRepository(MultimediaObject::class)->findOneBy(['properties.opencast' => $mediaPackageId])) {
             return;
         }
 
         try {
-            $multimediaObject = $event->getMultimediaObject();
-            $mediaPackageId = $multimediaObject->getProperty('opencast');
-            if (!$mediaPackageId) {
-                return;
-            }
-
-            $multimediaObjects = $this->documentManager->getRepository(MultimediaObject::class)->findBy([
-                'properties.opencast' => $mediaPackageId,
-            ]);
-
-            if (0 === count($multimediaObjects)) {
-                $opencastVersion = $this->clientService->getOpencastVersion();
-                if (version_compare($opencastVersion, '9.0.0', '<')) {
-                    $output = $this->clientService->applyWorkflowToMediaPackages([$mediaPackageId]);
-                    if (!$output) {
-                        throw new \Exception('Error on deleting Opencast media package "'
-                                         .$mediaPackageId.'" from archive '
-                                         .'using workflow name "'
-                                         .$this->deletionWorkflowName.'"');
-                    }
-                } else {
-                    $this->clientService->removeEvent($mediaPackageId);
-                }
-            }
-        } catch (\Exception $e) {
-            $this->logger->error($e->getMessage(), $e->getTrace());
+            $this->clientService->removeEvent((string) $mediaPackageId);
+            $this->logger->info('Opencast event deleted', ['mediapackage' => $mediaPackageId]);
+        } catch (OpencastNotFoundException) {
+            $this->logger->info('Opencast event already deleted', ['mediapackage' => $mediaPackageId]);
+        } catch (OpencastException $exception) {
+            $this->logger->error('Opencast event not deleted', ['mediapackage' => $mediaPackageId, 'error' => $exception->getMessage()]);
         }
     }
 }

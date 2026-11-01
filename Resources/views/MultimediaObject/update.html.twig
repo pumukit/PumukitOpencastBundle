@@ -1,40 +1,23 @@
 <div class="modal-header">
-    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span>
-    </button>
     <h4 class="modal-title" id="myModalLabel">{% trans %}update Opencast track of Multimedia Object{% endtrans %}</h4>
+    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans %}Close{% endtrans %}"></button>
 </div>
 <div class="modal-body">
     {% form_theme form '@PumukitNewAdmin/Themes/fields.html.twig' %}
-    <form onsubmit="$('#myModal').modal('hide');
-            $.ajax({
-            url: '{{ path('pumukit_opencast_mm_update', {'id': multimediaObject.id}) }}',
-            type: 'POST',
-            data: $(this).serialize(),
-            error: function(jqXHR, textStatus, errorThrown){
-            var textError = jqXHR.responseText;
-            var message = errorThrown+': '+textError;
-            no_success(message);
-            },
-            success: function(response){
-            $('#tracks_mms_{{ multimediaObject.id }}').html(response);
-            var message = '{% trans %}Track successfully updated.{% endtrans %}';
-            success(message);
-            }
-            });
-            return false;"
-          action="{{ path('pumukit_opencast_mm_update', {'id': multimediaObject.id}) }}" method="POST">
-        <input type="hidden" name="mmId" id="mmId" value="{{ multimediaObject.id }}"/>
-        <input type="hidden" name="preview" id="preview" value="true"/>
+    {{ form_start(form, {attr: {
+        'data-controller': 'admin--modal-form',
+        'data-action': 'submit->admin--modal-form#submit',
+        'data-admin--modal-form-refresh-value': [{target: '#tracks_mms_' ~ mm.id, url: path('pumukitnewadmin_track_list', {'id': mm.id})}]|json_encode,
+        'data-admin--modal-form-success-message-value': 'Track successfully updated.'|trans,
+        'data-admin--modal-form-error-message-value': 'Error'|trans
+    }}) }}
         <fieldset>
             <legend hidden>{% trans %}update Opencast track of Multimedia Object{% endtrans %}</legend>
-            {% for child in form %}
-                {{ form_row(child) }}
-            {% endfor %}
+            {{ form_rest(form) }}
         </fieldset>
         <div class="modal-footer">
-            <button type="button" class="btn btn-default btn-raised"
-                    data-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
-            <button type="submit" class="btn btn-pumukit btn-raised">{% trans %}OK{% endtrans %}</button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">{% trans %}Cancel{% endtrans %}</button>
+            <button type="submit" class="btn btn-pumukit">{% trans %}OK{% endtrans %}</button>
         </div>
-    </form>
+    {{ form_end(form) }}
 </div>
