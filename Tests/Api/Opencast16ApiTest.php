@@ -96,6 +96,15 @@ class Opencast16ApiTest extends TestCase
         $this->assertSame('John Doe', $http->requests[0][2]['name']);
     }
 
+    public function testUpdatingAMissingUserCreatesIt(): void
+    {
+        $http = (new FakeOpencastHttpClient())->respond('PUT', '/user-utils/jdoe.json', 201);
+
+        (new Opencast16Api())->updateUser($http, new OpencastUser('jdoe', 'John Doe', 'jdoe@example.org', ['ROLE_USER']));
+
+        $this->assertSame('PUT', $http->requests[0][0]);
+    }
+
     public function testTheMediaPackagesOfASucceededWorkflowAreFound(): void
     {
         $http = (new FakeOpencastHttpClient())

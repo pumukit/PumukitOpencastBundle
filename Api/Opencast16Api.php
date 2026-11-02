@@ -125,7 +125,7 @@ class Opencast16Api implements OpencastApiInterface
         if (404 === $response->status) {
             throw new OpencastNotFoundException(sprintf('The Opencast user "%s" does not exist', $user->username), 404);
         }
-        $response->expect(200);
+        $response->expect(200, 201);
     }
 
     public function deleteUser(OpencastHttpClient $http, string $username): void
