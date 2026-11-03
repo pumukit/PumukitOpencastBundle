@@ -51,6 +51,7 @@ class OpencastImportServiceTest extends PumukitTestCase
         $this->assertTrue($track->tags()->containsAllTags(['opencast', 'display', 'presenter/preview', 'engage-streaming']));
         $this->assertSame(9, $track->metadata()->duration());
         $this->assertSame(9, $multimediaObject->getDuration());
+        $this->assertTrue($multimediaObject->isVideoType());
         $this->assertCount(1, $multimediaObject->getPics());
         $this->assertCount(1, $this->events);
     }
