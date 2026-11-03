@@ -41,7 +41,8 @@ class PumukitOpencastExtension extends Extension implements PrependExtensionInte
     {
         $config = $this->processConfiguration(new Configuration(), $configs);
 
-        if (!str_starts_with($config['host'], 'env_') && !filter_var($config['host'], FILTER_VALIDATE_URL)) {
+        $config['host'] = (string) $config['host'];
+        if ($config['enable'] && !str_starts_with($config['host'], 'env_') && !filter_var($config['host'], FILTER_VALIDATE_URL)) {
             throw new InvalidConfigurationException(sprintf('The parameter "pumukit_opencast.host" is not a valid url: "%s"', $config['host']));
         }
 

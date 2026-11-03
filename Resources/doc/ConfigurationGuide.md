@@ -30,7 +30,7 @@ pumukit_opencast:
 | Option | Default | Description |
 |--------|---------|-------------|
 | `enable` | `true` | If false, nothing connects to Opencast: the importer gives 404, the listeners do nothing and the commands fail |
-| `host` | (required) | Opencast presentation (or all-in-one) node |
+| `host` | (required if enabled) | Opencast presentation (or all-in-one) node |
 | `admin_host` | `null` | Opencast admin node. If null, it is asked to the server on every request that needs it |
 | `username`, `password` | `''` | Digest account of the REST endpoints (`org.opencastproject.security.digest.user` / `.pass`) |
 | `insecure` | `false` | Do not verify the TLS certificate of Opencast |

@@ -37,8 +37,17 @@ class ConfigurationTest extends TestCase
     public function testTheHostIsRequired(): void
     {
         $this->expectException(InvalidConfigurationException::class);
+        $this->expectExceptionMessage('needs host when it is enabled');
 
         $this->process([]);
+    }
+
+    public function testTheDisabledBundleNeedsNoHost(): void
+    {
+        $config = $this->process(['enable' => false]);
+
+        $this->assertFalse($config['enable']);
+        $this->assertNull($config['host']);
     }
 
     private function process(array $config): array

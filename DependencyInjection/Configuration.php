@@ -17,14 +17,17 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->getRootNode();
 
         $rootNode
+            ->validate()
+            ->ifTrue(static fn (array $config): bool => $config['enable'] && '' === trim((string) $config['host']))
+            ->thenInvalid('pumukit_opencast needs host when it is enabled')
+            ->end()
             ->children()
             ->booleanNode('enable')
             ->defaultTrue()
-            ->info('If false, nothing connects to Opencast: the importer gives 404, the listeners do nothing and the commands fail')
+            ->info('If false, nothing connects to Opencast: the importer gives 404, the listeners do nothing, the commands fail and host is not required')
             ->end()
             ->scalarNode('host')
-            ->isRequired()
-            ->cannotBeEmpty()
+            ->defaultNull()
             ->info('Opencast server URL (presentation or all-in-one node)')
             ->end()
             ->scalarNode('admin_host')
