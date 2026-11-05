@@ -102,9 +102,13 @@ framework:
       Pumukit\OpencastBundle\Message\ImportNotification: async
 ```
 
+The optional `worker` service of the `docker-compose.yml` of the core consumes every transport:
+
 ```bash
-php bin/console messenger:consume async
+docker compose --profile worker up -d
 ```
+
+Without it, run `php bin/console messenger:consume async`.
 
 Commands
 --------
