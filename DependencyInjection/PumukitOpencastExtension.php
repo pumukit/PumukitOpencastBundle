@@ -27,7 +27,7 @@ class PumukitOpencastExtension extends Extension implements PrependExtensionInte
                         'type' => 'rotating_file',
                         'path' => '%kernel.logs_dir%/opencast.log',
                         'level' => 'info',
-                        'max_files' => 30,
+                        'max_files' => '%env(int:PUMUKIT_LOG_MAX_FILES)%',
                         'channels' => [self::LOG_CHANNEL],
                         'bubble' => false,
                         'priority' => 100,

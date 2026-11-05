@@ -174,5 +174,5 @@ Other bundles
 Logs
 ----
 
-The bundle logs to its own `opencast` channel, in `%kernel.logs_dir%/opencast-YYYY-MM-DD.log` (30 files kept):
+The bundle logs to its own `opencast` channel, in `%kernel.logs_dir%/opencast-YYYY-MM-DD.log` (`PUMUKIT_LOG_MAX_FILES` files kept, 15 by default):
 imports, synchronizations, Opencast errors, deleted events, series and users.
