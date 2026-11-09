@@ -24,7 +24,6 @@ class RemoveListenerTest extends PumukitTestCase
         $first = $this->multimediaObject('mp-1');
         $second = $this->multimediaObject('mp-1');
         $client = $this->createMock(ClientService::class);
-        $client->method('isEnabled')->willReturn(true);
         $client->expects($this->once())->method('removeEvent')->with('mp-1');
         $listener = new RemoveListener($this->dm, $client, new NullLogger(), true);
 
@@ -38,7 +37,6 @@ class RemoveListenerTest extends PumukitTestCase
     {
         $multimediaObject = $this->multimediaObject('mp-2');
         $client = $this->createMock(ClientService::class);
-        $client->method('isEnabled')->willReturn(true);
         $client->expects($this->never())->method('removeEvent');
 
         $this->delete($multimediaObject);

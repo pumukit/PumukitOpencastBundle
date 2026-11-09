@@ -1,4 +1,4 @@
 pumukit_opencast:
     resource: "@PumukitOpencastBundle/Controller/"
-    type:     attribute
+    type:     pumukit_opencast
     prefix:   /

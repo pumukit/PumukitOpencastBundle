@@ -4,7 +4,6 @@ services:
     autoconfigure: true
     public:        true
     bind:
-      $enabled: '%pumukit_opencast.enable%'
       $player: '%pumukit_opencast.player%'
       $scheduler: '%pumukit_opencast.scheduler%'
       $opencastShowImporterTab: '%pumukit_opencast.show_importer_tab%'

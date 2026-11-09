@@ -26,7 +26,7 @@ class RemoveListener
     public function onMultimediaObjectDelete(MultimediaObjectEvent $event): void
     {
         $mediaPackageId = $event->getMultimediaObject()->getProperty('opencast');
-        if (!$this->deleteArchiveMediaPackage || !$this->clientService->isEnabled() || !$mediaPackageId) {
+        if (!$this->deleteArchiveMediaPackage || !$mediaPackageId) {
             return;
         }
 

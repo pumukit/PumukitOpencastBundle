@@ -121,7 +121,7 @@ class MediaPackageController extends AbstractController
 
     private function checkImporter(): void
     {
-        if (!$this->opencastShowImporterTab || !$this->clientService->isEnabled()) {
+        if (!$this->opencastShowImporterTab) {
             throw $this->createNotFoundException('The Opencast importer is not enabled');
         }
     }

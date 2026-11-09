@@ -12,13 +12,12 @@ class SeriesListener
 {
     public function __construct(
         private readonly SeriesSyncService $seriesSyncService,
-        private readonly bool $enabled = true,
         private readonly bool $syncSeriesWithOpencast = false,
     ) {}
 
     public function onSeriesSync(SeriesEvent $event, string $eventName): void
     {
-        if (!$this->enabled || !$this->syncSeriesWithOpencast) {
+        if (!$this->syncSeriesWithOpencast) {
             return;
         }
 

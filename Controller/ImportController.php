@@ -10,7 +10,6 @@ use Monolog\Attribute\WithMonologChannel;
 use Psr\Log\LoggerInterface;
 use Pumukit\OpencastBundle\Exception\OpencastException;
 use Pumukit\OpencastBundle\MediaPackage\MediaPackage;
-use Pumukit\OpencastBundle\Services\ClientService;
 use Pumukit\OpencastBundle\Services\OpencastImportService;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Pumukit\SchemaBundle\Document\User;
@@ -24,7 +23,6 @@ use Symfony\Component\Routing\Attribute\Route;
 class ImportController extends AbstractController
 {
     public function __construct(
-        private readonly ClientService $clientService,
         private readonly OpencastImportService $opencastImportService,
         private readonly DocumentManager $documentManager,
         private readonly LoggerInterface $logger,
@@ -33,8 +31,6 @@ class ImportController extends AbstractController
     #[Route('/import_event', name: 'pumukit_opencast_import_event', methods: ['POST'])]
     public function eventAction(Request $request): Response
     {
-        $this->checkEnabled();
-
         try {
             $data = json_decode((string) $request->request->get('mediapackage'), true, 512, JSON_THROW_ON_ERROR);
             $mediaPackage = MediaPackage::fromArray(is_array($data['mediapackage'] ?? null) ? $data['mediapackage'] : []);
@@ -60,18 +56,9 @@ class ImportController extends AbstractController
     #[Route('/sync_tracks/{id}', name: 'pumukit_opencast_import_sync_tracks', methods: ['GET', 'POST'])]
     public function syncTracksAction(#[MapDocument(id: 'id')] MultimediaObject $multimediaObject): Response
     {
-        $this->checkEnabled();
-
         $this->opencastImportService->syncTracks($multimediaObject);
         $this->documentManager->flush();
 
         return new Response('Success '.$multimediaObject->getId(), Response::HTTP_OK);
-    }
-
-    private function checkEnabled(): void
-    {
-        if (!$this->clientService->isEnabled()) {
-            throw $this->createNotFoundException('Opencast is not enabled');
-        }
     }
 }

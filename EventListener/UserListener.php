@@ -24,7 +24,7 @@ class UserListener
 
     public function onUserEvent(UserEvent $event, string $eventName): void
     {
-        if (!$this->manageOpencastUsers || !$this->clientService->isEnabled()) {
+        if (!$this->manageOpencastUsers) {
             return;
         }
 

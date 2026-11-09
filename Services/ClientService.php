@@ -25,14 +25,8 @@ class ClientService
         private readonly LoggerInterface $logger = new NullLogger(),
         private readonly string $player = '/paella7/ui/watch.html',
         private readonly string $scheduler = '/admin-ui/index.html#/events/events',
-        private readonly bool $enabled = true,
         private readonly bool $manageOpencastUsers = false,
     ) {}
-
-    public function isEnabled(): bool
-    {
-        return $this->enabled;
-    }
 
     public function getUrl(): string
     {
@@ -41,8 +35,6 @@ class ClientService
 
     public function getAdminUrl(): string
     {
-        $this->checkEnabled();
-
         return $this->http->getAdminUrl();
     }
 
@@ -58,8 +50,6 @@ class ClientService
 
     public function getVersion(): string
     {
-        $this->checkEnabled();
-
         return $this->resolver->getVersion($this->http);
     }
 
@@ -186,16 +176,7 @@ class ClientService
 
     private function api(): OpencastApiInterface
     {
-        $this->checkEnabled();
-
         return $this->resolver->getApi($this->http);
-    }
-
-    private function checkEnabled(): void
-    {
-        if (!$this->enabled) {
-            throw new OpencastException('Opencast is not enabled');
-        }
     }
 
     private function opencastUser(User $user): OpencastUser

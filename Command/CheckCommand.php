@@ -24,11 +24,6 @@ class CheckCommand extends Command
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $io = new SymfonyStyle($input, $output);
-        if (!$this->clientService->isEnabled()) {
-            $io->error('Opencast is disabled (pumukit_opencast.enable: false)');
-
-            return Command::FAILURE;
-        }
 
         try {
             $version = $this->clientService->checkSupported();

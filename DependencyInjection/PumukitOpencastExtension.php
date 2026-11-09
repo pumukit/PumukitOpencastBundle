@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pumukit\OpencastBundle\DependencyInjection;
 
 use Pumukit\OpencastBundle\Api\OpencastApiInterface;
+use Pumukit\OpencastBundle\Routing\RouteLoader;
 use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
 use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
@@ -19,6 +20,10 @@ class PumukitOpencastExtension extends Extension implements PrependExtensionInte
 
     public function prepend(ContainerBuilder $container): void
     {
+        if (!$this->processConfiguration(new Configuration(), $container->getExtensionConfig($this->getAlias()))['enable']) {
+            return;
+        }
+
         if ($container->hasExtension('monolog')) {
             $container->prependExtensionConfig('monolog', [
                 'channels' => [self::LOG_CHANNEL],
@@ -65,6 +70,15 @@ class PumukitOpencastExtension extends Extension implements PrependExtensionInte
         $container->setParameter('pumukit_opencast.default_tag_imported', $config['default_tag_imported']);
         $container->setParameter('pumukit_opencast.seconds_to_sleep_on_commands', $config['seconds_to_sleep_on_commands']);
         $container->setParameter('pumukit_opencast.notifications', $config['notifications']);
+
+        $container->register(RouteLoader::class)
+            ->setArguments(['%pumukit_opencast.enable%', '%kernel.environment%'])
+            ->addTag('routing.loader')
+        ;
+
+        if (!$config['enable']) {
+            return;
+        }
 
         $container->setParameter('pumukitschema.external_permissions', array_merge(
             $container->getParameter('pumukitschema.external_permissions'),

@@ -24,7 +24,7 @@ class Configuration implements ConfigurationInterface
             ->children()
             ->booleanNode('enable')
             ->defaultTrue()
-            ->info('If false, nothing connects to Opencast: the importer gives 404, the listeners do nothing, the commands fail and host is not required')
+            ->info('If false, the Opencast routes are not loaded, its permission is not offered, nothing else of the bundle is loaded and host is not required')
             ->end()
             ->scalarNode('host')
             ->defaultNull()

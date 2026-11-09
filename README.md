@@ -57,7 +57,8 @@ Upgrading from 5.0.x (PuMuKIT 5)
   support another version, add a service that implements `OpencastApiInterface` (see the configuration guide).
 - Remove the options `use_redirect`, `scheduler_on_menu`, `dashboard_on_menu`, `dashboard` and
   `deletion_workflow_name`: they were not used (the Opencast event is deleted with the External API).
-- New `enable` option.
+- New `enable` option: if false, the Opencast routes are not loaded, its permission is not offered and nothing else of
+  the bundle is loaded.
 - The users created in Opencast (`manage_opencast_users`) get a random password instead of `pumukit`, and their name
   and email.
 - The series sent to Opencast keep the accents and the non-Latin characters (only the HTML is removed).
