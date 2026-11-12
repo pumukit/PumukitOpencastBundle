@@ -62,7 +62,8 @@ Upgrading from 5.0.x (PuMuKIT 5)
 - The users created in Opencast (`manage_opencast_users`) get a random password instead of `pumukit`, and their name
   and email.
 - The series sent to Opencast keep the accents and the non-Latin characters (only the HTML is removed).
-- Importing again a recording that is already in PuMuKIT updates its tracks (it failed in 6.0 before).
+- Importing again a recording that is already in PuMuKIT gives the tracks whose file is not reachable with
+  `url_mapping` the duration and the streams of Opencast; in 5.x they kept their previous metadata.
 - A track whose file is not reachable with `url_mapping` is imported with the duration and the streams of Opencast
   when `error_if_file_not_exist` is false (it failed before).
 - The default language of the imported tracks is the PuMuKIT default locale.
