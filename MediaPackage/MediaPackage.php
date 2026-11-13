@@ -11,6 +11,7 @@ final class MediaPackage
     public const PREVIEW_TYPES = ['presenter/search+preview', 'presentation/search+preview', 'presenter/player+preview', 'presentation/player+preview'];
     public const GALICASTER_PROPERTIES = 'galicaster-properties';
     public const EPISODE_CATALOG = 'dublincore/episode';
+    public const SEGMENT_PREVIEW_TYPES = ['presentation/segment+preview', 'presenter/segment+preview'];
 
     private function __construct(private readonly array $data) {}
 
@@ -95,7 +96,30 @@ final class MediaPackage
 
     public function segments(): array
     {
-        return self::nodes($this->data['segments']['segment'] ?? null);
+        foreach (self::SEGMENT_PREVIEW_TYPES as $type) {
+            $previews = [];
+            foreach ($this->attachmentsOfType($type) as $attachment) {
+                $time = self::segmentTime((string) ($attachment['ref'] ?? ''));
+                if (null !== $time && !empty($attachment['url'])) {
+                    $previews[$time] = (string) $attachment['url'];
+                }
+            }
+            if ([] === $previews) {
+                continue;
+            }
+
+            ksort($previews);
+            $times = array_keys($previews);
+            $segments = [];
+            foreach ($times as $index => $time) {
+                $end = $times[$index + 1] ?? max($this->duration(), $time);
+                $segments[] = ['index' => $index, 'time' => $time, 'duration' => $end - $time, 'preview' => $previews[$time]];
+            }
+
+            return $segments;
+        }
+
+        return [];
     }
 
     public function attachmentsOfType(string $type): array
@@ -166,6 +190,15 @@ final class MediaPackage
         $items = array_is_list($value) ? $value : [$value];
 
         return array_values(array_map(self::node(...), array_filter($items, 'is_array')));
+    }
+
+    private static function segmentTime(string $ref): ?int
+    {
+        if (!preg_match('/time=T(\d+):(\d+):(\d+):(\d+)F(\d+)/', $ref, $match)) {
+            return null;
+        }
+
+        return (((int) $match[1] * 60 + (int) $match[2]) * 60 + (int) $match[3]) * 1000 + intdiv((int) $match[4] * 1000, max(1, (int) $match[5]));
     }
 
     private static function node(array $node): array

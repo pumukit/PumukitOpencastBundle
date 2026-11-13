@@ -70,6 +70,28 @@ class OpencastImportServiceTest extends PumukitTestCase
         $this->assertCount(1, $this->events);
     }
 
+    public function testTheSegmentsAreImportedAndUpdatedWithTheRecording(): void
+    {
+        $data = $this->mediaPackage()->toArray();
+        $data['attachments']['attachment'] = [
+            ...MediaPackage::nodes($data['attachments']['attachment'] ?? null),
+            ['type' => 'presentation/segment+preview', 'ref' => 'track:t1;time=T00:00:00:0F1000', 'url' => 'https://oc.example.org/static/0.jpg'],
+            ['type' => 'presentation/segment+preview', 'ref' => 'track:t1;time=T00:00:05:0F1000', 'url' => 'https://oc.example.org/static/5.jpg'],
+        ];
+
+        $multimediaObject = $this->service()->importRecordingFromMediaPackage(MediaPackage::fromArray($data));
+
+        $segments = $multimediaObject->getEmbeddedSegments();
+        $this->assertCount(2, $segments);
+        $this->assertSame(5000, $segments[1]->getTime());
+        $this->assertSame('https://oc.example.org/static/5.jpg', $segments[1]->getPreview());
+
+        array_pop($data['attachments']['attachment']);
+        $multimediaObject = $this->service()->importRecordingFromMediaPackage(MediaPackage::fromArray($data));
+
+        $this->assertCount(1, $multimediaObject->getEmbeddedSegments());
+    }
+
     public function testARecordingWithoutSeriesGoesToTheDefaultSeries(): void
     {
         $data = $this->mediaPackage()->toArray();

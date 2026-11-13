@@ -59,6 +59,37 @@ class MediaPackageTest extends TestCase
         $this->assertSame([], $mediaPackage->segments());
     }
 
+    public function testTheSegmentsAreReadFromTheSegmentPreviewsOfOpencast16(): void
+    {
+        $mediaPackage = MediaPackage::fromArray([
+            'id' => 'mp',
+            'duration' => 120000,
+            'attachments' => ['attachment' => [
+                ['type' => 'presentation/segment+preview', 'ref' => 'track:t1;time=T00:01:40:0F1000', 'url' => 'https://oc/100.jpg'],
+                ['type' => 'presenter/segment+preview', 'ref' => 'track:t2;time=T00:00:10:0F1000', 'url' => 'https://oc/presenter.jpg'],
+                ['type' => 'presentation/segment+preview', 'ref' => 'track:t1;time=T00:00:00:0F1000', 'url' => 'https://oc/0.jpg'],
+                ['type' => 'presentation/segment+preview', 'ref' => 'track:t1;time=T00:00:04:12F25', 'url' => 'https://oc/4.jpg'],
+                ['type' => 'presentation/segment+preview', 'ref' => 'track:t1', 'url' => 'https://oc/without-time.jpg'],
+                ['type' => 'presentation/player+preview', 'ref' => 'track:t1;time=T00:00:30:0F1000', 'url' => 'https://oc/player.jpg'],
+            ]],
+        ]);
+
+        $this->assertSame([
+            ['index' => 0, 'time' => 0, 'duration' => 4480, 'preview' => 'https://oc/0.jpg'],
+            ['index' => 1, 'time' => 4480, 'duration' => 95520, 'preview' => 'https://oc/4.jpg'],
+            ['index' => 2, 'time' => 100000, 'duration' => 20000, 'preview' => 'https://oc/100.jpg'],
+        ], $mediaPackage->segments());
+    }
+
+    public function testThePresenterSegmentsAreUsedWithoutPresentationSegments(): void
+    {
+        $mediaPackage = MediaPackage::fromArray(['id' => 'mp', 'attachments' => ['attachment' => [
+            'type' => 'presenter/segment+preview', 'ref' => 'track:t2;time=T00:00:10:0F1000', 'url' => 'https://oc/presenter.jpg',
+        ]]]);
+
+        $this->assertSame([['index' => 0, 'time' => 10000, 'duration' => 0, 'preview' => 'https://oc/presenter.jpg']], $mediaPackage->segments());
+    }
+
     public function testTheModifiedDateOfTheSearchResultIsKept(): void
     {
         $mediaPackage = MediaPackage::fromArray(['id' => 'mp'])->withModified('2026-11-01T08:57:55.709312891Z');

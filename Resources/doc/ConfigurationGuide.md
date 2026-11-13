@@ -139,7 +139,9 @@ php bin/console pumukit:opencast:delete:empty:personal:series --host=https://new
 
 - `import:multiple:host` imports the published (or archived, with `--master`) tracks into the multimedia objects of
   that server that do not have them. Configure `url_mapping` with the paths of the new server first.
-- `import:segments` imports the segments of the published mediapackages.
+- `import:segments` imports the segments of the published mediapackages into the multimedia objects without
+  segments. The import of a recording already stores them; run it once against your own server for the recordings
+  imported before.
 - `sync:series` creates in that server the series that it does not have.
 - `delete:empty:personal:series` deletes from that server the empty personal series ("Videos of ...") and the empty
   "Nuevo" series that Galicaster creates.

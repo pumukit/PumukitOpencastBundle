@@ -8,7 +8,7 @@ use Doctrine\ODM\MongoDB\DocumentManager;
 use MongoDB\BSON\ObjectId;
 use MongoDB\BSON\Regex;
 use Pumukit\OpencastBundle\Services\ClientServiceFactory;
-use Pumukit\SchemaBundle\Document\EmbeddedSegment;
+use Pumukit\OpencastBundle\Services\SegmentFactory;
 use Pumukit\SchemaBundle\Document\MultimediaObject;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
@@ -50,9 +50,10 @@ class ImportSegmentsCommand extends AbstractRemoteOpencastCommand
             $this->pause();
 
             try {
-                $segments = $this->remote->getMediaPackage($mediaPackageId)?->segments() ?? [];
+                $mediaPackage = $this->remote->getMediaPackage($mediaPackageId);
+                $segments = $mediaPackage ? SegmentFactory::fromMediaPackage($mediaPackage) : [];
                 if ($this->force && $segments) {
-                    $multimediaObject->setEmbeddedSegments(array_map($this->createSegment(...), $segments));
+                    $multimediaObject->setEmbeddedSegments($segments);
                     $this->documentManager->flush();
                 }
                 $this->io->text(sprintf(' %s - %s: %d segments%s', $multimediaObject->getId(), $mediaPackageId, count($segments), $this->force && $segments ? ' imported' : ''));
@@ -63,19 +64,5 @@ class ImportSegmentsCommand extends AbstractRemoteOpencastCommand
         }
 
         return $errors ? Command::FAILURE : Command::SUCCESS;
-    }
-
-    private function createSegment(array $segment): EmbeddedSegment
-    {
-        $embeddedSegment = new EmbeddedSegment();
-        $embeddedSegment->setIndex((int) ($segment['index'] ?? 0));
-        $embeddedSegment->setTime((int) ($segment['time'] ?? 0));
-        $embeddedSegment->setDuration((int) ($segment['duration'] ?? 0));
-        $embeddedSegment->setRelevance((int) ($segment['relevance'] ?? 0));
-        $embeddedSegment->setHit((bool) ($segment['hit'] ?? false));
-        $embeddedSegment->setText((string) ($segment['text'] ?? ''));
-        $embeddedSegment->setPreview((string) ($segment['previews']['preview']['$'] ?? ''));
-
-        return $embeddedSegment;
     }
 }

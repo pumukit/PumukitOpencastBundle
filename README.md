@@ -67,6 +67,10 @@ Upgrading from 5.0.x (PuMuKIT 5)
 - A track whose file is not reachable with `url_mapping` is imported with the duration and the streams of Opencast
   when `error_if_file_not_exist` is false (it failed before).
 - The default language of the imported tracks is the PuMuKIT default locale.
+- **Segments:** the import stores the segments of the recording (the `*/segment+preview` attachments of Opencast 16,
+  presentation first) in the multimedia object, so the Paella player of PuMuKIT shows its frames. Importing again
+  updates them. To add them to the recordings already imported, run once against your own server
+  `php bin/console pumukit:opencast:import:segments --host=<host> -u <user> -p <password> --force`.
 - The master tracks imported with `pumukit:opencast:import:multiple:host --master` get the `master` tag instead of
   `display`.
 - The import notifications (`notifications`) work again; they are sent through Symfony Messenger and can be queued.

@@ -74,6 +74,7 @@ class OpencastImportService
         if ($multimediaObject instanceof MultimediaObject) {
             $this->syncTracks($multimediaObject, $mediaPackage);
             $this->syncPics($multimediaObject, $mediaPackage);
+            $this->syncSegments($multimediaObject, $mediaPackage);
             $this->multimediaObjectService->updateMultimediaObject($multimediaObject);
             $this->logger->info('Opencast mediapackage synchronized', ['mediapackage' => $mediaPackage->id(), 'multimedia_object' => $multimediaObject->getId()]);
 
@@ -107,6 +108,7 @@ class OpencastImportService
         if (0 === $multimediaObject->getPics()->count()) {
             $this->addPics($multimediaObject, $mediaPackage);
         }
+        $this->syncSegments($multimediaObject, $mediaPackage);
 
         $tag = $this->documentManager->getRepository(Tag::class)->findOneBy(['cod' => $this->defaultTagImported]);
         if ($tag instanceof Tag) {
@@ -130,6 +132,7 @@ class OpencastImportService
         $language = $this->getLanguage($mediaPackage, $language);
         $this->setOpencastProperties($multimediaObject, $mediaPackage, $invert, $language);
         $this->importTracks($mediaPackage, $multimediaObject, ['display'], $language);
+        $this->syncSegments($multimediaObject, $mediaPackage);
 
         return $this->multimediaObjectService->updateMultimediaObject($multimediaObject);
     }
@@ -210,6 +213,14 @@ class OpencastImportService
             if ($pic instanceof Pic) {
                 $pic->setUrl((string) $attachment['url']);
             }
+        }
+    }
+
+    public function syncSegments(MultimediaObject $multimediaObject, MediaPackage $mediaPackage): void
+    {
+        $segments = SegmentFactory::fromMediaPackage($mediaPackage);
+        if ([] !== $segments) {
+            $multimediaObject->setEmbeddedSegments($segments);
         }
     }
 
